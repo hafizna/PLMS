@@ -56,6 +56,31 @@ berasal dari baseline workbook lama dan tidak lagi menjadi acceptance target.
 
 **Scope ditentukan secara topologis, bukan organisasi.** UPT dan ULTG adalah atribut biasa dengan `valid_from`/`valid_to`, karena struktur organisasi berubah (Jatake pindah UPT akibat pemekaran 2024) sementara topologi tidak.
 
+### Management scope vs calculation context
+
+`+1 hop` adalah **management scope**: menentukan 152 penghantar yang muncul di
+register dan layar utama. Ini bukan batas graph untuk perhitungan proteksi.
+Database tetap memuat seluruh 1.183 penghantar DIgSILENT sehingga perangkat di
+luar management scope dapat dipakai sebagai konteks baca-saja.
+
+Engine distance v3a membangun **calculation context per rele**, bukan menaikkan
+scope global menjadi +2/+3 hop:
+
+- Z1 memakai protected line.
+- Z2 memakai protected line dan bagian line setelah remote bus.
+- Z3 minimal melihat protected line, seluruh cabang pada remote bus, dan next
+  line (+2 hop sebagai minimum prototipe) untuk menangani backup dan infeed.
+- Explicit reverse zone menelusuri cabang di belakang local bus. Reverse
+  resistive reach pada karakteristik quadrilateral bukan otomatis hop graph.
+- Traversal final berbasis impedansi R/X: berjalan forward/reverse sampai reach
+  zona habis, dengan safety cap tiga hop. Jangan berhenti hanya karena batas
+  management scope.
+
+Setiap calculation context menyimpan arah, ordered path/cabang yang dicoba,
+impedansi kumulatif, dan salah satu status `complete`, `incomplete_topology`,
+`incomplete_external`, atau `ambiguous_branch`. Bila graph terputus, tampilkan
+titik putusnya; jangan mengestimasi line atau impedansi yang hilang.
+
 ### Batas fungsi proteksi
 
 Register memuat **seluruh 17 sheet**. Tetapi tidak semua fungsi masuk mesin koordinasi:
@@ -259,7 +284,7 @@ Catatan desain:
 - `pst_asset_id`, `topology_version`, `source_event_id` nullable dan **tidak diintegrasikan sekarang**. Disediakan agar migrasi nanti tidak besar. Jangan bangun integrasi apa pun ke PST, Power Inspect, atau NMM di tahap ini.
 - `line_electrical` menyimpan `model_version` supaya setting yang dihitung di atas topologi lama bisa ditandai otomatis ketika model diperbarui.
 
-## Yang dikerjakan sekarang: v0 dan v1 saja
+## Status implementasi dan tahap yang dikerjakan sekarang
 
 ### v0 — ETL dan profiling
 
@@ -290,6 +315,35 @@ Catatan desain:
 - Query tetangga satu hop tanpa hardcode
 - `r1_ohm_km` hasil hitung konsisten dengan `r1_ohm / length_km` untuk seluruh baris
 
+**Status:** selesai dan sudah dipakai langsung oleh pemilik data. Pemakaian
+pertama memvalidasi daftar/detail nyata dan menghasilkan kebutuhan desain
+calculation context Z3/reverse di atas. Gerbang v1 → v2 terpenuhi.
+
+### v2 — register rele, setting lengkap, dan riwayat resmi
+
+1. Profilkan seluruh 22 tab workbook UPT dan petakan 17 fungsi/logical source
+   yang ditetapkan prompt; tab helper tetap dilaporkan dan tidak dibuang diam-diam.
+2. Bentuk identitas rele dari GI, bay, fungsi, merk, type, dan nomor seri.
+   Pencocokan lintas-sheet harus deterministik; konflik menjadi review queue data,
+   bukan fuzzy match tersembunyi.
+3. Isi `relay` dan `relay_setting` long-form dengan provenance minimal:
+   workbook, sheet, row, column/header, source hash, dan tanggal observasi.
+4. Tetapkan `coordination_class`: `GRADED`, `UNIT`, atau `AUXILIARY` sesuai
+   tabel fungsi. Kelas ini adalah klasifikasi; v2 belum menghitung koordinasi.
+5. Gabungkan riwayat dari workbook official. Jangan menimpa record lama;
+   tentukan `is_current` dari urutan tanggal berlaku dan tandai konflik tanggal.
+6. Tampilkan rele, setting terkini, dan riwayat pada layar detail yang sama.
+
+**Kriteria penerimaan v2:**
+
+- Seluruh 17 fungsi terpetakan dan seluruh 22 tab terprofil, termasuk tab helper
+- Setiap rele in-scope mempunyai setting terkini atau gap eksplisit dengan alasan
+- Tidak ada dua rele digabung hanya karena nama mirip
+- Setiap nilai setting dapat ditelusuri kembali ke workbook/sheet/baris/kolom
+- Riwayat resmi tidak hilang dan hanya satu versi current per rele/parameter/grup
+- `coordination_class` terisi untuk setiap fungsi yang dikenali
+- Belum ada rumus setting, simulasi reach, approval, case, atau governance
+
 ## Cara kerja
 
 - Tanya bila ada ambiguitas struktur, jangan menebak
@@ -308,13 +362,13 @@ Catatan desain:
 | **v0** | ETL, profiling, tabel alias terkurasi | Laporan cakupan diperiksa manual |
 | **v1** | Skema inti + satu layar penghantar | Angka cocok; tiga klik; graph jalan |
 | **v2** | Setting lengkap 17 sheet + `coordination_class` + riwayat versi resmi | Tiap rele in-scope punya setting terkini dan riwayat |
-| **v3a** | Engine koordinasi distance | Cocok dengan Mathcad untuk ≥10 kasus uji |
+| **v3a** | Engine koordinasi distance + calculation context forward/reverse berbasis impedansi | Cocok dengan Mathcad untuk ≥10 kasus uji; graph putus tertandai eksplisit |
 | **v3b** | OCR/GFR grading dalam batas transmisi — penghantar 150 kV → incoming trafo | Rantai terbentuk; yang putus di bawah incoming tertandai `incomplete_external` |
 | **v4** | SLD sebagai validasi visual | Selisih DB vs gambar tertandai otomatis |
 | **v5** | Governance: case, revisi, approval, audit | Hanya bila v1–v3 dipakai rutin |
 | **v6** | Relasi rele ↔ Defence Scheme P2B | Prasyarat: mapping DS ≥80% terisi dan kepemilikan data disepakati |
 
-**Aturan tangga:** jangan naik sebelum tahap sebelumnya benar-benar **dipakai**, bukan sekadar selesai dikoding. Repo lama gagal karena melompat ke v5.
+**Aturan tangga:** jangan naik sebelum tahap sebelumnya benar-benar **dipakai**, bukan sekadar selesai dikoding. Gerbang v1 → v2 sudah terpenuhi melalui pemakaian langsung; syarat pemakaian rutin tetap berlaku sebelum governance v5. Repo lama gagal karena melompat ke v5.
 
 ## Kenapa v3 bisa lebih cepat dari perkiraan
 
@@ -330,7 +384,7 @@ Semua bahan perhitungan setting ternyata sudah tersedia di sheet `DB`:
 | Rasio CT/PT | dokumen UPT | ada |
 | Topologi cabang untuk infeed | `line` hasil v1 | ada setelah v1 |
 
-Yang belum ada hanya logika perhitungannya sendiri — dan itu ada di Mathcad milikmu. Sheet `CALCULATION` di file DIgSILENT bahkan sudah memuat konfigurasi cabang L1–L4 untuk model infeed Z3, yang bisa dipakai sebagai kasus uji pembanding.
+Yang belum ada hanya logika perhitungannya sendiri — dan itu ada di Mathcad milikmu. Sheet `CALCULATION` di file DIgSILENT bahkan sudah memuat konfigurasi cabang L1–L4 untuk model infeed Z3. Pada v3a konfigurasi itu menjadi golden test untuk traversal seluruh cabang remote-bus, reach Z3, dan arah reverse; jangan menyederhanakannya menjadi satu next-line hardcoded.
 
 ## Modul dari repo lama yang layak diselamatkan
 
