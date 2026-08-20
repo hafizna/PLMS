@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>PLMS — <%= line.line_name || 'Penghantar #' + line.line_id %></title>
+  <link rel="stylesheet" href="/public/style.css">
+</head>
+<body>
+  <header>
+    <p class="breadcrumb"><a href="/">&larr; Daftar penghantar</a></p>
+    <h1><%= line.line_name || '(tanpa nama)' %></h1>
+    <p class="sub">
+      <%= line.voltage_kv || '—' %> kV &middot; sumber: <span class="source-<%= line.source.toLowerCase() %>"><%= line.source %></span>
+      <% if (line.is_boundary) { %> &middot; <strong>boundary</strong> (satu ujung di luar scope)<% } %>
+    </p>
+  </header>
+
+  <main>
+    <section class="two-col">
+      <div class="endpoint">
+        <h2>Ujung A</h2>
+        <p class="ss-name"><%= line.from_label %></p>
+        <p>Bay: <strong><%= bayFrom.text %></strong>
+          <% if (bayFrom.suspect) { %><span class="warn-inline">bay salah-baca sbg tanggal oleh Excel, perlu koreksi manual</span><% } %>
+        </p>
+        <% if (!line.from_topology_source) { %>
+          <p class="warn">topology_source: NULL — GI ini tidak ada di model DIgSILENT
+          (lihat legacy-knowledge/TOPOLOGI_GI_TANPA_DIGSILENT.md)</p>
+        <% } %>
+
+        <h3>Rele terpasang</h3>
+        <% if (relaysFrom.length === 0) { %>
+          <p class="empty">Belum ada data rele (register rele diisi mulai v2).</p>
+        <% } else { %>
+          <ul><% relaysFrom.forEach(r => { %><li><%= r.function_type %> — <%= r.manufacturer %> <%= r.model %></li><% }) %></ul>
+        <% } %>
+
+        <h3>Parameter hubung singkat (bus)</h3>
+        <% if (busScFrom.length === 0) { %>
+          <p class="empty">Tidak ada data bus_sc untuk GI ini.</p>
+        <% } else { %>
+          <table class="mini">
+            <thead><tr><th>Bus</th><th>kV</th><th>Isc 1ph (kA)</th><th>Isc 3ph (kA)</th></tr></thead>
+            <tbody>
+            <% busScFrom.forEach(b => { %>
+              <tr><td><%= b.bus_name %></td><td><%= b.voltage_kv %></td><td><%= b.isc_1ph_ka ?? '—' %></td><td><%= b.isc_3ph_ka ?? '—' %></td></tr>
+            <% }) %>
+            </tbody>
+          </table>
+        <% } %>
+
+        <h3>Tetangga satu hop</h3>
+        <% if (neighborsFrom.length === 0) { %>
+          <p class="empty">Tidak ada penghantar lain dari ujung ini.</p>
+        <% } else { %>
+          <ul>
+          <% neighborsFrom.forEach(n => { %>
+            <li><a href="/line/<%= n.line_id %>"><%= n.line_name || '(tanpa nama)' %></a> &rarr; <%= n.neighbor_label %></li>
+          <% }) %>
+          </ul>
+        <% } %>
+      </div>
+
+      <div class="endpoint">
+        <h2>Ujung B</h2>
+        <p class="ss-name"><%= line.to_label %></p>
+        <p>Bay: <strong><%= bayTo.text %></strong>
+          <% if (bayTo.suspect) { %><span class="warn-inline">bay salah-baca sbg tanggal oleh Excel, perlu koreksi manual</span><% } %>
+        </p>
+        <% if (!line.to_topology_source) { %>
+          <p class="warn">topology_source: NULL — GI ini tidak ada di model DIgSILENT
+          (lihat legacy-knowledge/TOPOLOGI_GI_TANPA_DIGSILENT.md)</p>
+        <% } %>
+
+        <h3>Rele terpasang</h3>
+        <% if (relaysTo.length === 0) { %>
+          <p class="empty">Belum ada data rele (register rele diisi mulai v2).</p>
+        <% } else { %>
+          <ul><% relaysTo.forEach(r => { %><li><%= r.function_type %> — <%= r.manufacturer %> <%= r.model %></li><% }) %></ul>
+        <% } %>
+
+        <h3>Parameter hubung singkat (bus)</h3>
+        <% if (busScTo.length === 0) { %>
+          <p class="empty">Tidak ada data bus_sc untuk GI ini.</p>
+        <% } else { %>
+          <table class="mini">
+            <thead><tr><th>Bus</th><th>kV</th><th>Isc 1ph (kA)</th><th>Isc 3ph (kA)</th></tr></thead>
+            <tbody>
+            <% busScTo.forEach(b => { %>
+              <tr><td><%= b.bus_name %></td><td><%= b.voltage_kv %></td><td><%= b.isc_1ph_ka ?? '—' %></td><td><%= b.isc_3ph_ka ?? '—' %></td></tr>
+            <% }) %>
+            </tbody>
+          </table>
+        <% } %>
+
+        <h3>Tetangga satu hop</h3>
+        <% if (neighborsTo.length === 0) { %>
+          <p class="empty">Tidak ada penghantar lain dari ujung ini.</p>
+        <% } else { %>
+          <ul>
+          <% neighborsTo.forEach(n => { %>
+            <li><a href="/line/<%= n.line_id %>"><%= n.line_name || '(tanpa nama)' %></a> &rarr; <%= n.neighbor_label %></li>
+          <% }) %>
+          </ul>
+        <% } %>
+      </div>
+    </section>
+
+    <section>
+      <h2>Setting terkini</h2>
+      <p class="empty">Belum ada data setting (relay_setting diisi mulai v2 — lihat roadmap PLMS_Rebuild_Prompt_v2.md).</p>
+    </section>
+
+    <section>
+      <h2>Parameter kelistrikan penghantar</h2>
+      <% if (!electrical) { %>
+        <p class="empty">Tidak ada data line_electrical untuk penghantar ini (mis. penghantar manual UPT tanpa parameter DIgSILENT).</p>
+      <% } else { %>
+        <table class="mini">
+          <tbody>
+            <tr><th>Panjang</th><td><%= electrical.length_km ?? '—' %> km</td></tr>
+            <tr><th>R1 / X1</th><td><%= electrical.r1_ohm ?? '—' %> / <%= electrical.x1_ohm ?? '—' %> Ω</td></tr>
+            <tr><th>R0 / X0</th><td><%= electrical.r0_ohm ?? '—' %> / <%= electrical.x0_ohm ?? '—' %> Ω</td></tr>
+            <tr><th>R1/km / X1/km</th><td><%= electrical.r1_ohm_km ?? '—' %> / <%= electrical.x1_ohm_km ?? '—' %> Ω/km</td></tr>
+            <tr><th>R0/km / X0/km</th><td><%= electrical.r0_ohm_km ?? '—' %> / <%= electrical.x0_ohm_km ?? '—' %> Ω/km</td></tr>
+            <tr><th>k0 / phik0</th><td><%= electrical.k0 ?? '—' %> / <%= electrical.phik0_deg ?? '—' %>°</td></tr>
+            <tr><th>Irated</th><td><%= electrical.irated_ka ?? '—' %> kA</td></tr>
+          </tbody>
+        </table>
+      <% } %>
+    </section>
+  </main>
+</body>
+</html>
