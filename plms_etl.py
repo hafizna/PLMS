@@ -34,6 +34,56 @@ SEED_GI = [
 # Nama yang TIDAK boleh tertangkap substring match.
 BLOCKLIST = {'KOSAMBI BARU', 'KOSAMBI BARU4', 'KOSAMBI BARU5', 'TELUKJAMBE'}
 
+# Alias yang TIDAK bisa ditemukan lewat canon()/substring karena ejaan
+# tidak overlap sama sekali. Dikurasi manual, satu per satu, dengan bukti.
+#
+# DURIKOSAMBI -> DKSBI7: GITET/GISTET Durikosambi 500kV. Dokumen UPT
+# menyebutnya 'GISTET 500KV DURIKOSAMBI' terpisah dari 'GI 150KV
+# DURIKOSAMBI'; DIgSILENT menyingkatnya 'DKSBI7' (bukan 'DURIKOSAMBI7'),
+# jadi split_voltage()/canon() tidak bisa menangkapnya. Diverifikasi via
+# penghantar DKSBI-KMBGN1/2 yang menghubungkan DKSBI7 <-> KEMBANGAN7
+# (sama-sama 500kV).
+MANUAL_ALIAS = {
+    'DURIKOSAMBI': [('DKSBI7', 500.0)],
+}
+
+# Node DIgSILENT yang SECARA TOPOLOGI terbukti bukan GI seed meski lolos
+# substring/canon match. Dikeluarkan eksplisit, dengan alasan.
+#
+# SUMMARECON5 -> bukan SUMMARECON GADING SERPONG. Dokumen UPT cuma
+# menyebut SATU GI Summarecon ('GIS 150KV SUMMARECON GADING SERPONG',
+# area Tangerang). SUMMARECON5 di DIgSILENT terhubung ke penghantar
+# 'SUMMARECON - BEKASI 1/2' -- area Bekasi, jauh di luar cluster ULTG
+# Angke/Cikupa/Citra Raya/Durikosambi/Tangkot.
+#
+# SERPONG -> dikonfirmasi pemilik data: jalur berbeda, bukan Summarecon
+# Gading Serpong (meski topologinya -- Bintaro/Gandul/Lengkong Baru --
+# sempat terlihat masuk akal secara area).
+#
+# Sisa kandidat 'SUMMARECON' (tanpa suffix) tetap PERIKSA -- terhubung ke
+# ALAM SUTRA/CURUG, belum dipastikan.
+REJECT_NODES = {
+    'SUMMARECON5': 'topologi ke BEKASI, bukan cluster Durikosambi -- bukan Summarecon Gading Serpong',
+    'SERPONG': 'dikonfirmasi pemilik data: jalur berbeda, bukan Summarecon Gading Serpong',
+}
+
+# Kandidat 'partial' yang sudah dikonfirmasi manual oleh pemilik data
+# (bukan ditebak algoritma) -- di-upgrade ke OK meski hanya partial
+# match, karena kebenarannya sudah dipastikan lewat verifikasi topologi
+# di luar apa yang bisa dicek otomatis di sini.
+#
+# DAAN MOGOT -> DAAN MOGOT GIS: dikonfirmasi -- GI 150kV di jalur
+# Durikosambi -> PIK.
+# SUVARNA -> SUVARNA SUTERA: dikonfirmasi -- terhubung ke Alam Sutera.
+# SUMMARECON GADING SERPONG -> SUMMARECON: dikonfirmasi -- terhubung ke
+# ALAM SUTRA/CURUG. (SERPONG dan SUMMARECON5 tetap ditolak, lihat
+# REJECT_NODES -- keduanya jalur/area berbeda.)
+CONFIRMED_ALIAS = {
+    ('DAAN MOGOT', 'DAAN MOGOT GIS'),
+    ('SUVARNA', 'SUVARNA SUTERA'),
+    ('SUMMARECON GADING SERPONG', 'SUMMARECON'),
+}
+
 anomalies = []
 def flag(kind, detail):
     anomalies.append((kind, str(detail)[:160]))
@@ -68,6 +118,25 @@ def canon(name):
     for a, b in (('M. KARANG', 'MUARAKARANG'), ('M.KARANG', 'MUARAKARANG')):
         s = s.replace(a, b)
     return re.sub(r'\s+', ' ', s).strip()
+
+
+# Kata kualifier: menandai GI FISIK berbeda (ekspansi/GI baru terpisah),
+# bukan variasi ejaan dari GI yang sama. 'TANGERANG' vs 'TANGERANG BARU'
+# adalah dua substation berbeda, bukan alias -- meski salah satu string
+# ada di dalam yang lain.
+QUALIFIER_WORDS = {'BARU', 'LAMA', 'NEW', 'II', 'III', '2', '3'}
+
+
+def qualifier_set(name):
+    """Set kata kualifier yang muncul di nama (setelah tegangan dibuang)."""
+    words = set(re.findall(r'\S+', name))
+    return words & QUALIFIER_WORDS
+
+
+def same_qualifiers(a, b):
+    """True kalau dua nama punya kata kualifier yang identik -- syarat
+    minimum supaya partial match dianggap alias, bukan GI tetangga."""
+    return qualifier_set(a) == qualifier_set(b)
 
 
 def num(v):
@@ -133,20 +202,52 @@ def read_digsilent(path):
 # ------------------------------------------------------ dokumen UPT: scope
 
 GI_PREFIX = re.compile(r'^TRS-[\d.]+\s*-\s*', re.I)
-GI_HEAD   = re.compile(r'^(GI|GIS|GITET)\b', re.I)
-GI_STRIP  = re.compile(r'^(GI|GIS|GITET)\s*(150|70|500|20)?\s*KV\s*', re.I)
+# Urutan panjang->pendek wajib: 'GISTET' harus dicoba sebelum 'GIS',
+# kalau tidak 'GISTET ...' berhenti di 'GIS' + \b gagal (huruf 'T' bukan
+# batas kata) dan baris GITET/GISTET (GI 500kV) lolos tak terhitung.
+GI_HEAD   = re.compile(r'^(GISTET|GITET|GIS|GI)\b', re.I)
+GI_STRIP  = re.compile(r'^(GISTET|GITET|GIS|GI)\s*(150|70|500|20)?\s*KV\s*', re.I)
+
+# Nama bay penghantar: 'PHT 150kV ANCOL#1', 'PHT 150 kV KETAPANG #2'.
+# TIDAK menangkap 'PHT.01' (kolom ID) atau 'PHT & KOPEL' (header kategori).
+BAY_PHT     = re.compile(r'^PHT\s+\d+\s*k?V\s+(.+)$', re.I)
+BAY_SUFFIX  = re.compile(r'\s*#\s*\d+\Z')
+BAY_GIS_PFX = re.compile(r'^GIS\s+', re.I)
+
+def bay_to_gi_lawan(bay):
+    """Ekstrak kandidat nama GI lawan dari nama bay penghantar.
+    'PHT 150kV ANCOL#1' -> 'ANCOL'. None kalau bukan bay penghantar."""
+    if not isinstance(bay, str):
+        return None
+    m = BAY_PHT.match(bay.strip())
+    if not m:
+        return None
+    s = BAY_SUFFIX.sub('', m.group(1)).strip()
+    s = BAY_GIS_PFX.sub('', s).strip()          # 'GIS MUARAKARANG BARU' -> 'MUARAKARANG BARU'
+    s = re.sub(r'\s+', ' ', s.upper())
+    return s or None
+
 
 def read_upt(path):
     """Scan SELURUH sheet. Membaca satu sheet lalu menyimpulkan = sumber
-    kesalahan terbesar dalam analisis awal."""
+    kesalahan terbesar dalam analisis awal.
+
+    UPT adalah penentu scope, DIgSILENT pelengkap (lihat prompt v2).
+    Selain nama GI dari sel 'GI ...' (found), kumpulkan juga kandidat
+    GI lawan dari nama bay ('PHT 150kV <lawan>#N') -- ini sinyal
+    keberadaan GI yang tidak tergantung pada DIgSILENT sama sekali.
+    """
     wb = openpyxl.load_workbook(path, data_only=True, read_only=True)
-    found, per_sheet = set(), {}
+    found, per_sheet, lawan = set(), {}, set()
     for ws in wb.worksheets:
         local = set()
         for row in ws.iter_rows(values_only=True):
             for v in row:
                 if not isinstance(v, str):
                     continue
+                g = bay_to_gi_lawan(v)
+                if g:
+                    lawan.add(g)
                 s = GI_PREFIX.sub('', v.strip())
                 if not GI_HEAD.match(s) or len(s) > 50:
                     continue
@@ -157,13 +258,20 @@ def read_upt(path):
         per_sheet[ws.title] = len(local)
         found |= local
     wb.close()
-    return found, per_sheet
+    return found, per_sheet, lawan
 
 
 # --------------------------------------------------------- alias & scoping
 
-def build_alias(seed, dig_names):
-    """Kandidat alias untuk KURASI MANUAL. Bukan untuk dipakai langsung."""
+def build_alias(seed, dig_names, upt_found=frozenset(), upt_lawan=frozenset()):
+    """Kandidat alias untuk KURASI MANUAL. Bukan untuk dipakai langsung.
+
+    UPT adalah penentu scope (lihat prompt v2); DIgSILENT pelengkap.
+    Kalau GI seed tidak match ke DIgSILENT, cek dulu apakah UPT sendiri
+    punya bukti keberadaannya -- sebagai baris GI asal (upt_found) atau
+    sebagai GI lawan yang disebut di nama bay GI lain (upt_lawan) --
+    sebelum menandainya tanpa bukti sama sekali.
+    """
     by_canon = defaultdict(set)
     for n in dig_names:
         c = canon(n)
@@ -171,27 +279,66 @@ def build_alias(seed, dig_names):
             by_canon[c].add(n)
     rows, unmatched = [], []
     for gi in sorted(seed):
-        hits = set()
+        exact_hits, partial_hits, rejected = set(), set(), []
         for c, originals in by_canon.items():
             if c in BLOCKLIST:
                 continue
             exact = (c == gi)
-            partial = len(gi) > 6 and (gi in c or c in gi)
+            # Partial hanya kandidat alias kalau kata kualifier (BARU/LAMA/
+            # NEW/II/...) di kedua sisi sama persis. 'TANGERANG' di dalam
+            # 'TANGERANG BARU' TIDAK cukup -- itu GI tetangga, bukan alias.
+            partial = (not exact and len(gi) > 6 and (gi in c or c in gi)
+                       and same_qualifiers(gi, c))
             if exact or partial:
                 for o in originals:
                     if o.upper() in BLOCKLIST:
                         continue
+                    if o.upper() in REJECT_NODES:
+                        rejected.append((o, REJECT_NODES[o.upper()]))
+                        continue
                     _, kv = split_voltage(o)
-                    hits.add((o, kv, 'exact' if exact else 'partial'))
+                    # Partial yang sudah dikonfirmasi manual (topologi
+                    # diverifikasi pemilik data) naik status ke exact.
+                    confirmed = (gi, o.upper()) in CONFIRMED_ALIAS
+                    (exact_hits if (exact or confirmed) else partial_hits).add((o, kv))
+        # Alias manual dikurasi eksplisit (ejaan tak overlap sama sekali,
+        # mis. DKSBI7) -- diverifikasi sudah, langsung diperlakukan exact.
+        for o, kv in MANUAL_ALIAS.get(gi, []):
+            if o in dig_names:
+                exact_hits.add((o, kv))
+        # Exact match menekan partial: kalau GI seed sudah punya rumah pasti
+        # di DIgSILENT, jangan tawarkan nama GI tetangga sebagai alias juga.
+        hits = ([(o, kv, 'exact') for o, kv in exact_hits] if exact_hits
+                else [(o, kv, 'partial') for o, kv in partial_hits])
         if hits:
             for o, kv, how in sorted(hits):
                 rows.append(dict(gi_upt=gi, alias_digsilent=o, voltage_kv=kv,
                                  match=how,
                                  review='OK' if how == 'exact' else 'PERIKSA'))
+            for o, reason in sorted(rejected):
+                rows.append(dict(gi_upt=gi, alias_digsilent=o, voltage_kv='',
+                                 match='rejected',
+                                 review=f'DITOLAK — {reason}'))
+        elif rejected:
+            # Semua kandidat string-match ditolak topologinya -- GI ini
+            # jadi TANPA TOPOLOGI, bukan diam-diam dibiarkan tanpa baris.
+            unmatched.append(gi)
+            for o, reason in sorted(rejected):
+                rows.append(dict(gi_upt=gi, alias_digsilent=o, voltage_kv='',
+                                 match='rejected',
+                                 review=f'DITOLAK — {reason}'))
         else:
             unmatched.append(gi)
+            in_upt_asal  = gi in upt_found
+            in_upt_lawan = any(gi in l or l in gi for l in upt_lawan if len(gi) > 6)
+            if in_upt_asal:
+                note = 'TANPA TOPOLOGI DIGSILENT — ada baris GI asal di UPT'
+            elif in_upt_lawan:
+                note = 'TANPA TOPOLOGI DIGSILENT — hanya disebut sbg GI lawan di UPT'
+            else:
+                note = 'TANPA TOPOLOGI DIGSILENT — tidak ditemukan di UPT juga'
             rows.append(dict(gi_upt=gi, alias_digsilent='', voltage_kv='',
-                             match='none', review='TANPA TOPOLOGI'))
+                             match='none', review=note))
     return rows, unmatched
 
 
@@ -226,18 +373,45 @@ def write_csv(path, rows, cols=None):
         w.writerows(rows)
 
 
+def find_500kv_gaps(upt_gi, seed, seed_nodes):
+    """GI seed yang UPT sebut sebagai GITET/GISTET (500kV) tapi seed_nodes
+    tidak punya node 500kV untuknya -- baik karena belum di-alias-kan
+    maupun karena memang tak ada di DIgSILENT (mis. GISTET Muarakarang).
+    Beda dari 'TANPA TOPOLOGI': GI-nya SUDAH exact-match di level lain
+    (150kV), cuma level 500kV-nya yang tidak lengkap -- gampang terlewat."""
+    gitet_names = {re.sub(r'^(GITET|GISTET)\s*(500)?\s*KV?\s*', '', g).strip()
+                   for g in upt_gi if re.match(r'^(GITET|GISTET)\b', g)}
+    have_500 = set()
+    for n in seed_nodes:
+        clean, kv = split_voltage(n)
+        if kv == 500.0 and clean:
+            have_500.add(clean)
+    gaps = []
+    for g in sorted(gitet_names):
+        base = canon(g) or g
+        if not any(base in canon(h) or canon(h) in base for h in have_500 if canon(h)):
+            gaps.append(g)
+    return gaps
+
+
 def main(src, out):
     os.makedirs(out, exist_ok=True)
     lines, buses = read_digsilent(os.path.join(src, DIGSILENT))
-    upt_gi, per_sheet = read_upt(os.path.join(src, UPT_DOC))
+    upt_gi, per_sheet, upt_lawan = read_upt(os.path.join(src, UPT_DOC))
 
     dig_names = set()
     for l in lines:
         dig_names.add(l['ss_from_raw'])
         dig_names.add(l['ss_to_raw'])
 
-    alias_rows, unmatched = build_alias(SEED_GI, dig_names)
-    seed_nodes = {r['alias_digsilent'] for r in alias_rows if r['alias_digsilent']}
+    alias_rows, unmatched = build_alias(SEED_GI, dig_names, upt_gi, upt_lawan)
+    # match='rejected' TETAP punya alias_digsilent terisi (untuk mencatat
+    # alasan penolakan di CSV) -- HARUS dikecualikan di sini, kalau tidak
+    # node yang sudah ditolak (mis. SUMMARECON5, SERPONG) diam-diam masuk
+    # scope lagi lewat jalur ini.
+    seed_nodes = {r['alias_digsilent'] for r in alias_rows
+                  if r['alias_digsilent'] and r['match'] != 'rejected'}
+    gaps_500kv = find_500kv_gaps(upt_gi, SEED_GI, seed_nodes)
 
     scope1, dist1 = hops(lines, seed_nodes, 1)
     for l in lines:
@@ -266,6 +440,13 @@ def main(src, out):
 
     seed_l = sum(1 for l in lines if l['in_seed'])
     h1_l = sum(1 for l in lines if l['in_scope_1hop'])
+
+    # GI seed yang tak cocok DIgSILENT: pecah berdasarkan bukti di UPT sendiri.
+    asal_only = [g for g in unmatched if g in upt_gi]
+    lawan_only = [g for g in unmatched if g not in upt_gi
+                  and any(g in l or l in g for l in upt_lawan if len(g) > 6)]
+    no_evidence = [g for g in unmatched if g not in asal_only and g not in lawan_only]
+
     rep = [
         '=== PLMS ETL v0 — laporan profiling ===', '',
         f'Penghantar DIgSILENT      : {len(lines)}',
@@ -273,9 +454,16 @@ def main(src, out):
         f'Bus di IHS                : {len(buses)}',
         f'Substation unik DIgSILENT : {len(dig_names)}', '',
         f'GI ditemukan di dokumen UPT: {len(upt_gi)}',
+        f'GI-lawan ditemukan di nama bay UPT: {len(upt_lawan)}',
         f'GI seed dicari             : {len(SEED_GI)}',
         f'  cocok di DIgSILENT       : {len(SEED_GI) - len(unmatched)}',
-        f'  TANPA topologi           : {len(unmatched)} -> {", ".join(unmatched)}', '',
+        f'  TANPA topologi DIgSILENT : {len(unmatched)} -> {", ".join(unmatched)}',
+        f'    ada sbg GI asal di UPT  : {len(asal_only)} -> {", ".join(asal_only) or "-"}',
+        f'    hanya GI lawan di UPT   : {len(lawan_only)} -> {", ".join(lawan_only) or "-"}',
+        f'    tanpa bukti di UPT juga : {len(no_evidence)} -> {", ".join(no_evidence) or "-"}',
+        f'  GITET/GISTET (500kV) UPT tanpa node 500kV di seed: {len(gaps_500kv)}'
+        f' -> {", ".join(gaps_500kv) or "-"}',
+        '',
         f'Node seed                 : {len(seed_nodes)}',
         f'Penghantar seed           : {seed_l}',
         f'  boundary (1 ujung luar) : {sum(1 for l in lines if l["is_boundary"])}',
