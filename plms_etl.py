@@ -378,7 +378,13 @@ def find_500kv_gaps(upt_gi, seed, seed_nodes):
     tidak punya node 500kV untuknya -- baik karena belum di-alias-kan
     maupun karena memang tak ada di DIgSILENT (mis. GISTET Muarakarang).
     Beda dari 'TANPA TOPOLOGI': GI-nya SUDAH exact-match di level lain
-    (150kV), cuma level 500kV-nya yang tidak lengkap -- gampang terlewat."""
+    (150kV), cuma level 500kV-nya yang tidak lengkap -- gampang terlewat.
+
+    Sadar MANUAL_ALIAS: node yang ejaannya tak overlap sama sekali (mis.
+    DKSBI7 utk DURIKOSAMBI) tidak akan pernah ketemu lewat canon()/
+    substring -- tanpa pengecualian ini, gap yang SUDAH diselesaikan lewat
+    alias manual akan terus dilaporkan sbg gap (regresi yang pernah
+    terjadi di sesi pengembangan awal)."""
     gitet_names = {re.sub(r'^(GITET|GISTET)\s*(500)?\s*KV?\s*', '', g).strip()
                    for g in upt_gi if re.match(r'^(GITET|GISTET)\b', g)}
     have_500 = set()
@@ -386,9 +392,16 @@ def find_500kv_gaps(upt_gi, seed, seed_nodes):
         clean, kv = split_voltage(n)
         if kv == 500.0 and clean:
             have_500.add(clean)
+    manually_covered_500 = {
+        gi for gi, aliases in MANUAL_ALIAS.items()
+        for alias_name, kv in aliases
+        if kv == 500.0 and alias_name in seed_nodes
+    }
     gaps = []
     for g in sorted(gitet_names):
         base = canon(g) or g
+        if base in manually_covered_500:
+            continue
         if not any(base in canon(h) or canon(h) in base for h in have_500 if canon(h)):
             gaps.append(g)
     return gaps
