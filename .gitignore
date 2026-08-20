@@ -8,3 +8,6 @@ __pycache__/
 *.db
 etl_out/
 .pytest_cache/
+
+# Evidence engineering lokal berukuran besar; scan read-only, tidak disimpan Git.
+SLD Durikosambi/ULTG DURIKOSAMBI/GISTET MUARAKARANG/

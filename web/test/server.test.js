@@ -1,0 +1,83 @@
+const { after, before, test } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const Database = require('better-sqlite3');
+
+const { createApp } = require('../server');
+
+let tempDir;
+let app;
+let server;
+let baseUrl;
+
+before(async () => {
+  tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'plms-web-test-'));
+  const dbPath = path.join(tempDir, 'fixture.db');
+  const db = new Database(dbPath);
+  db.exec(fs.readFileSync(path.join(__dirname, '..', '..', 'schema.sql'), 'utf8'));
+
+  const siteA = db.prepare('INSERT INTO site (site_name) VALUES (?)').run('LONTAR').lastInsertRowid;
+  const siteB = db.prepare('INSERT INTO site (site_name) VALUES (?)').run('DADAP').lastInsertRowid;
+  const insertSs = db.prepare(`
+    INSERT INTO substation (site_id, voltage_kv, in_scope, hop_distance, topology_source)
+    VALUES (?, NULL, 1, 0, NULL)
+  `);
+  const ssA = insertSs.run(siteA).lastInsertRowid;
+  const ssB = insertSs.run(siteB).lastInsertRowid;
+  const lineId = db.prepare(`
+    INSERT INTO line (line_name, ss_from, bay_from, ss_to, bay_to, voltage_kv,
+                      is_boundary, source)
+    VALUES ('LONTAR-DADAP', ?, '?5-1', ?, 'II', NULL, 0, 'UPT_MANUAL')
+  `).run(ssA, ssB).lastInsertRowid;
+  const relayId = db.prepare(`
+    INSERT INTO relay (ss_id, bay, line_id, function_type, coordination_class,
+                       manufacturer, model, status)
+    VALUES (?, 'I', ?, 'DIST', 'GRADED', 'Schweitzer', 'SEL-411L', 'ACTIVE')
+  `).run(ssA, lineId).lastInsertRowid;
+  db.prepare(`
+    INSERT INTO relay_setting
+      (relay_id, parameter_name, parameter_value, unit, setting_group,
+       effective_date, source_doc, is_current)
+    VALUES (?, 'Z1', '10', 'ohm', 'A', '2026-08-21', 'fixture.pdf', 1)
+  `).run(relayId);
+  db.close();
+
+  app = createApp(dbPath);
+  await new Promise(resolve => {
+    server = app.listen(0, '127.0.0.1', resolve);
+  });
+  baseUrl = `http://127.0.0.1:${server.address().port}`;
+});
+
+after(async () => {
+  if (server) await new Promise(resolve => server.close(resolve));
+  if (app?.locals?.db?.open) app.locals.db.close();
+  if (tempDir) fs.rmSync(tempDir, { recursive: true, force: true });
+});
+
+test('daftar + detail menampilkan provenance, warning, rele, dan setting', async () => {
+  const root = await fetch(`${baseUrl}/`);
+  assert.equal(root.status, 200);
+  const rootHtml = await root.text();
+  assert.match(rootHtml, /1 penghantar \(\+1 hop, termasuk boundary\)/);
+  assert.match(rootHtml, /tdk diketahui/);
+  assert.match(rootHtml, /UPT_MANUAL/);
+
+  const detail = await fetch(`${baseUrl}/line/1`);
+  assert.equal(detail.status, 200);
+  const html = await detail.text();
+  assert.match(html, /topology_source: NULL/);
+  assert.match(html, /bay salah-baca sbg tanggal/);
+  assert.match(html, /SEL-411L/);
+  assert.match(html, /Z1/);
+  assert.match(html, /10 ohm/);
+  assert.doesNotMatch(html, /Belum ada data setting/);
+});
+
+test('line yang tidak ada menghasilkan 404', async () => {
+  const response = await fetch(`${baseUrl}/line/999999`);
+  assert.equal(response.status, 404);
+  assert.match(await response.text(), /tidak ditemukan/);
+});

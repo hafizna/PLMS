@@ -4,9 +4,8 @@ PLMS loader v1 — idempoten, dari output plms_etl.py + alias_review.csv
 ke SQLite (schema.sql).
 
 Urutan pengisian (FK harus sudah ada sebelum dirujuk):
-  1. site + substation  (dari substation.csv; site 1:1 dengan substation di
-     v1 -- pemisahan site x voltage disiapkan skema, dipakai penuh saat ada
-     GI multi-voltage yang perlu clustering eksplisit)
+  1. site + substation  (site fisik dikelompokkan menurut site_name;
+     substation adalah site x level tegangan/node DIgSILENT)
   2. ss_alias            (dari alias_review.csv, baris match='exact')
   3. scope_definition    (44 GI seed, dari plms_etl.py SEED_GI)
   4. line + line_electrical  (dari line.csv, DIgSILENT)
@@ -14,8 +13,8 @@ Urutan pengisian (FK harus sudah ada sebelum dirujuk):
      legacy-knowledge/TOPOLOGI_GI_TANPA_DIGSILENT.md)
   6. bus_sc              (dari bus_sc.csv)
 
-Idempoten: DROP+CREATE ulang semua tabel tiap run (v1 belum punya data
-yang tidak-reproducible -- lihat catatan v2 soal relay_setting).
+Idempoten: database dibangun di file sementara lalu diganti atomik setelah
+integrity/FK check lulus. Database lama tetap utuh bila rebuild gagal.
 
 Pakai: python3 load.py <dir_etl_output> <alias_review.csv> <db_path>
 """
@@ -88,24 +87,30 @@ def load_schema(conn, schema_path):
 
 
 def load_substations(conn, rows):
-    """substation.csv -> site (1 site per substation row in v1) + substation.
-    Identity key untuk lookup nanti: name_digsilent bila ada, else site_name."""
+    """substation.csv -> site fisik + node site/tegangan.
+
+    Identity key untuk lookup nanti: name_digsilent bila ada, else site_name.
+    """
     key_to_ssid = {}
+    site_by_name = {}
     for r in rows:
         name_dig = (r['name_digsilent'] or '').strip()
         site_name = (r['site_name'] or '').strip()
         key = name_dig or site_name
         if not key:
             continue
-        cur = conn.execute(
-            'INSERT INTO site (site_name, is_gis) VALUES (?, NULL)', (site_name,))
-        site_id = cur.lastrowid
+        site_id = site_by_name.get(site_name)
+        if site_id is None:
+            cur = conn.execute(
+                'INSERT INTO site (site_name, is_gis) VALUES (?, NULL)', (site_name,))
+            site_id = cur.lastrowid
+            site_by_name[site_name] = site_id
         cur = conn.execute(
             '''INSERT INTO substation
                (site_id, voltage_kv, name_digsilent, in_scope, hop_distance, topology_source)
                VALUES (?, ?, ?, ?, ?, ?)''',
             (site_id, to_float(r['voltage_kv']), name_dig or None,
-             to_bool(r['in_seed']), to_int(r['hop_distance']),
+             to_bool(r.get('in_scope', r.get('in_seed'))), to_int(r['hop_distance']),
              (r['topology_source'] or '').strip() or None))
         key_to_ssid[key] = cur.lastrowid
     return key_to_ssid
@@ -149,14 +154,15 @@ def load_lines(conn, rows, key_to_ssid):
         if ss_from is None or ss_to is None:
             n_skip += 1
             continue
-        _, kv = None, None
         cur = conn.execute(
             '''INSERT INTO line
                (line_name, line_name_digsilent, ss_from, bay_from, ss_to, bay_to,
-                technology, out_of_service, is_boundary, source)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'DIGSILENT')''',
+                technology, voltage_kv, conductor_type, rating_a,
+                out_of_service, is_boundary, source)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'DIGSILENT')''',
             (r['line_name'], r['line_name'], ss_from, r['bay_from'],
-             ss_to, r['bay_to'], r['type_raw'],
+             ss_to, r['bay_to'], r.get('technology'), to_float(r.get('voltage_kv')),
+             r.get('conductor_type'), to_float(r.get('rating_a')),
              to_int(r['out_of_service']), to_bool(r['is_boundary'])))
         line_id = cur.lastrowid
         conn.execute(
@@ -216,10 +222,11 @@ def load_bus_sc(conn, rows, key_to_ssid):
 
 def main(etl_dir, alias_path, db_path):
     schema_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'schema.sql')
-
-    if os.path.exists(db_path):
-        os.remove(db_path)          # idempoten: rebuild penuh tiap run
-    conn = sqlite3.connect(db_path)
+    db_path = os.path.abspath(db_path)
+    tmp_path = db_path + '.tmp'
+    if os.path.exists(tmp_path):
+        os.remove(tmp_path)
+    conn = sqlite3.connect(tmp_path)
     conn.execute('PRAGMA foreign_keys = ON')
     load_schema(conn, schema_path)
 
@@ -236,6 +243,15 @@ def main(etl_dir, alias_path, db_path):
     n_bus_ok, n_bus_skip = load_bus_sc(conn, bus_rows, key_to_ssid)
 
     conn.commit()
+
+    integrity = conn.execute('PRAGMA integrity_check').fetchone()[0]
+    fk_violations = conn.execute('PRAGMA foreign_key_check').fetchall()
+    if integrity != 'ok' or fk_violations:
+        conn.close()
+        os.remove(tmp_path)
+        raise RuntimeError(
+            f'Database gagal validasi: integrity={integrity!r}, '
+            f'foreign_key_violations={len(fk_violations)}')
 
     print('=== PLMS loader v1 ===')
     print(f'Substation dimuat     : {len(key_to_ssid)}')
@@ -256,6 +272,7 @@ def main(etl_dir, alias_path, db_path):
         print('Cek substation.csv konsisten dengan line.csv yang dipakai.')
 
     conn.close()
+    os.replace(tmp_path, db_path)
 
 
 if __name__ == '__main__':

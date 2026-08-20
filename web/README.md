@@ -5,25 +5,40 @@ parameter kelistrikan, tetangga satu hop). Baca-saja, tanpa autentikasi.
 
 ## Jalankan
 
-Butuh `plms.db` di root repo (satu tingkat di atas `web/`), dibuat lewat:
+Jalankan dari root repo. Pipeline memakai tiga workbook yang sudah ada di
+repo dan tabel alias yang sudah dikurasi:
 
 ```bash
-python3 ../plms_etl.py <dir_sumber_xlsx> <dir_out>
-python3 ../load.py <dir_out> ../alias_review.csv ../plms.db
+python plms_etl.py . etl_out
+python load.py etl_out alias_review.csv plms.db
 ```
 
-Lalu:
+Loader membangun file sementara, menjalankan integrity/FK check, lalu mengganti
+`plms.db` secara atomik. Database lama tidak hilang bila rebuild gagal.
+
+Lalu jalankan web:
 
 ```bash
-npm install
-node server.js
+cd web
+npm ci
+npm start
 ```
 
 Buka `http://localhost:3000`. Override lokasi DB/port lewat env var
 `PLMS_DB` / `PORT`.
 
+## Test
+
+Dari root repo:
+
+```bash
+python -m pytest -q
+npm test --prefix web
+```
+
 ## Status data yang ditampilkan
 
+- Daftar depan adalah scope topologis +1 hop, termasuk penghantar boundary.
 - Topologi, bay, parameter kelistrikan, hubung-singkat (bus_sc): terisi
   dari `plms_etl.py`/`load.py`.
 - Rele terpasang dan setting terkini: **selalu kosong di v1** — tabel

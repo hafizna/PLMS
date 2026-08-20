@@ -38,14 +38,21 @@ SUMMARECON GADING SERPONG, SUVARNA, TANGERANG, TANGERANG BARU,
 TELUK NAGA, TIGARAKSA, TOMANG, ULUJAMI
 ```
 
-Ukuran scope yang sudah dihitung:
+Ukuran scope yang sudah dihitung ulang terhadap workbook UPT 22-sheet yang
+di-commit 21 Agustus 2026. `KOSAMBI BARU4/5` dan `TELUKJAMBE` dikeluarkan
+eksplisit sesuai blocklist; graph tidak boleh merambat melewati node tersebut.
 
-| Cakupan | Node | Penghantar | % dari 1.183 |
-|---|---|---|---|
-| seed | 43 | 127 | 11% |
-| **+1 hop (default)** | **69** | **183** | **15%** |
-| +2 hop | 95 | 230 | 19% |
-| +3 hop | 118 | 274 | 23% |
+| Cakupan | Node DIgSILENT | Penghantar DIgSILENT | + 4 penghantar manual UPT | % dari 1.187 |
+|---|---:|---:|---:|---:|
+| seed | 35 | 113 | 117 | 10% |
+| **+1 hop (default)** | **60** | **148** | **152** | **13%** |
+| +2 hop | 75 | 177 | 181 | 15% |
+| +3 hop | 89 | 208 | 212 | 18% |
+
+Di luar node DIgSILENT pada tabel, ada 13 GI seed UPT dengan
+`topology_source IS NULL`. Karena itu total node sistem adalah 48 pada seed
+dan 73 pada scope +1 hop. Angka 43/127 dan 69/183 pada versi prompt sebelumnya
+berasal dari baseline workbook lama dan tidak lagi menjadi acceptance target.
 
 **Scope ditentukan secara topologis, bukan organisasi.** UPT dan ULTG adalah atribut biasa dengan `valid_from`/`valid_to`, karena struktur organisasi berubah (Jatake pindah UPT akibat pemekaran 2024) sementara topologi tidak.
 
@@ -271,11 +278,15 @@ Catatan desain:
 
 **Kriteria penerimaan v1:**
 
-- 127 penghantar seed dan 183 penghantar +1 hop terbaca dengan jumlah tepat
-- 44 GI seed masuk; 9 GI tanpa topologi tetap ada dengan `topology_source IS NULL`
+- 113 penghantar seed DIgSILENT dan 148 penghantar +1 hop terbaca; setelah 4
+  penghantar manual UPT, daftar sistem masing-masing 117 dan 152
+- 44 GI seed masuk; 13 GI tanpa node DIgSILENT tetap ada dengan
+  `topology_source IS NULL`
 - Tidak ada bay tampil sebagai tanggal
-- Tidak ada `KOSAMBI BARU`, `TANGERANG` polos, atau `TELUKJAMBE` sebagai in-scope
-- Tiga klik dari halaman depan ke setting sebuah rele
+- Tidak ada `KOSAMBI BARU` atau `TELUKJAMBE` sebagai node in-scope;
+  `TANGERANG` dan `TANGERANG BARU` tetap dua seed berbeda, bukan alias silang
+- Satu klik dari halaman depan ke section setting; v1 menampilkan empty state
+  eksplisit, dan layar menampilkan setting terkini bila `relay_setting` tersedia
 - Query tetangga satu hop tanpa hardcode
 - `r1_ohm_km` hasil hitung konsisten dengan `r1_ohm / length_km` untuk seluruh baris
 

@@ -10,15 +10,8 @@ const express = require('express');
 const Database = require('better-sqlite3');
 const path = require('path');
 
-const DB_PATH = process.env.PLMS_DB || path.join(__dirname, '..', 'plms.db');
+const DEFAULT_DB_PATH = process.env.PLMS_DB || path.join(__dirname, '..', 'plms.db');
 const PORT = process.env.PORT || 3000;
-
-const db = new Database(DB_PATH, { readonly: true, fileMustExist: true });
-
-const app = express();
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-app.use('/public', express.static(path.join(__dirname, 'public')));
 
 // ---------------------------------------------------------------- queries
 
@@ -29,6 +22,14 @@ const substationLabel = `
   COALESCE(sub.name_digsilent, site.site_name) || ' (' ||
   CASE WHEN sub.voltage_kv IS NOT NULL THEN CAST(sub.voltage_kv AS INTEGER) || 'kV' ELSE 'kV tdk diketahui' END
   || ')'`;
+
+function createApp(dbPath = DEFAULT_DB_PATH) {
+  const db = new Database(dbPath, { readonly: true, fileMustExist: true });
+  const app = express();
+  app.set('view engine', 'ejs');
+  app.set('views', path.join(__dirname, 'views'));
+  app.use('/public', express.static(path.join(__dirname, 'public')));
+  app.locals.db = db;
 
 function listInScopeLines() {
   return db.prepare(`
@@ -91,11 +92,28 @@ function getBusSc(ssId) {
 }
 
 function getRelays(ssId, lineId) {
-  // v2+: relay belum diisi loader v1. Query tetap ditulis (skema sudah
-  // siap) supaya begitu v2 mengisi relay, halaman ini otomatis menampilkan
-  // data tanpa perubahan kode -- tapi utk v1 hasilnya selalu kosong.
+  // Relay selalu punya ss_id. Syarat line_id mencegah rele penghantar lain
+  // pada GI yang sama ikut tampil dan mencegah rele line terduplikasi di
+  // kedua ujung.
   if (!ssId) return [];
-  return db.prepare('SELECT * FROM relay WHERE ss_id = ? OR line_id = ?').all(ssId, lineId);
+  return db.prepare(`
+    SELECT * FROM relay
+    WHERE ss_id = ? AND (line_id IS NULL OR line_id = ?)
+    ORDER BY function_type, manufacturer, model
+  `).all(ssId, lineId);
+}
+
+function getCurrentSettings(lineId) {
+  return db.prepare(`
+    SELECT rs.*, r.function_type, r.manufacturer, r.model,
+      s.site_name AS substation_name, r.bay
+    FROM relay_setting rs
+    JOIN relay r ON rs.relay_id = r.relay_id
+    JOIN substation ss ON r.ss_id = ss.ss_id
+    JOIN site s ON ss.site_id = s.site_id
+    WHERE r.line_id = ? AND rs.is_current = 1
+    ORDER BY s.site_name, r.function_type, rs.setting_group, rs.parameter_name
+  `).all(lineId);
 }
 
 // Bay yang diawali '?' berasal dari fix_bay() di plms_etl.py: Excel salah
@@ -126,6 +144,7 @@ app.get('/line/:id', (req, res) => {
   const neighborsTo = getNeighbors(line.to_ss_id, line.line_id);
   const relaysFrom = getRelays(line.from_ss_id, line.line_id);
   const relaysTo = getRelays(line.to_ss_id, line.line_id);
+  const currentSettings = getCurrentSettings(line.line_id);
   const busScFrom = getBusSc(line.from_ss_id);
   const busScTo = getBusSc(line.to_ss_id);
   const bayFrom = describeBay(line.bay_from);
@@ -133,11 +152,20 @@ app.get('/line/:id', (req, res) => {
 
   res.render('detail', {
     line, electrical, neighborsFrom, neighborsTo,
-    relaysFrom, relaysTo, busScFrom, busScTo, bayFrom, bayTo,
+    relaysFrom, relaysTo, currentSettings,
+    busScFrom, busScTo, bayFrom, bayTo,
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`PLMS v1 jalan di http://localhost:${PORT}`);
-  console.log(`Database: ${DB_PATH}`);
-});
+  return app;
+}
+
+if (require.main === module) {
+  const app = createApp();
+  app.listen(PORT, () => {
+    console.log(`PLMS v1 jalan di http://localhost:${PORT}`);
+    console.log(`Database: ${DEFAULT_DB_PATH}`);
+  });
+}
+
+module.exports = { createApp };

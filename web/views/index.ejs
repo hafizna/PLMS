@@ -8,7 +8,7 @@
 <body>
   <header>
     <h1>PLMS — Penghantar in-scope</h1>
-    <p class="sub">UPT Durikosambi &middot; <%= lines.length %> penghantar (seed + boundary)</p>
+    <p class="sub">UPT Durikosambi &middot; <%= lines.length %> penghantar (+1 hop, termasuk boundary)</p>
   </header>
 
   <main>
@@ -29,7 +29,7 @@
           <td><a href="/line/<%= l.line_id %>"><%= l.line_name || '(tanpa nama)' %></a></td>
           <td><%= l.from_label %></td>
           <td><%= l.to_label %></td>
-          <td><%= l.voltage_kv || '—' %></td>
+          <td><%= l.voltage_kv == null ? 'tdk diketahui' : l.voltage_kv %></td>
           <td class="source-<%= l.source.toLowerCase() %>"><%= l.source %></td>
           <td><%= l.is_boundary ? 'ya' : '' %></td>
         </tr>

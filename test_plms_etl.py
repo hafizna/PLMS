@@ -13,6 +13,7 @@ from plms_etl import (
     fix_bay, split_voltage, canon, qualifier_set, same_qualifiers,
     bay_to_gi_lawan, build_alias, find_500kv_gaps, GI_HEAD, GI_STRIP,
     MANUAL_ALIAS, CONFIRMED_ALIAS, REJECT_NODES, BLOCKLIST, SEED_GI,
+    parse_line_type,
 )
 
 
@@ -74,6 +75,29 @@ class TestSplitVoltage:
     def test_empty_and_none(self):
         assert split_voltage(None) == (None, None)
         assert split_voltage('') == (None, None)
+
+
+# ----------------------------------------------------------- line Type column
+
+class TestParseLineType:
+    @pytest.mark.parametrize('raw,technology,kv,rating', [
+        ('OHL-150kV-ZEBRA 2X484.5mm (1620A)', 'OHL', 150.0, 1620.0),
+        ('CAB-150 KV N2XCK2Y CU 2x1000mm (1782A)', 'CAB', 150.0, 1782.0),
+        ('Comb150kV-ZEBRA+XLPE1200+XLPE2000(1620A)', 'COMB', 150.0, 1620.0),
+        ('OHL 150 kV TAL 660 mm2 (1753A)', 'OHL', 150.0, 1753.0),
+    ])
+    def test_verified_variants(self, raw, technology, kv, rating):
+        parsed = parse_line_type(raw)
+        assert parsed['technology'] == technology
+        assert parsed['voltage_kv'] == kv
+        assert parsed['rating_a'] == rating
+        assert parsed['conductor_type']
+
+    def test_unknown_format_is_not_guessed(self):
+        parsed = parse_line_type('FORMAT BARU TANPA TEGANGAN')
+        assert parsed['technology'] is None
+        assert parsed['voltage_kv'] is None
+        assert parsed['rating_a'] is None
 
 
 # ------------------------------------------------------------------- canon

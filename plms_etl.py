@@ -11,9 +11,9 @@ import sys, os, re, csv, datetime
 from collections import defaultdict, Counter
 import openpyxl
 
-DIGSILENT = 'Aplikasi_Crosscheck_Setting_Relay__Digsilent__9_Maret_2021__IHS_1-2021_.xlsx'
-UPT_DOC   = 'Data_Setting_Penghantar_UPT_DKSBI.xlsx'
-OFFICIAL  = 'List_Official_Setting___Resetting_UPT_Durikosambi.xlsx'
+DIGSILENT = 'Aplikasi Crosscheck Setting Relay [Digsilent_ 9 Maret 2021, IHS 1-2021].xlsx'
+UPT_DOC   = 'Data Setting Penghantar UPT DKSBI.xlsx'
+OFFICIAL  = 'List Official Setting & Resetting UPT Durikosambi.xlsx'
 
 # Akhiran -> tegangan. Diturunkan empiris dari 1.122 baris IHS.
 # HANYA 4/5/7. Angka lain adalah bagian dari nama (BEKASI 2, TUBAN3).
@@ -146,6 +146,48 @@ def num(v):
         return None
 
 
+TYPE_HEAD = re.compile(
+    r'^(?P<technology>[A-Za-z]+)\s*-?\s*(?P<voltage>\d+(?:\.\d+)?)\s*kV'
+    r'(?:\s*-?\s*(?P<conductor>.*))?$',
+    re.I,
+)
+TYPE_RATING = re.compile(
+    r'(?:\((?P<paren>\d+(?:\.\d+)?)\s*A\)|(?P<trailing>\d+(?:\.\d+)?)\s*A)\s*$',
+    re.I,
+)
+
+
+def parse_line_type(value):
+    """Urai kolom Type tanpa daftar nilai hardcoded.
+
+    Contoh: ``OHL-150kV-ZEBRA 2X484.5mm (1620A)``. Bila format tidak
+    dikenali, simpan raw value di ``conductor_type`` dan biarkan atribut
+    lain NULL; jangan menebak.
+    """
+    if not value:
+        return dict(technology=None, voltage_kv=None,
+                    conductor_type=None, rating_a=None)
+    raw = str(value).strip()
+    m = TYPE_HEAD.match(raw)
+    if not m:
+        flag('line_type_unparsed', raw)
+        return dict(technology=None, voltage_kv=None,
+                    conductor_type=raw, rating_a=None)
+    conductor = (m.group('conductor') or '').strip() or None
+    rating = None
+    if conductor:
+        rm = TYPE_RATING.search(conductor)
+        if rm:
+            rating = num(rm.group('paren') or rm.group('trailing'))
+            conductor = conductor[:rm.start()].strip(' -') or None
+    return dict(
+        technology=m.group('technology').upper(),
+        voltage_kv=num(m.group('voltage')),
+        conductor_type=conductor,
+        rating_a=rating,
+    )
+
+
 # ------------------------------------------------------- DIgSILENT: topologi
 
 def read_digsilent(path):
@@ -166,9 +208,15 @@ def read_digsilent(path):
         else:
             if r1 is not None:
                 flag('length_missing_with_impedance', name)
+        type_raw = str(r[22]).strip() if r[22] else None
+        type_info = parse_line_type(type_raw)
         lines.append(dict(
             line_name=str(name).strip(),
-            type_raw=str(r[22]).strip() if r[22] else None,
+            type_raw=type_raw,
+            technology=type_info['technology'],
+            voltage_kv=type_info['voltage_kv'],
+            conductor_type=(str(r[36]).strip() if r[36] else type_info['conductor_type']),
+            rating_a=type_info['rating_a'],
             ss_from_raw=ss_i.strip(), bay_from=fix_bay(r[24]),
             ss_to_raw=ss_j.strip(),   bay_to=fix_bay(r[26]),
             out_of_service=num(r[31]),
@@ -197,6 +245,47 @@ def read_digsilent(path):
         ))
     wb.close()
     return lines, buses
+
+
+def resolve_node_voltages(lines, buses):
+    """Tegangan node dari IHS; suffix 4/5/7 hanya fallback tervalidasi.
+
+    IHS adalah sumber otoritatif untuk kV. Nilai ambigu atau konflik tidak
+    diselesaikan dengan default; anomali dicatat dan nilai dibiarkan NULL.
+    """
+    ihs = defaultdict(set)
+    for bus in buses:
+        if bus['voltage_kv'] is not None:
+            ihs[bus['ss_raw']].add(bus['voltage_kv'])
+
+    names = {l['ss_from_raw'] for l in lines} | {l['ss_to_raw'] for l in lines}
+    result = {}
+    for name in names:
+        _, suffix_kv = split_voltage(name)
+        values = ihs.get(name, set())
+        if len(values) == 1:
+            ihs_kv = next(iter(values))
+            if suffix_kv is not None and suffix_kv != ihs_kv:
+                flag('voltage_suffix_conflicts_ihs', f'{name}: suffix={suffix_kv}, IHS={ihs_kv}')
+            result[name] = ihs_kv
+        elif len(values) > 1:
+            flag('voltage_ambiguous_in_ihs', f'{name}: {sorted(values)}')
+            result[name] = None
+        else:
+            result[name] = suffix_kv
+
+    for line in lines:
+        if line['voltage_kv'] is not None:
+            continue
+        endpoint_values = {
+            result.get(line['ss_from_raw']), result.get(line['ss_to_raw'])
+        } - {None}
+        if len(endpoint_values) == 1:
+            line['voltage_kv'] = next(iter(endpoint_values))
+        elif len(endpoint_values) > 1:
+            flag('line_voltage_endpoint_conflict',
+                 f"{line['line_name']}: {sorted(endpoint_values)}")
+    return result
 
 
 # ------------------------------------------------------ dokumen UPT: scope
@@ -259,6 +348,35 @@ def read_upt(path):
         found |= local
     wb.close()
     return found, per_sheet, lawan
+
+
+def read_official_profile(path):
+    """Baca seluruh sheet riwayat official untuk profiling v0.
+
+    Isi setting baru dinormalisasi pada v2; v0 tetap harus membuktikan bahwa
+    workbook ketiga terbaca lengkap, bukan hanya dideklarasikan.
+    """
+    wb = openpyxl.load_workbook(path, data_only=True, read_only=True)
+    profile = []
+    for ws in wb.worksheets:
+        nonempty_rows = 0
+        nonempty_cells = 0
+        max_used_column = 0
+        for row in ws.iter_rows(values_only=True):
+            used = [i for i, value in enumerate(row, start=1) if value not in (None, '')]
+            if not used:
+                continue
+            nonempty_rows += 1
+            nonempty_cells += len(used)
+            max_used_column = max(max_used_column, max(used))
+        profile.append(dict(
+            sheet_name=ws.title,
+            nonempty_rows=nonempty_rows,
+            nonempty_cells=nonempty_cells,
+            max_used_column=max_used_column,
+        ))
+    wb.close()
+    return profile
 
 
 # --------------------------------------------------------- alias & scoping
@@ -342,11 +460,14 @@ def build_alias(seed, dig_names, upt_found=frozenset(), upt_lawan=frozenset()):
     return rows, unmatched
 
 
-def hops(lines, seed_nodes, depth):
+def hops(lines, seed_nodes, depth, excluded_nodes=frozenset()):
     adj = defaultdict(set)
     for l in lines:
-        adj[l['ss_from_raw']].add(l['ss_to_raw'])
-        adj[l['ss_to_raw']].add(l['ss_from_raw'])
+        a, b = l['ss_from_raw'], l['ss_to_raw']
+        if a in excluded_nodes or b in excluded_nodes:
+            continue
+        adj[a].add(b)
+        adj[b].add(a)
     cur = set(n for n in seed_nodes if n in adj)
     dist = {n: 0 for n in cur}
     for d in range(1, depth + 1):
@@ -408,9 +529,12 @@ def find_500kv_gaps(upt_gi, seed, seed_nodes):
 
 
 def main(src, out):
+    anomalies.clear()
     os.makedirs(out, exist_ok=True)
     lines, buses = read_digsilent(os.path.join(src, DIGSILENT))
     upt_gi, per_sheet, upt_lawan = read_upt(os.path.join(src, UPT_DOC))
+    official_profile = read_official_profile(os.path.join(src, OFFICIAL))
+    node_voltage = resolve_node_voltages(lines, buses)
 
     dig_names = set()
     for l in lines:
@@ -426,28 +550,42 @@ def main(src, out):
                   if r['alias_digsilent'] and r['match'] != 'rejected'}
     gaps_500kv = find_500kv_gaps(upt_gi, SEED_GI, seed_nodes)
 
-    scope1, dist1 = hops(lines, seed_nodes, 1)
+    # BLOCKLIST bukan hanya aturan alias. Node seperti KOSAMBI BARU dapat
+    # terseret lagi lewat ekspansi graph (mis. dari CURUG4), padahal prompt
+    # menetapkannya eksplisit di luar scope Durikosambi. Penghantar yang
+    # menyentuh seed tetap dipertahankan sebagai boundary; node-nya saja
+    # tidak diberi in_scope.
+    blocked_scope_nodes = {
+        n for n in dig_names if n.upper() in BLOCKLIST or canon(n) in BLOCKLIST
+    }
+    for node in sorted(blocked_scope_nodes):
+        flag('scope_blocklisted', node)
+    scope1, dist1 = hops(lines, seed_nodes, 1, blocked_scope_nodes)
     for l in lines:
         a, b = l['ss_from_raw'], l['ss_to_raw']
         l['in_seed'] = a in seed_nodes or b in seed_nodes
         l['in_scope_1hop'] = a in scope1 or b in scope1
-        l['is_boundary'] = l['in_seed'] and not (a in seed_nodes and b in seed_nodes)
+        l['is_seed_boundary'] = (a in seed_nodes) != (b in seed_nodes)
+        l['is_boundary'] = (a in scope1) != (b in scope1)
 
     # substation dari kedua sumber, tanpa membuang yang tak cocok
     ss = {}
     for n in sorted(dig_names):
-        clean, kv = split_voltage(n)
-        ss[n] = dict(name_digsilent=n, site_name=clean, voltage_kv=kv,
-                     in_seed=n in seed_nodes, hop_distance=dist1.get(n),
+        clean, _ = split_voltage(n)
+        ss[n] = dict(name_digsilent=n, site_name=clean, voltage_kv=node_voltage.get(n),
+                     in_seed=n in seed_nodes, in_scope=n in scope1,
+                     hop_distance=dist1.get(n),
                      topology_source='DIGSILENT')
     for gi in unmatched:
         ss['UPT:' + gi] = dict(name_digsilent='', site_name=gi, voltage_kv=None,
-                               in_seed=True, hop_distance=0, topology_source='')
+                               in_seed=True, in_scope=True, hop_distance=0,
+                               topology_source='')
 
     write_csv(os.path.join(out, 'alias_review.csv'), alias_rows)
     write_csv(os.path.join(out, 'substation.csv'), list(ss.values()))
     write_csv(os.path.join(out, 'line.csv'), lines)
     write_csv(os.path.join(out, 'bus_sc.csv'), buses)
+    write_csv(os.path.join(out, 'official_profile.csv'), official_profile)
     write_csv(os.path.join(out, 'anomalies.csv'),
               [dict(kind=k, detail=d) for k, d in anomalies])
 
@@ -466,6 +604,8 @@ def main(src, out):
         f'  dengan panjang + R1     : {sum(1 for l in lines if l["length_km"] and l["r1_ohm"] is not None)}',
         f'Bus di IHS                : {len(buses)}',
         f'Substation unik DIgSILENT : {len(dig_names)}', '',
+        f'Sheet riwayat official    : {len(official_profile)}',
+        f'  baris non-kosong         : {sum(r["nonempty_rows"] for r in official_profile)}', '',
         f'GI ditemukan di dokumen UPT: {len(upt_gi)}',
         f'GI-lawan ditemukan di nama bay UPT: {len(upt_lawan)}',
         f'GI seed dicari             : {len(SEED_GI)}',
@@ -479,9 +619,10 @@ def main(src, out):
         '',
         f'Node seed                 : {len(seed_nodes)}',
         f'Penghantar seed           : {seed_l}',
-        f'  boundary (1 ujung luar) : {sum(1 for l in lines if l["is_boundary"])}',
+        f'  boundary seed (1 ujung luar): {sum(1 for l in lines if l["is_seed_boundary"])}',
         f'Node +1 hop               : {len(scope1)}',
         f'Penghantar +1 hop         : {h1_l}  ({100*h1_l/len(lines):.0f}% dari total)', '',
+        f'  boundary +1 hop         : {sum(1 for l in lines if l["is_boundary"])}',
         'GI per sheet dokumen UPT:',
     ]
     for k, v in per_sheet.items():
