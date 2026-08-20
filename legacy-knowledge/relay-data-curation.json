@@ -1,0 +1,81 @@
+{
+  "schema": "plms.relay-data-curation.v1",
+  "recordedAt": "2026-08-04",
+  "authority": "UPT domain clarification provided by user",
+  "organization": {
+    "legacyScope": {
+      "ownerUnit": "UPT DURIKOSAMBI (LEGACY)",
+      "ultgs": ["ULTG TANGKOT", "ULTG CIKUPA", "ULTG ANGKE"]
+    },
+    "currentOwnership": {
+      "UPT CIKUPA": ["ULTG CIKUPA", "ULTG TANGKOT"],
+      "UPT DURIKOSAMBI": [
+        "ULTG DURIKOSAMBI",
+        "ULTG CITRA RAYA",
+        "ULTG ANGKE"
+      ]
+    }
+  },
+  "protectionSemantics": {
+    "mainProtectionTypicalFunctions": [
+      "autoreclose",
+      "line-current-differential",
+      "distance"
+    ],
+    "note": "MPU umumnya mengolah AR, differential, dan distance. Pada sistem lama atau kasus tertentu AR dapat berada pada relay eksternal."
+  },
+  "settingSemantics": {
+    "reference": {
+      "sourceKind": "tap-set",
+      "authority": "engineering-reference",
+      "description": "Dokumen hasil perhitungan setting terakhir yang terdokumentasi dari UPT atau UIT."
+    },
+    "actual": {
+      "sourceKind": "relay-set",
+      "authority": "field-observation",
+      "description": "Nilai terakhir yang diinput manual berdasarkan nilai terpasang pada relay."
+    },
+    "blankMeaning": "not-entered",
+    "differenceMeaning": "mismatch",
+    "mismatchRule": "Tap Setting adalah rujukan ideal. Perbedaan dengan Relay Setting dicatat sebagai mismatch; governance perubahan dibahas pada tahap berikutnya."
+  },
+  "identityDecisions": [
+    {
+      "serial": "34724836/02/19",
+      "decision": "split-by-model-and-installation",
+      "confidence": "confirmed",
+      "reason": "Serial yang sama digunakan pada MiCOM P545 dan P142 dengan fungsi serta bay berbeda."
+    },
+    {
+      "serial": "197931U",
+      "decision": "merge-multifunction",
+      "confidence": "confirmed",
+      "reason": "Satu physical relay digunakan untuk beberapa fungsi proteksi."
+    },
+    {
+      "serial": "7.4301E+12",
+      "decision": "unresolved-serial-format",
+      "confidence": "unresolved",
+      "confirmedFunctions": ["breaker-failure"],
+      "reason": "Format serial salah di Excel. Perangkat dikonfirmasi sebagai relay CBF, tetapi serial asli belum dapat dikonfirmasi."
+    },
+    {
+      "serial": "31830604/07/11",
+      "decision": "merge-multifunction",
+      "confidence": "confirmed",
+      "reason": "Satu physical relay digunakan untuk beberapa fungsi proteksi."
+    },
+    {
+      "serial": "7.7281E+12",
+      "decision": "unresolved-serial-format",
+      "confidence": "unresolved",
+      "reason": "Belum ada klarifikasi domain; serial tetap dipertahankan sebagai unresolved."
+    },
+    {
+      "serial": "637080B",
+      "decision": "split-by-installation",
+      "confidence": "probable",
+      "reason": "Relay elektromekanik lama muncul di dua GI berbeda; diperlakukan sebagai dua physical asset dengan duplicate manufacturer serial."
+    }
+  ]
+}
