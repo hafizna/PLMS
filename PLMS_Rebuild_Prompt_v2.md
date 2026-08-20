@@ -246,25 +246,34 @@ bus_sc (
 
 relay (
   relay_id PK, ss_id FK, bay, line_id FK NULL,
-  function_type,        -- DIST, LCD, OCR, OCR_KOPEL, DIFF, DV,
-                        -- BUSPRO, AR, CBF, SYNCHRO, CCP, SZP, KAPASITOR
-  coordination_class,   -- GRADED | UNIT | AUXILIARY  (lihat tabel di bawah)
   manufacturer, model, serial_no,
   ct_ratio, pt_ratio, status,
   pst_asset_id NULL     -- rujukan register aset PLN, diisi bila tersedia
+)
+
+-- Satu IED fisik dapat muncul di beberapa sheet/fungsi (terbukti pada profil
+-- v2a: antara lain LCD, DIST, dan AR dengan nomor seri yang sama). Karena itu
+-- fungsi tidak menjadi bagian identity key dan tidak disimpan sebagai satu
+-- kolom tunggal di `relay`.
+relay_function (
+  relay_function_id PK, relay_id FK,
+  function_type,        -- DIST, LCD, OCR_GFR, DIFF_PILOT, BUSPRO, dst.
+  coordination_class,   -- GRADED | UNIT | AUXILIARY
+  source_logical, status,
+  UNIQUE (relay_id, function_type, source_logical)
 )
 
 -- Rantai grading vertikal. TERPISAH dari `line` karena arahnya menembus
 -- level tegangan di dalam satu GI, bukan antar-GI.
 protection_chain (
   chain_id PK, chain_type,      -- OCR_GRADING | GFR_GRADING
-  relay_id FK, upstream_relay_id FK,
+  relay_function_id FK, upstream_relay_function_id FK,
   level_order, voltage_kv,
   chain_status                  -- complete | incomplete_external
 )
 
 relay_setting (
-  setting_id PK, relay_id FK,
+  setting_id PK, relay_id FK, relay_function_id FK,
   parameter_name, parameter_value, unit,
   setting_group, effective_date, source_doc, is_current,
   topology_version NULL,   -- versi model yang jadi dasar hitung
@@ -321,18 +330,42 @@ calculation context Z3/reverse di atas. Gerbang v1 → v2 terpenuhi.
 
 ### v2 — register rele, setting lengkap, dan riwayat resmi
 
+#### v2a — profiling dan identity candidates (read-only)
+
 1. Profilkan seluruh 22 tab workbook UPT dan petakan 17 fungsi/logical source
    yang ditetapkan prompt; tab helper tetap dilaporkan dan tidak dibuang diam-diam.
-2. Bentuk identitas rele dari GI, bay, fungsi, merk, type, dan nomor seri.
-   Pencocokan lintas-sheet harus deterministik; konflik menjadi review queue data,
-   bukan fuzzy match tersembunyi.
-3. Isi `relay` dan `relay_setting` long-form dengan provenance minimal:
+2. Bentuk kandidat identitas IED fisik secara deterministik. Fungsi **bukan**
+   bagian identity key karena satu IED dapat menjalankan/muncul pada beberapa
+   fungsi. Prioritas key: nomor seri exact; fallback exact GI + bay + merk + type
+   + peran rele. Jangan melakukan fuzzy match.
+3. Profilkan 7 tab workbook official sebagai event history atau helper. Belum
+   ada write ke database, perubahan UI, atau penentuan `is_current` pada v2a.
+4. Konflik exact identity, key ber-confidence rendah, layout wide/grouped, dan
+   fungsi yang belum terklasifikasi harus menjadi review queue eksplisit.
+
+**Status v2a (21 Agustus 2026): selesai dikoding dan terverifikasi terhadap
+workbook nyata; belum menjadi loader.** Hasil baseline:
+
+- 22/22 tab UPT terprofil dan 17/17 logical source terpetakan
+- 7/7 tab official terprofil (`DV` ditandai helper, bukan event history)
+- 1.504 kandidat row/device-slot dan 292 event official bermakna
+- 199 grup exact identity lintas-sheet; 3 konflik nomor seri vs bay/model masuk review
+- 716 baris review eksplisit: 693 identity confidence rendah, 18 klasifikasi,
+  3 konflik metadata, dan 2 layout dengan parser khusus
+- 18 kandidat `CAP_UNBALANCE`/`UVR_OVR` tetap `REVIEW`, tidak dipaksa ke kelas produksi
+- `FR_OCR` (wide form 143 kolom) dan `CBF&CCP` (setting multi-row) ditandai parser khusus v2b
+- Artefak: `v2a_profile/report.md` dan CSV profil/candidate/event/review; sumber tidak diubah
+
+#### v2b — loader long-form dan UI
+
+1. Review queue v2a diselesaikan atau dipertahankan sebagai gap eksplisit.
+2. Isi `relay`, `relay_function`, dan `relay_setting` long-form dengan provenance minimal:
    workbook, sheet, row, column/header, source hash, dan tanggal observasi.
-4. Tetapkan `coordination_class`: `GRADED`, `UNIT`, atau `AUXILIARY` sesuai
+3. Tetapkan `coordination_class`: `GRADED`, `UNIT`, atau `AUXILIARY` sesuai
    tabel fungsi. Kelas ini adalah klasifikasi; v2 belum menghitung koordinasi.
-5. Gabungkan riwayat dari workbook official. Jangan menimpa record lama;
+4. Gabungkan riwayat dari workbook official. Jangan menimpa record lama;
    tentukan `is_current` dari urutan tanggal berlaku dan tandai konflik tanggal.
-6. Tampilkan rele, setting terkini, dan riwayat pada layar detail yang sama.
+5. Tampilkan rele, setting terkini, dan riwayat pada layar detail yang sama.
 
 **Kriteria penerimaan v2:**
 

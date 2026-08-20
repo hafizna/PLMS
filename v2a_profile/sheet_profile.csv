@@ -1,0 +1,30 @@
+﻿source_workbook,source_hash,physical_sheet,logical_source,sheet_role,layout,header_rows,data_start,max_rows,max_columns,meaningful_data_rows,formula_cells,notes
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,FR_OCR,FR_OCR,register,wide_form,1,2,12,143,11,0,Wide Google Form response; must be unpivoted in v2b.
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,Rekap,Rekap,summary,summary,"1,2,3,4",,70,15,24,35,
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,MASTER_PHT,LCD+DIST,helper,master,"4,5,6,7,8,9",11,195,34,184,2580,Master asset/helper table shared by protection sheets.
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,LCD,LCD+DIST,register,row_register,"4,5,6,7,8,9",11,194,46,184,2396,
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,Rekap1,Rekap1,summary,summary,"1,2,3,4,5,6",,998,40,40,308,
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,Pivot Table 1,Pivot Table 1,summary,pivot,"1,2,3,4",,66,9,23,10,
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,DIFF Pilot,DIFF Pilot,register,multi_device_row,"4,5,6,7,8,9",10,13,27,4,12,
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,DIST,LCD+DIST,register,row_register,"4,5,6,7,8,9",11,194,59,184,3499,
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,OCR_PHT,OCR,register,row_register,"4,5,6,7,8,9",11,194,34,184,1475,
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,AR,AR,register,row_register,"4,5,6,7,8,9",11,194,24,184,1,
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,HEL_PHT_SET,LCD+DIST,helper,calculation_helper,"1,2,3,4,5,6",,199,191,199,12094,
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,HEL_PHT_TAP,LCD+DIST,helper,calculation_helper,"1,2,3,4,5,6",,700,191,199,15395,
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,OCR_KOPEL,OCR KOPEL,register,row_register,"4,5,6,7,8,9",11,41,37,31,340,
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,DV_HELPER_KPL,DV,helper,validation_helper,"1,2,3",4,34,20,31,265,DV validation/helper; not a relay register.
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,SYNCHRO,Synchro,register,row_register,"4,5,6,7,8,9",11,194,33,184,1,
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,SYNCHROx,Synchro,helper,alternate_helper,"1,2,3,4",,179,22,173,486,Alternate/helper synchro sheet; retained in profile.
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,BUSPRO,BUSPRO,register,row_register,"4,5,6,7,8,9",10,50,20,39,39,
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,KAPASITOR,KAPASITOR,register,multi_device_row,"4,5,6,7,8,9",10,23,52,10,40,UNBALANCE and UVR/OVR are not classified in the prompt; kept as REVIEW.
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,CBF,CBF,register,row_register,"4,5,6,7,8,9",10,409,25,397,1960,
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,CCP,CCP,register,multi_device_row,"4,5,6,7,8,9",10,54,35,44,84,
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,SZP,SZP,register,row_register,"4,5,6,7,8,9",10,55,25,42,252,
+Data Setting Penghantar UPT DKSBI.xlsx,f0ba5b0036e47fb050940334d394bb217cdf81dcbdeea63e562db5b25048167c,CBF&CCP,CBF&CCP,summary,grouped_setting_summary,"4,5,6,7",8,1014,12,166,0,Multiple setting rows per asset; v2b needs grouped-row parser.
+List Official Setting & Resetting UPT Durikosambi.xlsx,28ac8f6f240f887f82fbb59c99c8c98bd276a40dd4262a6d85499e172419167d,2019-2021,OFFICIAL_HISTORY,event_register,event_rows,2,3,523,11,128,17,Official history event rows
+List Official Setting & Resetting UPT Durikosambi.xlsx,28ac8f6f240f887f82fbb59c99c8c98bd276a40dd4262a6d85499e172419167d,2022,OFFICIAL_HISTORY,event_register,event_rows,3,5,1001,10,45,1,Official history event rows
+List Official Setting & Resetting UPT Durikosambi.xlsx,28ac8f6f240f887f82fbb59c99c8c98bd276a40dd4262a6d85499e172419167d,2023,OFFICIAL_HISTORY,event_register,event_rows,3,5,65,10,33,0,Official history event rows
+List Official Setting & Resetting UPT Durikosambi.xlsx,28ac8f6f240f887f82fbb59c99c8c98bd276a40dd4262a6d85499e172419167d,2024,OFFICIAL_HISTORY,event_register,event_rows,3,5,100,11,84,1,Official history event rows
+List Official Setting & Resetting UPT Durikosambi.xlsx,28ac8f6f240f887f82fbb59c99c8c98bd276a40dd4262a6d85499e172419167d,2025,OFFICIAL_HISTORY,event_register,event_rows,3,5,100,11,5,0,Official history event rows
+List Official Setting & Resetting UPT Durikosambi.xlsx,28ac8f6f240f887f82fbb59c99c8c98bd276a40dd4262a6d85499e172419167d,2026,OFFICIAL_HISTORY,event_register,event_rows,3,5,100,11,1,0,Official history event rows
+List Official Setting & Resetting UPT Durikosambi.xlsx,28ac8f6f240f887f82fbb59c99c8c98bd276a40dd4262a6d85499e172419167d,DV,DV,helper,validation_helper,1,2,283,16,282,0,"Helper, not event history"
