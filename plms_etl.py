@@ -43,8 +43,17 @@ BLOCKLIST = {'KOSAMBI BARU', 'KOSAMBI BARU4', 'KOSAMBI BARU5', 'TELUKJAMBE'}
 # jadi split_voltage()/canon() tidak bisa menangkapnya. Diverifikasi via
 # penghantar DKSBI-KMBGN1/2 yang menghubungkan DKSBI7 <-> KEMBANGAN7
 # (sama-sama 500kV).
+#
+# ALAM SUTERA -> ALAM SUTRA: variasi ejaan (hilang satu huruf 'E'), tidak
+# overlap sbg substring jadi CONFIRMED_ALIAS/partial-match tidak pernah
+# tersentuh. Terhubung ke CILEDUG ('CLDUG-ALMSR') dan SUMMARECON
+# ('SMRCN-ALMSR 1/2') -- dua-arah terverifikasi dgn bay UPT (Alam Sutera
+# sendiri menyebut lawan CILEDUG dan SUMMARECON GADING SERPONG). Bukan
+# gap topologi/sisipan baru -- sudah ada penuh sejak DIgSILENT 2021,
+# cuma gagal ter-alias karena ejaan.
 MANUAL_ALIAS = {
     'DURIKOSAMBI': [('DKSBI7', 500.0)],
+    'ALAM SUTERA': [('ALAM SUTRA', None)],
 }
 
 # Node DIgSILENT yang SECARA TOPOLOGI terbukti bukan GI seed meski lolos

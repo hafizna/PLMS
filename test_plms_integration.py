@@ -111,9 +111,14 @@ def test_all_44_seed_gi_are_represented(rebuilt):
             ''')
         }
         assert represented == set(plms_etl.SEED_GI)
+        # 13 -> 12: ALAM SUTERA dipindah ke MANUAL_ALIAS (plms_etl.py) --
+        # ternyata cuma variasi ejaan dari node DIgSILENT 'ALAM SUTRA'
+        # (hilang huruf 'E'), terhubung dua-arah terverifikasi ke
+        # CILEDUG dan SUMMARECON. Bukan gap topologi, jadi topology_source
+        # sekarang 'DIGSILENT' bukan NULL.
         assert conn.execute('''
             SELECT count(*) FROM substation WHERE topology_source IS NULL
-        ''').fetchone()[0] == 13
+        ''').fetchone()[0] == 12
 
 
 def test_voltage_and_line_metadata_are_not_defaulted(rebuilt):

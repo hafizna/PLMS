@@ -48,8 +48,17 @@ from plms_etl import bay_to_gi_lawan, canon
 # DKSBI, dan sudah ter-link benar tanpa alias ini -- generalisasi ke
 # semua level tegangan akan MERUSAK match yang sudah benar. Scoped
 # hanya ke bay 500kV via OPPONENT_ALIAS_BY_VOLTAGE.
+#
+# SUMMARECON GADING SERPONG -> SUMMARECON: bay rele di CURUG dan ALAM
+# SUTRA sama-sama menyebut lawan dgn nama panjang seed, tapi node
+# DIgSILENT-nya 'SUMMARECON' (site_name pendek, sudah exact via
+# CONFIRMED_ALIAS di plms_etl.py utk resolve seed GI -- entry ini scoped
+# terpisah utk resolve lawan penghantar). Aman diterapkan polos (semua
+# level tegangan): tidak ada bay lain yg menyebut 'SUMMARECON GADING
+# SERPONG' dgn konteks berbeda.
 OPPONENT_ALIAS = {
     'KARET LAMA': 'KARET',
+    'SUMMARECON GADING SERPONG': 'SUMMARECON',
 }
 OPPONENT_ALIAS_BY_VOLTAGE = {
     (500.0, 'DURIKOSAMBI'): 'DKSBI',
