@@ -310,7 +310,12 @@ GI_STRIP  = re.compile(r'^(GISTET|GITET|GIS|GI)\s*(150|70|500|20)?\s*KV\s*', re.
 # TIDAK menangkap 'PHT.01' (kolom ID) atau 'PHT & KOPEL' (header kategori).
 BAY_PHT     = re.compile(r'^PHT\s+\d+\s*k?V\s+(.+)$', re.I)
 BAY_SUFFIX  = re.compile(r'\s*#\s*\d+\Z')
-BAY_GIS_PFX = re.compile(r'^GIS\s+', re.I)
+# 'GIS'/'UGC' di awal nama lawan adalah penanda jenis instalasi/teknologi
+# (Gas Insulated Switchgear / Underground Cable), bukan bagian nama GI --
+# 'PHT 150kV UGC MUARAKARANG LAMA#1' dan 'PHT 150kV MUARAKARANG LAMA#1'
+# merujuk lawan yang SAMA (Muarakarang Lama), cuma sirkitnya lewat kabel
+# tanah. Tanpa strip ini, bay UGC gagal match ke node non-UGC yang sama.
+BAY_TECH_PFX = re.compile(r'^(GIS|UGC)\s+', re.I)
 
 def bay_to_gi_lawan(bay):
     """Ekstrak kandidat nama GI lawan dari nama bay penghantar.
@@ -321,7 +326,7 @@ def bay_to_gi_lawan(bay):
     if not m:
         return None
     s = BAY_SUFFIX.sub('', m.group(1)).strip()
-    s = BAY_GIS_PFX.sub('', s).strip()          # 'GIS MUARAKARANG BARU' -> 'MUARAKARANG BARU'
+    s = BAY_TECH_PFX.sub('', s).strip()         # 'UGC MUARAKARANG LAMA' -> 'MUARAKARANG LAMA'
     s = re.sub(r'\s+', ' ', s.upper())
     return s or None
 

@@ -62,10 +62,23 @@ from plms_etl import bay_to_gi_lawan, canon
 # konteks 150kV lain), node sintetis-nya site_name unik (lihat
 # MANUAL_SUBSTATIONS) supaya jelas beda dari NEW PRIOK/PRIOK BARAT/PRIOK
 # TIMUR5 (150kV, tidak jelas berelasi).
+#
+# ALAM SUTERA -> ALAM SUTRA: bay rele di CILEDUG dan SUMMARECON sama-sama
+# menyebut lawan dgn nama panjang seed (variasi ejaan, hilang huruf 'E'),
+# tapi node DIgSILENT-nya 'ALAM SUTRA' (site_name pendek, sudah exact via
+# MANUAL_ALIAS di plms_etl.py utk resolve seed GI -- entry ini scoped
+# terpisah utk resolve lawan penghantar). Aman diterapkan polos: semua
+# bay yg menyebut 'ALAM SUTERA' konsisten (tidak ada konteks lain).
+#
+# DAAN MOGOT -> DAAN MOGOT GIS: bay rele di DURIKOSAMBI dan PANTAI INDAH
+# KAPUK sama-sama menyebut lawan tanpa suffix 'GIS', tapi node DIgSILENT-
+# nya 'DAAN MOGOT GIS'. Aman polos (semua bay 'DAAN MOGOT' konsisten).
 OPPONENT_ALIAS = {
     'KARET LAMA': 'KARET',
     'SUMMARECON GADING SERPONG': 'SUMMARECON',
     'TANJUNG PRIOK': 'TANJUNG PRIOK 500KV',
+    'ALAM SUTERA': 'ALAM SUTRA',
+    'DAAN MOGOT': 'DAAN MOGOT GIS',
 }
 OPPONENT_ALIAS_BY_VOLTAGE = {
     (500.0, 'DURIKOSAMBI'): 'DKSBI',
@@ -273,6 +286,30 @@ MANUAL_LINES = [
     # UPT, lihat alias_review.csv 'hanya GI lawan'), tidak ada bukti bay
     # dua-arah utk ditelusuri. Tetap GI valid (topology_source NULL),
     # tapi tanpa line sampai ada bukti tambahan.
+
+    # JATAKE-TANGERANG: dikonfirmasi pemilik data sbg penghantar TERPISAH
+    # dari rute JATAKE<->JATAKE BARU<->TANGERANG yang sudah ada -- bay
+    # 'PHT 150kV TANGERANG' di GI Jatake dan 'PHT 150kV JATAKE' (tanpa
+    # BARU) di GI Tangerang, dua-arah terverifikasi.
+    dict(line_name='JATAKE-TANGERANG', ss_from_name='JATAKE', ss_to_name='TANGERANG',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+
+    # KEMBANGAN-PETUKANGAN: bay 'PHT 150kV PETUKANGAN#1/#2' eksplisit di
+    # GIS Kembangan, 94 baris relay_setting aktif (bukan penghantar mati).
+    # Dikonfirmasi pemilik data: Petukangan HANYA di Kembangan -- bay
+    # serupa yang tercatat di GI Durikosambi (relay 199/200) adalah
+    # penghantar yang SUDAH MATI (0 relay_setting, diverifikasi), jadi
+    # SENGAJA TIDAK dimuat sbg line aktif. Bukti hanya satu arah (Kembangan
+    # menyebut Petukangan; Petukangan sendiri tidak py bay 'PHT%' apa pun).
+    dict(line_name='KEMBANGAN-PETUKANGAN', ss_from_name='KEMBANGAN5', ss_to_name='PETUKANGAN',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+
+    # ITS-BANDARA SOEKARNO HATTA (via bay 'Konsumen', KTT/pelanggan
+    # langsung yg supply utamanya ke Bandara): BELUM dikonfirmasi pemilik
+    # data -- TIDAK dimuat dulu. Bandara sendiri sudah py node (site
+    # CENGKARENG BARU, ss_id 84) dari bay 'PHT 150kV BANDARA SOEKARNO
+    # HATTA#1/#2', tapi relasi ITS<->Bandara via jalur Konsumen ini masih
+    # perlu verifikasi tambahan sebelum dijadikan line.
 ]
 
 # Sheet IHS (sumber bus_sc) dan sheet DB (sumber topologi/substation) di

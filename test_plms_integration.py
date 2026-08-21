@@ -71,12 +71,13 @@ def test_database_integrity_and_current_scope_baseline(rebuilt):
         assert conn.execute('PRAGMA foreign_key_check').fetchall() == []
 
         # Workbook saat ini: 113 seed / 148 +1-hop dari DIgSILENT setelah
-        # KOSAMBI BARU dikeluarkan eksplisit. 29 penghantar manual UPT
+        # KOSAMBI BARU dikeluarkan eksplisit. 31 penghantar manual UPT
         # (4 Lontar/Dadap + 15 sisipan/ekstensi GI pasca-2021 [Metland,
         # Pasar Kemis Baru, Grogol Baru, ITS, Jatake Baru, Milenium,
         # Sindang Jaya] + 6 jaringan 500kV [GITET Balaraja/Muarakarang/
-        # Tanjung Priok/Jawa 7] + 4 Gajah Tunggal/Pasar Kemis/Ulujami --
-        # lihat MANUAL_LINES di load.py) membuat daftar UI menjadi 177.
+        # Tanjung Priok/Jawa 7] + 4 Gajah Tunggal/Pasar Kemis/Ulujami +
+        # 2 Jatake-Tangerang/Kembangan-Petukangan -- lihat MANUAL_LINES di
+        # load.py) membuat daftar UI menjadi 179.
         digs_seed = conn.execute('''
             SELECT count(*) FROM line l
             JOIN substation a ON l.ss_from = a.ss_id
@@ -98,7 +99,7 @@ def test_database_integrity_and_current_scope_baseline(rebuilt):
         ''').fetchone()[0]
         assert digs_seed == 113
         assert digs_hop1 == 148
-        assert ui_total == 177
+        assert ui_total == 179
 
 
 def test_all_44_seed_gi_are_represented(rebuilt):
@@ -226,10 +227,11 @@ def test_loader_is_idempotent(rebuilt, tmp_path):
     for _ in range(2):
         load.main(str(etl_out), str(ROOT / 'alias_review.csv'), str(db_path))
     with connect(db_path) as conn:
-        # 1183 DIgSILENT + 29 manual (4 Lontar/Dadap + 15 sisipan/ekstensi
+        # 1183 DIgSILENT + 31 manual (4 Lontar/Dadap + 15 sisipan/ekstensi
         # GI pasca-2021 + 6 jaringan 500kV + 4 Gajah Tunggal/Pasar Kemis/
-        # Ulujami, lihat MANUAL_LINES di load.py).
-        assert conn.execute('SELECT count(*) FROM line').fetchone()[0] == 1212
+        # Ulujami + 2 Jatake-Tangerang/Kembangan-Petukangan, lihat
+        # MANUAL_LINES di load.py).
+        assert conn.execute('SELECT count(*) FROM line').fetchone()[0] == 1214
         assert conn.execute('PRAGMA foreign_key_check').fetchall() == []
 
 
