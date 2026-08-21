@@ -383,9 +383,20 @@ terhadap database nyata.** Baseline hasil load atomik:
 
 Event official tidak dipakai untuk menimpa nilai setting workbook. Event yang
 belum dapat dikaitkan exact tetap disimpan tanpa `official_event_line` dan masuk
-review queue. Penyelesaian 18 klasifikasi `CAP_UNBALANCE`/`UVR_OVR`, 50 konflik
+review queue. Penyelesaian klasifikasi `CAP_UNBALANCE`/`UVR_OVR`, konflik
 identity metadata lintas layout, dan gap link adalah kurasi data lanjutan—bukan
 alasan melakukan fuzzy merge.
+
+**Update kurasi lanjutan (21 Agustus 2026):** 18 kandidat `CAP_UNBALANCE`/
+`UVR_OVR` diklasifikasi `UNIT` (bukan lagi `REVIEW`) -- keduanya proteksi
+internal ke bank kapasitor sendiri (ANSI 51NC/60 dan 27/59), bukan grading
+hulu/hilir antar-GI, dikonfirmasi via literatur proteksi kapasitor bank + owner
+data. Konflik identity metadata turun dari 40 menjadi 5 setelah ditemukan 35
+kasus adalah konvensi label bay berbeda antar sheet CBF/SZP/CCP (nama
+penghantar) vs CBF&CCP (posisi fisik breaker/diameter) untuk IED fisik yang
+sama, bukan konflik data sesungguhnya. Detail lengkap ada di riwayat commit
+git (`plms_v2_profile.py`, fungsi `overlap_rows`/`_bay_conflict_is_diameter_
+labeling`/`_norm_model_for_compare`).
 
 **Kriteria penerimaan v2:**
 

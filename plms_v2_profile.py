@@ -109,14 +109,22 @@ UPT_SHEETS: dict[str, SheetConfig] = {
     "BUSPRO": SheetConfig("BUSPRO", "register", "row_register", (4, 5, 6, 7, 8, 9), 10,
         {"ultg": 3, "gi": 4, "bay": 5, "ct_ratio": 7},
         (DeviceBlock("BUSPRO", "BUSPRO", "UNIT", 8, 9, 10, 12, 13, 14, role_column=5),)),
+    # UNBALANCE (CAP_UNBALANCE, ANSI 51NC/60) dan UVR/OVR (ANSI 27/59):
+    # keduanya proteksi INTERNAL ke bank kapasitor itu sendiri -- deteksi
+    # elemen kapasitor gagal via arus/tegangan tak seimbang (UNBALANCE)
+    # atau tegangan bank di luar batas aman (UVR/OVR), bukan grading
+    # hulu/hilir antar-GI spt OCR/DIST. Dikonfirmasi via literatur (EEP,
+    # ABB REV615 guideform spec, SEL-487V) + keputusan domain pemilik
+    # data: UNIT -- "zona sudah tertutup oleh definisi" (identik alasan
+    # DIFF trafo/LCD Pilot/BUSPRO), bukan AUXILIARY (yang scope-nya utk
+    # fungsi tanpa konsep zona proteksi sama sekali, mis. AR/timing).
     "KAPASITOR": SheetConfig("KAPASITOR", "register", "multi_device_row", (4, 5, 6, 7, 8, 9), 10,
         {"asset_id": 1, "ultg": 6, "gi": 7, "bay": 8, "circuit": 9},
         (DeviceBlock("OCR_GFR", "OCR_GFR", "GRADED", 13, 14, 15, 16, 17, role_value="OCR_GFR"),
-         DeviceBlock("UNBALANCE", "CAP_UNBALANCE", "REVIEW", 29, 30, 31, 32, 33,
+         DeviceBlock("UNBALANCE", "CAP_UNBALANCE", "UNIT", 29, 30, 31, 32, 33,
                      role_value="UNBALANCE"),
-         DeviceBlock("UVR_OVR", "UVR_OVR", "REVIEW", 42, 43, 44, 45, 46,
-                     role_value="UVR_OVR")),
-        "UNBALANCE and UVR/OVR are not classified in the prompt; kept as REVIEW."),
+         DeviceBlock("UVR_OVR", "UVR_OVR", "UNIT", 42, 43, 44, 45, 46,
+                     role_value="UVR_OVR"))),
     "CBF": SheetConfig("CBF", "register", "row_register", (4, 5, 6, 7, 8, 9), 10,
         {"ultg": 7, "gi": 8, "bay": 9, "circuit": 10, "ct_ratio": 14},
         (DeviceBlock("CBF", "CBF", "AUXILIARY", 15, 16, 17, 18, 19, role_value="CBF"),)),

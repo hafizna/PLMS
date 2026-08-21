@@ -136,14 +136,21 @@ def test_real_workbooks_match_v2a_baseline(real_profile):
 
 def test_real_profile_keeps_review_items_explicit(real_profile):
     candidates = real_profile["candidates"]
-    assert sum(row["coordination_class"] == "REVIEW" for row in candidates) == 18
+    # 18->0: CAP_UNBALANCE/UVR_OVR (sheet KAPASITOR) diklasifikasi UNIT --
+    # proteksi internal ke bank kapasitor sendiri (ANSI 51NC/60, 27/59),
+    # bukan grading hulu/hilir antar-GI. Dikonfirmasi literatur (EEP, ABB
+    # REV615, SEL-487V) + keputusan domain pemilik data. Lihat komentar
+    # KAPASITOR SheetConfig di plms_v2_profile.py.
+    assert sum(row["coordination_class"] == "REVIEW" for row in candidates) == 0
     assert all(row["source_hash"] and row["source_row"] for row in candidates)
     conflicts = [row for row in real_profile["overlaps"] if row["metadata_conflict"] == "YES"]
     assert len(conflicts) >= 3
     assert all(row["review_action"] == "REVIEW" for row in conflicts)
     assert all(row["source_refs"] for row in conflicts)
     review_types = {row["review_type"] for row in real_profile["reviews"]}
+    # COORDINATION_CLASS_REVIEW tidak lagi muncul: CAP_UNBALANCE/UVR_OVR
+    # sudah diklasifikasi UNIT (lihat komentar di atas), bukan REVIEW lagi.
     assert review_types == {
         "IDENTITY_METADATA_CONFLICT", "LOW_IDENTITY_CONFIDENCE",
-        "COORDINATION_CLASS_REVIEW", "SPECIAL_LAYOUT_PARSER",
+        "SPECIAL_LAYOUT_PARSER",
     }

@@ -1,22 +1,4 @@
 ﻿review_type,source_ref,identity_key,logical_source,detail,recommended_action
-COORDINATION_CLASS_REVIEW,KAPASITOR!10:UNBALANCE,ASSET|GI 150KV ANGKE|KAPASITOR SC|#1|ALSTOM|MICOM P14N|UNBALANCE,KAPASITOR,CAP_UNBALANCE is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
-COORDINATION_CLASS_REVIEW,KAPASITOR!10:UVR_OVR,ASSET|GI 150KV ANGKE|KAPASITOR SC|#1|ALSTOM|MICOM P94V|UVR_OVR,KAPASITOR,UVR_OVR is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
-COORDINATION_CLASS_REVIEW,KAPASITOR!11:UNBALANCE,SERIAL|344267/04/18,KAPASITOR,CAP_UNBALANCE is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
-COORDINATION_CLASS_REVIEW,KAPASITOR!11:UVR_OVR,SERIAL|34423266/04/18,KAPASITOR,UVR_OVR is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
-COORDINATION_CLASS_REVIEW,KAPASITOR!12:UNBALANCE,SERIAL|7SR21021AA870C0-CC,KAPASITOR,CAP_UNBALANCE is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
-COORDINATION_CLASS_REVIEW,KAPASITOR!12:UVR_OVR,SERIAL|BF1209066513,KAPASITOR,UVR_OVR is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
-COORDINATION_CLASS_REVIEW,KAPASITOR!13:UNBALANCE,SERIAL|NRJB2088871540030,KAPASITOR,CAP_UNBALANCE is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
-COORDINATION_CLASS_REVIEW,KAPASITOR!13:UVR_OVR,SERIAL|NRJB2088871540040,KAPASITOR,UVR_OVR is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
-COORDINATION_CLASS_REVIEW,KAPASITOR!14:UNBALANCE,SERIAL|I0100235,KAPASITOR,CAP_UNBALANCE is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
-COORDINATION_CLASS_REVIEW,KAPASITOR!14:UVR_OVR,SERIAL|3702380,KAPASITOR,UVR_OVR is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
-COORDINATION_CLASS_REVIEW,KAPASITOR!15:UNBALANCE,ASSET|GI 150KV CENGKARENG|KAPASITOR SC|#1|NOKIAN CAPACITORS|NUR 36|UNBALANCE,KAPASITOR,CAP_UNBALANCE is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
-COORDINATION_CLASS_REVIEW,KAPASITOR!16:UNBALANCE,SERIAL|33980381/02/17,KAPASITOR,CAP_UNBALANCE is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
-COORDINATION_CLASS_REVIEW,KAPASITOR!17:UNBALANCE,SERIAL|NRJB2088871542350,KAPASITOR,CAP_UNBALANCE is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
-COORDINATION_CLASS_REVIEW,KAPASITOR!17:UVR_OVR,SERIAL|NRJB2088871542370,KAPASITOR,UVR_OVR is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
-COORDINATION_CLASS_REVIEW,KAPASITOR!18:UNBALANCE,SERIAL|607785,KAPASITOR,CAP_UNBALANCE is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
-COORDINATION_CLASS_REVIEW,KAPASITOR!18:UVR_OVR,SERIAL|2505095,KAPASITOR,UVR_OVR is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
-COORDINATION_CLASS_REVIEW,KAPASITOR!19:UNBALANCE,ASSET|GI 150KV TANGERANG|KAPASITOR SC|#1|ABB|SPAJ 160 C|UNBALANCE,KAPASITOR,CAP_UNBALANCE is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
-COORDINATION_CLASS_REVIEW,KAPASITOR!19:UVR_OVR,SERIAL|201074,KAPASITOR,UVR_OVR is not classified by the prompt table.,Owner must classify or approve an explicit out-of-scope class.
 IDENTITY_METADATA_CONFLICT,AR!63:AR | DIST!65:DIST | LCD!65:LCD,SERIAL|197931U,,bay=PHT 150KV DAAN MOGOT#1 <> PHT 150KV GIS MUARAKARANG BARU#1,Verify source rows; do not link until conflict is resolved.
 IDENTITY_METADATA_CONFLICT,AR!92:AR | DIST!88:DIST | LCD!88:LCD,SERIAL|31830604/07/11,,bay=PHT 150KV CIKUPA#1 <> PHT 150KV MAXIMANGANDO#1,Verify source rows; do not link until conflict is resolved.
 IDENTITY_METADATA_CONFLICT,CBF!13:CBF | CBF&CCP!101:SZP_7A6 | CBF&CCP!98:CBF_7A6 | SZP!13:SZP,SERIAL|32687102/10/13,,manufacturer=ALSTOM <> AREVA; model=MICOM P821 <> MICOM P841,Verify source rows; do not link until conflict is resolved.
