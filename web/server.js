@@ -42,6 +42,7 @@ function pivotSettings(rows) {
         coordination_class: row.coordination_class,
         manufacturer: row.manufacturer,
         model: row.model,
+        identity_confidence: row.identity_confidence,
         setting_group: row.setting_group,
         effective_date: row.effective_date,
         columns: [], // [{label, value, unit}] in encounter order
@@ -98,6 +99,7 @@ function groupSettingsByFunction(pivoted) {
       columnLabels,
       rows: groups.map(g => ({
         ...g,
+        identity: describeIdentity(g.identity_confidence),
         cellsByLabel: Object.fromEntries(g.columns.map(c => [c.label, c])),
       })),
     });
@@ -231,7 +233,7 @@ function getRelays(ssId, lineId) {
 function getCurrentSettingsFlat(lineId) {
   return db.prepare(`
     SELECT rs.*, rf.function_type, rf.coordination_class, r.manufacturer, r.model,
-      s.site_name AS substation_name, r.bay
+      r.identity_confidence, s.site_name AS substation_name, r.bay
     FROM relay_setting rs
     JOIN relay r ON rs.relay_id = r.relay_id
     JOIN relay_function rf ON rs.relay_function_id = rf.relay_function_id

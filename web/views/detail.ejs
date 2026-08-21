@@ -131,7 +131,10 @@
               <% group.rows.forEach(row => { %>
                 <tr>
                   <td><%= row.substation_name %><%= row.bay ? ' / ' + row.bay : '' %></td>
-                  <td><%= [row.manufacturer, row.model].filter(Boolean).join(' ') || '—' %></td>
+                  <td>
+                    <%= [row.manufacturer, row.model].filter(Boolean).join(' ') || '—' %>
+                    <span class="identity-tag" title="<%= row.identity.tooltip %>">· <%= row.identity.label %></span>
+                  </td>
                   <td><%= row.setting_group || '—' %></td>
                   <% group.columnLabels.forEach(label => {
                        const cell = row.cellsByLabel[label];

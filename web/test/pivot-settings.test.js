@@ -14,6 +14,7 @@ function row(overrides) {
     coordination_class: 'GRADED',
     manufacturer: 'SIEMENS',
     model: '7SL87',
+    identity_confidence: 'HIGH',
     setting_group: 'SET_RELAY',
     effective_date: null,
     parameter_name: 'SETTING IMPEDANSI > Z1 > ph-gnd',
@@ -113,4 +114,16 @@ test('groupSettingsByFunction: kolom union dalam satu fungsi, baris tanpa kolom 
   const relayB = dist.rows.find(r => r.manufacturer === 'ABB');
   assert.equal(relayB.cellsByLabel['Z1 ph-gnd'].value, '3.0');
   assert.equal(relayB.cellsByLabel['Z1 ph-ph'], undefined, 'rele B tidak punya Z1 ph-ph -- harus absen, bukan terisi nilai rele lain');
+});
+
+test('groupSettingsByFunction: baris identity LOW tampil dgn label & tooltip yg sama spt di daftar "Rele terpasang" (bukan cuma "-")', () => {
+  // Tabel setting sempat lupa membawa identity_confidence dari query --
+  // baris LOW jadi tampil polos '-' di kolom Merk/tipe tanpa penjelasan,
+  // padahal section "Rele terpasang" di atasnya sudah menjelaskan gap
+  // dokumen ini. Regresi: describeIdentity() harus dipanggil jg di sini.
+  const rows = [row({ manufacturer: '', model: '', identity_confidence: 'LOW' })];
+  const groups = groupSettingsByFunction(pivotSettings(rows));
+  const settingRow = groups[0].rows[0];
+  assert.match(settingRow.identity.label, /merk\/type belum tercatat/);
+  assert.match(settingRow.identity.tooltip, /dokumen sumber UPT/i);
 });
