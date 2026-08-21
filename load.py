@@ -132,6 +132,11 @@ MANUAL_SUBSTATIONS = [
          resolve_aliases=['MUARAKARANG BARU']),
     dict(site_name='TANJUNG PRIOK 500KV', voltage_kv=500.0,
          resolve_aliases=['TANJUNG PRIOK']),
+    # JAWA 7: dikonfirmasi pemilik data -- nama GI (bukan salah tebak kode
+    # voltage), tegangan 500kV. Tidak muncul sbg raw_gi sama sekali di
+    # register UPT Durikosambi (GITET besar kemungkinan milik UPT lain),
+    # cuma disebut sbg lawan bay ('PHT 500kV JAWA 7') dari GITET BALARAJA.
+    dict(site_name='JAWA 7', voltage_kv=500.0, resolve_aliases=[]),
 ]
 
 # Penghantar tanpa node DIgSILENT, ditelusuri manual dari dokumen UPT.
@@ -213,11 +218,15 @@ MANUAL_LINES = [
          voltage_kv=500.0, source='UPT_MANUAL', out_of_service=True),
     dict(line_name='GITET BALARAJA-SURALAYA', ss_from_name='GITET BALARAJA', ss_to_name='SURALAYA7',
          voltage_kv=500.0, source='UPT_MANUAL'),
-    # LENGKONG dan JAWA 7 SENGAJA tidak dimuat -- LENGKONG di database
-    # tercatat 150kV (kontradiksi dgn topologi sheet DB yg mengaitkannya
-    # ke NEW BALARAJA7/GANDUL7, keduanya 500kV -- kemungkinan salah
-    # assign voltage dari IHS, bukan dari sheet DB), JAWA 7 tidak py node
-    # substation manapun. Keduanya butuh klarifikasi sebelum dimuat.
+    # JAWA 7: dikonfirmasi pemilik data -- nama GI 500kV nyata (bukan
+    # kode/typo). Node sintetis (MANUAL_SUBSTATIONS), belum ada bukti
+    # dua-arah (GI ini di luar register UPT Durikosambi).
+    dict(line_name='GITET BALARAJA-JAWA 7', ss_from_name='GITET BALARAJA', ss_to_name='JAWA 7',
+         voltage_kv=500.0, source='UPT_MANUAL'),
+    # LENGKONG SENGAJA tidak dimuat -- di database tercatat 150kV
+    # (kontradiksi dgn topologi sheet DB yg mengaitkannya ke NEW
+    # BALARAJA7/GANDUL7, keduanya 500kV -- kemungkinan salah assign
+    # voltage dari IHS, bukan dari sheet DB). Butuh klarifikasi lanjut.
 
     # GITET MUARAKARANG -- dikonfirmasi via helper sheet resmi ([500kV]
     # MUARAKARANG - DURIKOSAMBI): rantai L1=Muarakarang->Durikosambi,
@@ -231,6 +240,39 @@ MANUAL_LINES = [
     # TIMUR5) tidak jelas berelasi -- butuh verifikasi tambahan.
     dict(line_name='GITET MUARAKARANG-TANJUNG PRIOK', ss_from_name='GITET MUARAKARANG', ss_to_name='TANJUNG PRIOK 500KV',
          voltage_kv=500.0, source='UPT_MANUAL'),
+
+    # GAJAH TUNGGAL: dikonfirmasi dua penghantar TERPISAH (bukan satu
+    # penghantar bercabang) -- helper sheet resmi 'GAJAH TUNGGAL - PASAR
+    # KEMIS BARU' (lanjut ke PASAR KEMIS BARU - SEPATAN) dan 'GAJAH
+    # TUNGGAL - PASAR KEMIS' (lanjut ke PASAR KEMIS - CIKUPA) adalah dua
+    # file/rantai L1-L2 berbeda. Dua-arah terverifikasi dari bay UPT utk
+    # keduanya.
+    dict(line_name='GAJAH TUNGGAL-PASAR KEMIS', ss_from_name='GAJAH TUNGGAL', ss_to_name='PASAR KEMIS',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+    dict(line_name='GAJAH TUNGGAL-PASAR KEMIS BARU', ss_from_name='GAJAH TUNGGAL', ss_to_name='PASAR KEMIS BARU',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+    # PASAR KEMIS-CIKUPA: dikonfirmasi via helper sheet 'GAJAH TUNGGAL -
+    # PASAR KEMIS' (rantai GI A-B-C, L2=Pasar Kemis-Cikupa).
+    dict(line_name='PASAR KEMIS-CIKUPA', ss_from_name='PASAR KEMIS', ss_to_name='CIKUPA',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+    # PASAR KEMIS-PASAR KEMIS BARU: sudah dimuat di atas (baris sisipan
+    # Metland/Pasar Kemis Baru) -- dua GI FISIK BERBEDA (dikonfirmasi
+    # pemilik data, konsisten dgn qualifier-aware matching di
+    # plms_etl.py), bukan alias yang salah tergabung. TIDAK diulang di
+    # sini (duplikat line_name persis menyebabkan AMBIGUOUS_LINE saat
+    # resolve_lines() tak bisa memilih salah satu line_id).
+
+    # ULUJAMI: dikonfirmasi ekstensi dari NEW SENAYAN, dua-arah
+    # terverifikasi (New Senayan jg menyebut lawan Ulujami).
+    dict(line_name='NEW SENAYAN-ULUJAMI', ss_from_name='NEW SENAYAN', ss_to_name='ULUJAMI',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+
+    # SEPATAN BARU: dikonfirmasi kemungkinan ekstensi jg (beda UPT, belum
+    # dipastikan persis lawan mana) -- TIDAK dimuat sebagai line krn GI
+    # ini tidak py bay 'PHT%' sama sekali (cuma disebut sbg GI lawan di
+    # UPT, lihat alias_review.csv 'hanya GI lawan'), tidak ada bukti bay
+    # dua-arah utk ditelusuri. Tetap GI valid (topology_source NULL),
+    # tapi tanpa line sampai ada bukti tambahan.
 ]
 
 # Sheet IHS (sumber bus_sc) dan sheet DB (sumber topologi/substation) di
