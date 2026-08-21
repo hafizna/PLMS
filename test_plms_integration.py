@@ -71,9 +71,10 @@ def test_database_integrity_and_current_scope_baseline(rebuilt):
         assert conn.execute('PRAGMA foreign_key_check').fetchall() == []
 
         # Workbook saat ini: 113 seed / 148 +1-hop dari DIgSILENT setelah
-        # KOSAMBI BARU dikeluarkan eksplisit. 37 penghantar manual UPT
+        # KOSAMBI BARU dikeluarkan eksplisit. 38 penghantar manual UPT
         # (lihat MANUAL_LINES di load.py utk rincian per pasangan) membuat
-        # daftar UI menjadi 185.
+        # daftar UI menjadi 186. (185->186: MUARAKARANG BARU GIS-PANTAI
+        # INDAH KAPUK -- silent misresolve fix, lihat komentar MANUAL_LINES.)
         digs_seed = conn.execute('''
             SELECT count(*) FROM line l
             JOIN substation a ON l.ss_from = a.ss_id
@@ -95,7 +96,7 @@ def test_database_integrity_and_current_scope_baseline(rebuilt):
         ''').fetchone()[0]
         assert digs_seed == 113
         assert digs_hop1 == 148
-        assert ui_total == 185
+        assert ui_total == 186
 
 
 def test_all_44_seed_gi_are_represented(rebuilt):
@@ -223,8 +224,13 @@ def test_loader_is_idempotent(rebuilt, tmp_path):
     for _ in range(2):
         load.main(str(etl_out), str(ROOT / 'alias_review.csv'), str(db_path))
     with connect(db_path) as conn:
-        # 1183 DIgSILENT + 37 manual, lihat MANUAL_LINES di load.py.
-        assert conn.execute('SELECT count(*) FROM line').fetchone()[0] == 1220
+        # 1183 DIgSILENT + 38 manual, lihat MANUAL_LINES di load.py.
+        # 37->38: tambah 'MUARAKARANG BARU GIS-PANTAI INDAH KAPUK' --
+        # penghantar nyata yg sempat tertukar diam2 dgn line M.Karang
+        # Baru-PIK yg sudah ada (line_link_status 'EXACT' scr teknis
+        # tapi ke line yg salah, tidak masuk review queue). Lihat
+        # _muarakarang_baru_opponent() di load.py.
+        assert conn.execute('SELECT count(*) FROM line').fetchone()[0] == 1221
         assert conn.execute('PRAGMA foreign_key_check').fetchall() == []
 
 

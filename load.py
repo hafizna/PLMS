@@ -95,22 +95,43 @@ OPPONENT_ALIAS_BY_VOLTAGE = {
     (500.0, 'DURIKOSAMBI'): 'DKSBI',
 }
 
-# Override lawan berbasis SITE ASAL + BAY MENTAH (bukan hasil
-# bay_to_gi_lawan(), yang sudah strip 'GIS' dan menghasilkan nama SAMA
-# utk kedua arah) -- perlu saat 2 GI berbeda kebetulan nama lawan-nya
-# identik setelah strip prefix teknologi.
+# Override lawan berbasis BAY MENTAH (bukan hasil bay_to_gi_lawan(), yang
+# sudah strip 'GIS' dan menghasilkan nama SAMA utk kedua arah) -- perlu
+# saat 2 GI berbeda kebetulan nama lawan-nya identik setelah strip
+# prefix teknologi.
 #
-# GI Muarakarang Baru <-> GIS Muarakarang Baru: bay 'PHT ... GIS
-# MUARAKARANG BARU#N' dan 'PHT ... MUARAKARANG BARU#N' (tanpa 'GIS')
-# SAMA-SAMA menghasilkan lawan 'MUARAKARANG BARU' dari bay_to_gi_lawan(),
-# padahal merujuk arah berbeda: dari M. KARANG BARU, bay MENGANDUNG
-# 'GIS' berarti lawan adalah GIS Muarakarang Baru; dari MUARAKARANG BARU
-# GIS, bay TANPA 'GIS' berarti lawan adalah M. KARANG BARU. Key: (site
-# asal, apakah raw_bay mengandung 'GIS').
-OPPONENT_ALIAS_BY_SOURCE_SITE = {
-    ('M. KARANG BARU', True): 'MUARAKARANG BARU GIS',
-    ('MUARAKARANG BARU GIS', False): 'M. KARANG BARU',
-}
+# GI Muarakarang Baru (konvensional) <-> GIS Muarakarang Baru: bay 'PHT
+# ... GIS MUARAKARANG BARU#N' dan 'PHT ... MUARAKARANG BARU#N' (tanpa
+# 'GIS') SAMA-SAMA menghasilkan lawan 'MUARAKARANG BARU' dari
+# bay_to_gi_lawan(), padahal merujuk arah berbeda.
+#
+# Awalnya rule ini di-key per SITE ASAL (M. KARANG BARU, MUARAKARANG
+# BARU GIS) -- tapi itu cuma menangani 2 GI itu saling melihat satu sama
+# lain. Terbukti gagal generalisasi: rele di GIS 150kV PANTAI INDAH KAPUK
+# dgn bay literal 'PHT 150kV GIS MUARAKARANG BARU#1/2' salah nyasar ke
+# line M. KARANG BARU-PIK yg SUDAH ADA (line_id 619) alih-alih ke line
+# terpisah GIS MUARAKARANG BARU-PIK, krn override_key (source_site=PIK,
+# has_gis=True) tidak ada di lookup lama -- silent misresolve (line_link_
+# status tetap 'EXACT' krn secara kebetulan PIK juga py line ke M.Karang
+# Baru), BUKAN masuk review queue. Dikonfirmasi bidirectional: dari sisi
+# GIS Muarakarang Baru sendiri ada bay 'PHT 150kV Pantai Indah Kapuk#1/2'
+# berstatus NO_EXACT_LINE, dan kedua sisi py puluhan relay_setting current
+# aktif (82 & 96) -- penghantar nyata terpisah, ditambahkan sbg
+# MANUAL_LINES 'MUARAKARANG BARU GIS-PANTAI INDAH KAPUK'.
+#
+# Rule digeneralisasi: kata 'GIS' pada BAY MENTAH selalu menunjuk site
+# 'MUARAKARANG BARU GIS', APAPUN GI asalnya (kecuali asalnya sendiri GIS
+# Muarakarang Baru -- tak pernah terjadi di data, bay tak merujuk diri
+# sendiri). Sebaliknya, bay TANPA 'GIS' dari source GIS Muarakarang Baru
+# sendiri berarti lawannya M. KARANG BARU (supaya tidak nyasar ke diri
+# sendiri via normalized_gi() yg menyamakan 'MUARAKARANG BARU GIS' dan
+# 'GI 150kV Muarakarang Baru' jadi base name yg sama).
+def _muarakarang_baru_opponent(source_site, has_gis):
+    if has_gis:
+        return 'MUARAKARANG BARU GIS'
+    if source_site == 'MUARAKARANG BARU GIS':
+        return 'M. KARANG BARU'
+    return None  # source lain, bay tanpa 'GIS' -> fallback resolve_opponent_name biasa
 
 # raw_gi (substation ASAL rele, string mentah dari sheet UPT, exact match
 # case-insensitive) yg HARUS diarahkan ke site_name tertentu -- dipakai
@@ -427,6 +448,21 @@ MANUAL_LINES = [
     # dari kesimpulan awal (self-reference/kopel internal) yang SALAH.
     dict(line_name='M. KARANG BARU-MUARAKARANG BARU GIS',
          ss_from_name='M. KARANG BARU', ss_to_name='MUARAKARANG BARU GIS',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+
+    # MUARAKARANG BARU GIS-PANTAI INDAH KAPUK: penghantar TERPISAH dari
+    # M. KARANG BARU-PIK (line DIgSILENT 'MKRBU-PIK') yang sempat
+    # tertukar. Root cause: bay 'PHT 150kV GIS MUARAKARANG BARU#N' dari
+    # sisi PIK di-resolve dgn rule lawan 'MUARAKARANG BARU' generik yg
+    # tidak membedakan GIS vs GI konvensional -- nyasar diam2 ke line
+    # M.Karang Baru-PIK yg SUDAH ada tanpa masuk review queue (line_link_
+    # status tetap 'EXACT' scr teknis). Dikonfirmasi bidirectional: sisi
+    # GIS Muarakarang Baru py bay 'PHT 150kV Pantai Indah Kapuk#1/2'
+    # (sebelumnya NO_EXACT_LINE krn line ini memang belum ada). Kedua sisi
+    # py puluhan relay_setting current aktif (82 & 96) -- penghantar
+    # nyata, bukan duplikat/self-loop. Lihat _muarakarang_baru_opponent().
+    dict(line_name='MUARAKARANG BARU GIS-PANTAI INDAH KAPUK',
+         ss_from_name='MUARAKARANG BARU GIS', ss_to_name='PANTAI INDAH KAPUK',
          voltage_kv=150.0, source='UPT_MANUAL'),
 ]
 
@@ -793,16 +829,21 @@ def resolve_lines(conn, ss_id, raw_bay, raw_circuit='', allow_multiple=False):
     bay_voltage_match = re.search(r'\b(20|70|150|500)\s*KV\b', bay, re.I)
     bay_voltage = float(bay_voltage_match.group(1)) if bay_voltage_match else None
     lawan = bay_to_gi_lawan(bay)
-    # Override berbasis site ASAL: bay_to_gi_lawan() kadang menghasilkan
-    # nama sama utk 2 arah berbeda (lihat OPPONENT_ALIAS_BY_SOURCE_SITE).
+    # Override khusus Muarakarang Baru: bay_to_gi_lawan() kadang
+    # menghasilkan nama sama utk 2 arah berbeda (lihat
+    # _muarakarang_baru_opponent() di atas -- berbasis kata 'GIS' pada
+    # bay mentah, bukan site asal, supaya berlaku dari GI manapun).
     source_row = conn.execute('''
         SELECT s.site_name FROM substation ss JOIN site s USING (site_id)
         WHERE ss.ss_id = ?''', (ss_id,)).fetchone()
     source_site = source_row[0].strip().upper() if source_row else None
     has_gis = bool(re.search(r'\bGIS\b', bay, re.I))
-    override_key = (source_site, has_gis) if source_site else None
-    if lawan == 'MUARAKARANG BARU' and override_key in OPPONENT_ALIAS_BY_SOURCE_SITE:
-        target = OPPONENT_ALIAS_BY_SOURCE_SITE[override_key]
+    muarakarang_target = (
+        _muarakarang_baru_opponent(source_site, has_gis)
+        if lawan == 'MUARAKARANG BARU' else None
+    )
+    if muarakarang_target:
+        target = muarakarang_target
     else:
         target = resolve_opponent_name(lawan, bay_voltage)
     target_name = normalized_gi(target)[0] if target else None
