@@ -95,6 +95,46 @@ OPPONENT_ALIAS_BY_VOLTAGE = {
     (500.0, 'DURIKOSAMBI'): 'DKSBI',
 }
 
+# Override lawan berbasis SITE ASAL + BAY MENTAH (bukan hasil
+# bay_to_gi_lawan(), yang sudah strip 'GIS' dan menghasilkan nama SAMA
+# utk kedua arah) -- perlu saat 2 GI berbeda kebetulan nama lawan-nya
+# identik setelah strip prefix teknologi.
+#
+# GI Muarakarang Baru <-> GIS Muarakarang Baru: bay 'PHT ... GIS
+# MUARAKARANG BARU#N' dan 'PHT ... MUARAKARANG BARU#N' (tanpa 'GIS')
+# SAMA-SAMA menghasilkan lawan 'MUARAKARANG BARU' dari bay_to_gi_lawan(),
+# padahal merujuk arah berbeda: dari M. KARANG BARU, bay MENGANDUNG
+# 'GIS' berarti lawan adalah GIS Muarakarang Baru; dari MUARAKARANG BARU
+# GIS, bay TANPA 'GIS' berarti lawan adalah M. KARANG BARU. Key: (site
+# asal, apakah raw_bay mengandung 'GIS').
+OPPONENT_ALIAS_BY_SOURCE_SITE = {
+    ('M. KARANG BARU', True): 'MUARAKARANG BARU GIS',
+    ('MUARAKARANG BARU GIS', False): 'M. KARANG BARU',
+}
+
+# raw_gi (substation ASAL rele, string mentah dari sheet UPT, exact match
+# case-insensitive) yg HARUS diarahkan ke site_name tertentu -- dipakai
+# SEBELUM normalized_gi() di resolve_ss(), scoped ke string persis (BUKAN
+# perubahan normalized_gi()/GI_LABEL global, yg dipakai luas dan aman utk
+# kasus GIS X == GI X yg memang entitas sama).
+#
+# GIS 150kV MUARAKARANG BARU vs GI 150kV MUARAKARANG BARU: dikonfirmasi
+# DUA GI FISIK BERBEDA (SLD terpisah, kode aset MKBRU vs GMKRU) yang
+# terhubung penghantar pendek -- BUKAN entitas yang sama meski
+# normalized_gi() menyamakan keduanya jadi 'MUARAKARANG BARU'. Tanpa
+# override ini, rele dgn raw_gi='GIS 150kV MUARAKARANG BARU' nyasar ke
+# node 'M. KARANG BARU' (GI konvensional) yang sudah ada -- padahal
+# harusnya node site terpisah. Dibuktikan py DIST (19 setting) + OCR_GFR
+# (14 setting) aktif di kedua sisi -- penghantar nyata, bukan self-loop.
+#
+# site_name target SENGAJA tanpa prefix GI/GIS ('MUARAKARANG BARU GIS',
+# bukan 'GIS MUARAKARANG BARU') supaya build_ss_lookup() (yang memanggil
+# normalized_gi() ke SEMUA site_name, termasuk yg baru) tidak ikut
+# men-strip prefix itu dan menyamakannya lagi ke 'MUARAKARANG BARU'.
+RAW_GI_OVERRIDE = {
+    'GIS 150KV MUARAKARANG BARU': 'MUARAKARANG BARU GIS',
+}
+
 
 def resolve_opponent_name(name, voltage=None):
     if not name:
@@ -179,6 +219,16 @@ MANUAL_SUBSTATIONS = [
     # dari CENGKARENG BARU, 94 baris relay_setting aktif (DIST+OCR_GFR) --
     # nyata. Tidak ada node DIgSILENT sama sekali.
     dict(site_name='BANDARA SOEKARNO HATTA', voltage_kv=150.0, resolve_aliases=[]),
+    # MUARAKARANG BARU GIS: dikonfirmasi pemilik data -- GI FISIK BERBEDA
+    # dari M. KARANG BARU (GI konvensional), terhubung penghantar pendek.
+    # DIST (19 setting) + OCR_GFR (14 setting) aktif di kedua sisi. SLD
+    # terpisah (folder 'GIS MUARAKARANG BARU', kode aset GMKRU vs MKBRU).
+    # Resolusi substation-nya via RAW_GI_OVERRIDE (raw_gi='GIS 150kV
+    # MUARAKARANG BARU' exact), bukan resolve_aliases -- normalized_gi()
+    # akan menyamakan alias apa pun yg berawalan GIS/GI ke 'MUARAKARANG
+    # BARU' lagi, jadi site_name sengaja 'MUARAKARANG BARU GIS' (suffix,
+    # bukan prefix) supaya lolos utuh dari strip GI_LABEL.
+    dict(site_name='MUARAKARANG BARU GIS', voltage_kv=150.0, resolve_aliases=[]),
     # BUDIKEMULYAN (Budi Kemuliaan) TIDAK perlu node sintetis -- node
     # DIgSILENT-nya SUDAH ADA ('BUDI KEMULIAAN', 150kV). Cukup
     # OPPONENT_ALIAS biasa (ejaan beda: 'BUDIKEMULYAN' tanpa spasi/huruf
@@ -369,6 +419,14 @@ MANUAL_LINES = [
     # menyandang label '(FUTURE)' -- label itu tidak reliable utk
     # menyimpulkan aktif/mati, lihat BAY_FUTURE_SFX di plms_etl.py).
     dict(line_name='LONTAR-CIKUPA', ss_from_name='LONTAR', ss_to_name='CIKUPA',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+
+    # M. KARANG BARU-MUARAKARANG BARU GIS: dikonfirmasi pemilik data --
+    # 2 GI FISIK BERBEDA (SLD terpisah MKBRU/GMKRU), penghantar pendek.
+    # DIST (19 setting) + OCR_GFR (14 setting) aktif kedua sisi -- koreksi
+    # dari kesimpulan awal (self-reference/kopel internal) yang SALAH.
+    dict(line_name='M. KARANG BARU-MUARAKARANG BARU GIS',
+         ss_from_name='M. KARANG BARU', ss_to_name='MUARAKARANG BARU GIS',
          voltage_kv=150.0, source='UPT_MANUAL'),
 ]
 
@@ -647,7 +705,13 @@ def build_ss_lookup(conn):
 
 
 def resolve_ss(lookup, raw_gi):
-    name, voltage = normalized_gi(raw_gi)
+    override = RAW_GI_OVERRIDE.get(str(raw_gi or '').strip().upper())
+    if override:
+        # override site_name (mis. 'MUARAKARANG BARU GIS') sengaja tanpa
+        # prefix GI/GIS di awal supaya lolos utuh dari normalized_gi().
+        name, voltage = normalized_gi(override)
+    else:
+        name, voltage = normalized_gi(raw_gi)
     options = sorted(lookup.get(name, set())) if name else []
     if voltage is not None:
         exact = [ss_id for ss_id, kv in options if kv is not None and abs(kv - voltage) < 0.001]
@@ -728,7 +792,19 @@ def resolve_lines(conn, ss_id, raw_bay, raw_circuit='', allow_multiple=False):
     bay = str(raw_bay or '')
     bay_voltage_match = re.search(r'\b(20|70|150|500)\s*KV\b', bay, re.I)
     bay_voltage = float(bay_voltage_match.group(1)) if bay_voltage_match else None
-    target = resolve_opponent_name(bay_to_gi_lawan(bay), bay_voltage)
+    lawan = bay_to_gi_lawan(bay)
+    # Override berbasis site ASAL: bay_to_gi_lawan() kadang menghasilkan
+    # nama sama utk 2 arah berbeda (lihat OPPONENT_ALIAS_BY_SOURCE_SITE).
+    source_row = conn.execute('''
+        SELECT s.site_name FROM substation ss JOIN site s USING (site_id)
+        WHERE ss.ss_id = ?''', (ss_id,)).fetchone()
+    source_site = source_row[0].strip().upper() if source_row else None
+    has_gis = bool(re.search(r'\bGIS\b', bay, re.I))
+    override_key = (source_site, has_gis) if source_site else None
+    if lawan == 'MUARAKARANG BARU' and override_key in OPPONENT_ALIAS_BY_SOURCE_SITE:
+        target = OPPONENT_ALIAS_BY_SOURCE_SITE[override_key]
+    else:
+        target = resolve_opponent_name(lawan, bay_voltage)
     target_name = normalized_gi(target)[0] if target else None
     if target_name:
         lines = [row for row in lines if normalized_gi(row['other_site'])[0] == target_name]
