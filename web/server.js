@@ -105,6 +105,45 @@ function groupSettingsByFunction(pivoted) {
   return result;
 }
 
+// Bay yang diawali '?' berasal dari fix_bay() di plms_etl.py: Excel salah
+// baca nilai bay (mis. 'I-5') sbg datetime, dipulihkan tapi ditandai utk
+// koreksi manual -- prompt v2 jebakan #1. Tampilkan sbg peringatan
+// eksplisit, bukan nama bay biasa.
+function describeBay(bay) {
+  if (!bay) return { text: '—', suspect: false };
+  if (bay.startsWith('?')) {
+    return { text: bay, suspect: true };
+  }
+  return { text: bay, suspect: false };
+}
+
+// identity_confidence LOW pada ~736 rele (terutama AR, SYNCHRO, CBF, BUSPRO,
+// SZP) terverifikasi baris-per-baris bukan bug parser/alias -- dokumen
+// sumber UPT memang tidak mencantumkan MERK/TYPE/no seri utk baris tsb
+// (identity_for() di plms_v2_profile.py butuh 6 atribut lengkap tanpa
+// serial utk naik ke MEDIUM). Ini gap dokumen yang jujur, bukan gap sistem
+// -- jangan ditutup dgn fuzzy-match atau tebakan. Register merk/type/serial
+// otoritatif sudah ada di PST; begitu pst_asset_id (kolom relay, nullable,
+// belum diintegrasikan sampai v7a) terisi, identity_for() akan naik
+// otomatis ke HIGH lewat serial exact match tanpa perubahan logika.
+function describeIdentity(confidence) {
+  switch (confidence) {
+    case 'HIGH':
+      return { label: 'HIGH', tooltip: 'Nomor seri cocok persis.' };
+    case 'MEDIUM':
+      return { label: 'MEDIUM', tooltip: 'Tanpa nomor seri, tapi GI/bay/sirkit/merk/type/peran lengkap & cocok persis.' };
+    case 'LOW':
+      return {
+        label: 'LOW — merk/type belum tercatat',
+        tooltip: 'Dokumen sumber UPT belum mencantumkan merk/type/no. seri rele ini. '
+          + 'Bukan kesalahan pembacaan sistem. Data otoritatif sudah ada di register PST; '
+          + 'akan terisi otomatis begitu integrasi PST tersedia (lihat pst_asset_id).',
+      };
+    default:
+      return { label: confidence || '—', tooltip: '' };
+  }
+}
+
 function createApp(dbPath = DEFAULT_DB_PATH) {
   const db = new Database(dbPath, { readonly: true, fileMustExist: true });
   const app = express();
@@ -217,18 +256,6 @@ function getOfficialHistory(lineId) {
   `).all(lineId);
 }
 
-// Bay yang diawali '?' berasal dari fix_bay() di plms_etl.py: Excel salah
-// baca nilai bay (mis. 'I-5') sbg datetime, dipulihkan tapi ditandai utk
-// koreksi manual -- prompt v2 jebakan #1. Tampilkan sbg peringatan
-// eksplisit, bukan nama bay biasa.
-function describeBay(bay) {
-  if (!bay) return { text: '—', suspect: false };
-  if (bay.startsWith('?')) {
-    return { text: bay, suspect: true };
-  }
-  return { text: bay, suspect: false };
-}
-
 // ------------------------------------------------------------------ routes
 
 app.get('/', (req, res) => {
@@ -251,10 +278,12 @@ app.get('/line/:id', (req, res) => {
   const busScTo = getBusSc(line.to_ss_id);
   const bayFrom = describeBay(line.bay_from);
   const bayTo = describeBay(line.bay_to);
+  const withIdentity = (relays) => relays.map(r => ({ ...r, identity: describeIdentity(r.identity_confidence) }));
 
   res.render('detail', {
     line, electrical, neighborsFrom, neighborsTo,
-    relaysFrom, relaysTo, currentSettings, officialHistory,
+    relaysFrom: withIdentity(relaysFrom), relaysTo: withIdentity(relaysTo),
+    currentSettings, officialHistory,
     busScFrom, busScTo, bayFrom, bayTo,
   });
 });
@@ -270,4 +299,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { createApp, pivotSettings, groupSettingsByFunction };
+module.exports = { createApp, pivotSettings, groupSettingsByFunction, describeIdentity };

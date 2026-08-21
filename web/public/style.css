@@ -75,3 +75,8 @@ table.settings th:first-child, table.settings td:first-child { white-space: norm
 .class-unit { background: #61616133; color: #616161; }
 .class-auxiliary { background: #61616122; color: var(--muted); }
 .class-review { background: #c0392b33; color: #c0392b; }
+
+/* identity_confidence LOW = merk/type belum tercatat di dokumen sumber UPT
+   (bukan kesalahan sistem) -- garis putus-putus menandai ada penjelasan
+   di tooltip, lihat describeIdentity() di server.js */
+.identity-tag { border-bottom: 1px dotted var(--muted); cursor: help; }
