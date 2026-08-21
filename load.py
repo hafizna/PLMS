@@ -91,6 +91,31 @@ OPPONENT_ALIAS = {
     # biar tidak rancu di UI) tetap ke-link lewat resolve_lines().
     'KONSUMEN': 'KONSUMEN (ITS)',
 }
+
+# Alias EJAAN ASLI (bukan strip suffix/qualifier) yang muncul khusus di
+# sheet official history '2019-2021' -- bay-nya TIDAK berformat 'PHT ...
+# kV <lawan>' (makanya bay_to_gi_lawan() -> None dan OPPONENT_ALIAS di
+# atas, yang di-index dari HASIL ekstraksi, tidak pernah kena panggil),
+# cuma nama GI polos + sirkit spt 'Spinmil 1,2', 'Alam Sutera 1,2'.
+# resolve_lines() fallback (baris 'bay_norm... in bay_norm') mencocokkan
+# site_name topologi vs teks bay mentah scr substring -- gagal kalau
+# ejaannya beda persis dari site_name DB. Key = site_name DB (persis
+# spt yg dikembalikan normalized_gi()), value = ejaan alternatif yang
+# muncul di bay official event, DIBANDING scr substring jg (bukan cuma
+# exact) makanya key tidak perlu voltage/qualifier match sepenuhnya.
+#
+# Dikonfirmasi: line CLDUG-ALMSR, LSTEL-SPINM, SPINM-MLNUM sudah ADA di
+# database sebelum perbaikan ini (bukan gap topologi) -- murni gap
+# ejaan pada resolver official event.
+OPPONENT_ALIAS_REVERSE = {
+    'ALAM SUTRA': 'ALAM SUTERA',   # site DB vs ejaan official event
+    'SPINMILL': 'SPINMIL',         # site DB (2 L) vs ejaan bay (1 L)
+    'MILENIUM': 'MILLENIUM',       # site DB py 2 varian ejaan (MILENIUM/
+                                   # MILLENIUM, keduanya node terpisah --
+                                   # lihat SEED_GI); bay official event
+                                   # konsisten pakai 'Millenium' (2 L).
+}
+
 OPPONENT_ALIAS_BY_VOLTAGE = {
     (500.0, 'DURIKOSAMBI'): 'DKSBI',
 }
@@ -850,10 +875,24 @@ def resolve_lines(conn, ss_id, raw_bay, raw_circuit='', allow_multiple=False):
     if target_name:
         lines = [row for row in lines if normalized_gi(row['other_site'])[0] == target_name]
     else:
+        # Fallback dipakai saat bay TIDAK berformat 'PHT ... kV <lawan>'
+        # (bay_to_gi_lawan() -> None) -- terutama official history sheet
+        # '2019-2021' yang bay-nya cuma nama GI + sirkit polos, mis.
+        # 'Alam Sutera 1,2', 'Spinmil 1,2' (bukan gap topologi, line-nya
+        # SUDAH ADA -- dikonfirmasi manual: CLDUG-ALMSR, LSTEL-SPINM dst
+        # sudah ada di database sebelum perbaikan ini). resolve_opponent_
+        # name()/OPPONENT_ALIAS_REVERSE diterapkan ke site_name topologi
+        # (bukan cuma ke `lawan` hasil ekstraksi) supaya alias ejaan resmi
+        # (mis. ALAM SUTERA<->ALAM SUTRA) ikut match dari arah sebaliknya.
         bay_norm = normalized_gi(re.sub(r'\b(?:PHT|UGC|SKTT|BAY)\b', ' ', bay))[0] or ''
-        named = [row for row in lines
-                 if normalized_gi(row['other_site'])[0]
-                 and normalized_gi(row['other_site'])[0] in bay_norm]
+        def _matches_bay(other_norm):
+            if not other_norm:
+                return False
+            if other_norm in bay_norm:
+                return True
+            alt = OPPONENT_ALIAS_REVERSE.get(other_norm)
+            return bool(alt) and alt in bay_norm
+        named = [row for row in lines if _matches_bay(normalized_gi(row['other_site'])[0])]
         if named:
             lines = named
         else:
