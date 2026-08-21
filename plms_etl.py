@@ -316,6 +316,14 @@ BAY_SUFFIX  = re.compile(r'\s*#\s*\d+\Z')
 # merujuk lawan yang SAMA (Muarakarang Lama), cuma sirkitnya lewat kabel
 # tanah. Tanpa strip ini, bay UGC gagal match ke node non-UGC yang sama.
 BAY_TECH_PFX = re.compile(r'^(GIS|UGC)\s+', re.I)
+# '(FUTURE)' di akhir nama lawan adalah PENANDA STATUS bay saat data
+# direkam, bukan bagian nama GI -- 'PHT 500kV KEMBANGAN (FUTURE)' dan
+# 'PHT 500kV BALARAJA' (dari sisi Kembangan) merujuk pasangan yang sama.
+# PENTING: status ini TIDAK bisa dipakai menyimpulkan aktif/mati (sudah
+# terbukti tidak konsisten -- sebagian bay '(FUTURE)' py relay_setting
+# aktif, sebagian 0). Verifikasi aktif/mati harus lewat COUNT(relay_
+# setting), bukan nama bay.
+BAY_FUTURE_SFX = re.compile(r'\s*\(FUTURE\)\s*\Z', re.I)
 
 def bay_to_gi_lawan(bay):
     """Ekstrak kandidat nama GI lawan dari nama bay penghantar.
@@ -326,6 +334,7 @@ def bay_to_gi_lawan(bay):
     if not m:
         return None
     s = BAY_SUFFIX.sub('', m.group(1)).strip()
+    s = BAY_FUTURE_SFX.sub('', s).strip()       # 'KEMBANGAN (FUTURE)' -> 'KEMBANGAN'
     s = BAY_TECH_PFX.sub('', s).strip()         # 'UGC MUARAKARANG LAMA' -> 'MUARAKARANG LAMA'
     s = re.sub(r'\s+', ' ', s.upper())
     return s or None

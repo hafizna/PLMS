@@ -73,12 +73,23 @@ from plms_etl import bay_to_gi_lawan, canon
 # DAAN MOGOT -> DAAN MOGOT GIS: bay rele di DURIKOSAMBI dan PANTAI INDAH
 # KAPUK sama-sama menyebut lawan tanpa suffix 'GIS', tapi node DIgSILENT-
 # nya 'DAAN MOGOT GIS'. Aman polos (semua bay 'DAAN MOGOT' konsisten).
+#
+# BUDIKEMULYAN -> BUDI KEMULIAAN: node DIgSILENT sudah ada persis
+# ('BUDI KEMULIAAN', 150kV) -- ejaan bay cuma beda spasi/huruf.
 OPPONENT_ALIAS = {
     'KARET LAMA': 'KARET',
     'SUMMARECON GADING SERPONG': 'SUMMARECON',
     'TANJUNG PRIOK': 'TANJUNG PRIOK 500KV',
     'ALAM SUTERA': 'ALAM SUTRA',
     'DAAN MOGOT': 'DAAN MOGOT GIS',
+    'BUDIKEMULYAN': 'BUDI KEMULIAAN',
+    # KONSUMEN -> KONSUMEN (ITS): resolve_aliases di MANUAL_SUBSTATIONS
+    # cuma dipakai build_ss_lookup()/resolve_ss() (substation asal), TIDAK
+    # dipakai resolve_lines() yang membandingkan bay_to_gi_lawan() vs
+    # other_site (site_name mentah) -- perlu entry di sini jg supaya
+    # site_name unik ('KONSUMEN (ITS)', sengaja beda dari bay 'KONSUMEN'
+    # biar tidak rancu di UI) tetap ke-link lewat resolve_lines().
+    'KONSUMEN': 'KONSUMEN (ITS)',
 }
 OPPONENT_ALIAS_BY_VOLTAGE = {
     (500.0, 'DURIKOSAMBI'): 'DKSBI',
@@ -150,6 +161,28 @@ MANUAL_SUBSTATIONS = [
     # register UPT Durikosambi (GITET besar kemungkinan milik UPT lain),
     # cuma disebut sbg lawan bay ('PHT 500kV JAWA 7') dari GITET BALARAJA.
     dict(site_name='JAWA 7', voltage_kv=500.0, resolve_aliases=[]),
+    # LENGKONG (500kV): bay 'PHT 500kV LENGKONG' eksplisit dari GITET
+    # BALARAJA, 30 baris relay_setting aktif -- nyata, bukan gap. Node
+    # 'LENGKONG' yang SUDAH ADA di database tercatat 150kV, kontradiksi
+    # dgn ini (kemungkinan voltage salah assign dari sheet IHS saat ETL --
+    # lihat legacy-knowledge/TOPOLOGI_GI_TANPA_DIGSILENT.md soal LENGKONG7
+    # vs LENGKONG di sheet DB). Dibuat sintetis site_name TERPISAH ('GITET
+    # LENGKONG') drpd memakai node 150kV yg salah level tegangan.
+    dict(site_name='GITET LENGKONG', voltage_kv=500.0, resolve_aliases=['LENGKONG']),
+    # KONSUMEN (GI di ITS): dikonfirmasi pemilik data -- pelanggan
+    # industri langsung (KTT) dgn switchyard sendiri, BUKAN sekadar beban
+    # internal. Dibuktikan py rele DIST+OCR_GFR dgn 47 baris relay_setting
+    # aktif -- proteksi grading nyata butuh saluran fisik nyata jg. Tidak
+    # ada node DIgSILENT sama sekali (site industri, bukan GI publik).
+    dict(site_name='KONSUMEN (ITS)', voltage_kv=150.0, resolve_aliases=['KONSUMEN']),
+    # BANDARA SOEKARNO HATTA: bay 'PHT 150kV BANDARA SOEKARNO HATTA#1/#2'
+    # dari CENGKARENG BARU, 94 baris relay_setting aktif (DIST+OCR_GFR) --
+    # nyata. Tidak ada node DIgSILENT sama sekali.
+    dict(site_name='BANDARA SOEKARNO HATTA', voltage_kv=150.0, resolve_aliases=[]),
+    # BUDIKEMULYAN (Budi Kemuliaan) TIDAK perlu node sintetis -- node
+    # DIgSILENT-nya SUDAH ADA ('BUDI KEMULIAAN', 150kV). Cukup
+    # OPPONENT_ALIAS biasa (ejaan beda: 'BUDIKEMULYAN' tanpa spasi/huruf
+    # 'i' vs 'BUDI KEMULIAAN').
 ]
 
 # Penghantar tanpa node DIgSILENT, ditelusuri manual dari dokumen UPT.
@@ -225,10 +258,12 @@ MANUAL_LINES = [
     # lihat komentar MANUAL_SUBSTATIONS) utk GITET BALARAJA/MUARAKARANG,
     # atau node 500kV existing (KEMBANGAN7 dkk) via name_digsilent.
     #
-    # KEMBANGAN(FUTURE): bay 'PHT 500kV KEMBANGAN (FUTURE)' -- trafo blm
-    # operasi saat data direkam. out_of_service=1, bukan disembunyikan.
-    dict(line_name='GITET BALARAJA-KEMBANGAN (FUTURE)', ss_from_name='GITET BALARAJA', ss_to_name='KEMBANGAN7',
-         voltage_kv=500.0, source='UPT_MANUAL', out_of_service=True),
+    # KEMBANGAN: bay bernama '(FUTURE)' TAPI py 28 relay_setting aktif --
+    # label nama bay TERBUKTI tidak reliable utk menyimpulkan aktif/mati
+    # (koreksi dari asumsi awal out_of_service=1; lihat BAY_FUTURE_SFX di
+    # plms_etl.py). Diverifikasi via COUNT(relay_setting), bukan nama.
+    dict(line_name='GITET BALARAJA-KEMBANGAN', ss_from_name='GITET BALARAJA', ss_to_name='KEMBANGAN7',
+         voltage_kv=500.0, source='UPT_MANUAL'),
     dict(line_name='GITET BALARAJA-SURALAYA', ss_from_name='GITET BALARAJA', ss_to_name='SURALAYA7',
          voltage_kv=500.0, source='UPT_MANUAL'),
     # JAWA 7: dikonfirmasi pemilik data -- nama GI 500kV nyata (bukan
@@ -304,12 +339,37 @@ MANUAL_LINES = [
     dict(line_name='KEMBANGAN-PETUKANGAN', ss_from_name='KEMBANGAN5', ss_to_name='PETUKANGAN',
          voltage_kv=150.0, source='UPT_MANUAL'),
 
-    # ITS-BANDARA SOEKARNO HATTA (via bay 'Konsumen', KTT/pelanggan
-    # langsung yg supply utamanya ke Bandara): BELUM dikonfirmasi pemilik
-    # data -- TIDAK dimuat dulu. Bandara sendiri sudah py node (site
-    # CENGKARENG BARU, ss_id 84) dari bay 'PHT 150kV BANDARA SOEKARNO
-    # HATTA#1/#2', tapi relasi ITS<->Bandara via jalur Konsumen ini masih
-    # perlu verifikasi tambahan sebelum dijadikan line.
+    # ITS-KONSUMEN: dikonfirmasi pemilik data -- ITS lokasinya industri,
+    # bay 'Konsumen' adalah pelanggan langsung (KTT) dgn switchyard
+    # sendiri DI DALAM kompleks industri itu -- TIDAK ada relasi ke
+    # Bandara Soekarno Hatta (koreksi dari asumsi awal). 47 relay_setting
+    # aktif (DIST+OCR_GFR) membuktikan ini penghantar/koneksi nyata.
+    dict(line_name='ITS-KONSUMEN', ss_from_name='ITS', ss_to_name='KONSUMEN (ITS)',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+
+    # CENGKARENG BARU-BANDARA SOEKARNO HATTA: 94 relay_setting aktif
+    # (DIST+OCR_GFR) -- nyata, entitas terpisah dari ITS/Konsumen.
+    dict(line_name='CENGKARENG BARU-BANDARA SOEKARNO HATTA',
+         ss_from_name='CENGKARENG BARU', ss_to_name='BANDARA SOEKARNO HATTA',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+
+    # CENGKARENG BARU-TANGERANG BARU: segmen terakhir rantai TANGERANG -
+    # CENGKARENG - CENGKARENG BARU - TANGERANG BARU (dikonfirmasi pemilik
+    # data, 4 GI berbeda) -- dua segmen pertama (Tangerang<->Cengkareng,
+    # Cengkareng<->Cengkareng Baru) sudah ada di DIgSILENT, segmen ini yg
+    # hilang. Dua-arah terverifikasi (98 relay_setting total kedua arah).
+    dict(line_name='CENGKARENG BARU-TANGERANG BARU', ss_from_name='CENGKARENG BARU', ss_to_name='TANGERANG BARU',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+
+    # GITET BALARAJA-GITET LENGKONG: 30 relay_setting aktif, nyata.
+    dict(line_name='GITET BALARAJA-GITET LENGKONG', ss_from_name='GITET BALARAJA', ss_to_name='GITET LENGKONG',
+         voltage_kv=500.0, source='UPT_MANUAL'),
+
+    # LONTAR-CIKUPA: 20 relay_setting aktif, nyata (meski nama bay masih
+    # menyandang label '(FUTURE)' -- label itu tidak reliable utk
+    # menyimpulkan aktif/mati, lihat BAY_FUTURE_SFX di plms_etl.py).
+    dict(line_name='LONTAR-CIKUPA', ss_from_name='LONTAR', ss_to_name='CIKUPA',
+         voltage_kv=150.0, source='UPT_MANUAL'),
 ]
 
 # Sheet IHS (sumber bus_sc) dan sheet DB (sumber topologi/substation) di
