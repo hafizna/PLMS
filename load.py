@@ -114,15 +114,14 @@ BUS_SC_ALIAS = {
 # otomatis terpisah krn site_name-nya sendiri beda ('DKSBI' vs
 # 'DURIKOSAMBI', lihat MANUAL_ALIAS) -- didaftarkan di sini juga supaya
 # eksplisit tercatat sbg keputusan, bukan kebetulan penamaan.
-# NEW BALARAJA7 (500kV): dikonfirmasi site terpisah dari GI 150kV New
-# Balaraja (site_name sama-sama 'NEW BALARAJA', jadi TANPA entry ini akan
-# digabung 1 site secara keliru).
 #
 # DIKONFIRMASI SATU SITE (site_name sama, TIDAK didaftarkan di sini):
-# CURUG (150kV+70kV), KEMBANGAN (150kV+500kV) -- satu kompleks GI.
+# CURUG (150kV+70kV), KEMBANGAN (150kV+500kV), NEW BALARAJA (150kV+500kV)
+# -- satu kompleks GI. (Sempat salah ditandai terpisah utk NEW BALARAJA7
+# di iterasi sebelumnya -- dikoreksi pemilik data: kemungkinan besar satu
+# site jg, konsisten dgn Kembangan.)
 SEPARATE_PHYSICAL_SITE = {
     'DKSBI7',
-    'NEW BALARAJA7',
 }
 
 
