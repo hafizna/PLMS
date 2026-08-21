@@ -437,6 +437,25 @@ labeling`/`_norm_model_for_compare`).
 
 **Aturan tangga:** jangan naik sebelum tahap sebelumnya benar-benar **dipakai**, bukan sekadar selesai dikoding. Gerbang v1 → v2 sudah terpenuhi melalui pemakaian langsung; syarat pemakaian rutin tetap berlaku sebelum governance v5. Repo lama gagal karena melompat ke v5. Setiap versi mewarisi lifecycle, identitas, provenance, dan audit versi sebelumnya; dilarang membuat jalur approval paralel per integrasi.
 
+### Status implementasi (22 Agustus 2026)
+
+| Versi | Status | Catatan |
+|---|---|---|
+| v0 | Selesai, disetujui | Tabel alias 44 GI seed dikurasi manual, 0 baris PERIKSA tersisa |
+| v1 | Selesai, dipakai | Dipakai langsung oleh pemilik data; gerbang v1→v2 terpenuhi |
+| v2 | Selesai secara teknis | Seluruh kategori review queue diperiksa satu per satu: 736 LOW_IDENTITY_CONFIDENCE (gap dokumen permanen), 183 OFFICIAL_EVENT_LINK, 5 IDENTITY_METADATA_CONFLICT (turun dari 40), 0 COORDINATION_CLASS_REVIEW, 0 LINE_LINK, 2 IDENTITY_SUBSTATION_CONFLICT + 1 CURRENT_SETTING_CONFLICT (pending verifikasi manual ke UPT). **Gerbang v2→v3 (dipakai rutin) belum diputuskan** |
+| v3a | Sebagian, terhalang data | Zone-1 jalan (97/184 rele DIST `complete`, sisanya krn `line_electrical` tidak tersedia). Zone-2/Zone-3: rumus dan traversal graph (1-hop/2-hop) selesai dan teruji, T1/T2/T3 per-line berhasil ditarik dari 88 helper sheet scanning (51 line terpetakan, membuktikan T3 **genuinely bervariasi** 1.6s/1.2s/0.6s/0s — bukan konstanta seperti kesan dari 1 kasus Mathcad) — **tapi seluruh 184 rele tetap `incomplete_topology` karena data trafo remote tidak tersedia di sumber mana pun** (lihat gate di bawah) |
+| v3b–v8 | Belum mulai | Menunggu gate v3a (data trafo) dan/atau gate pemakaian rutin v1–v3 |
+
+**Gerbang data trafo (blocker v3a, kemungkinan juga v3b):** reach Zone-2/
+Zone-3 butuh reaktansi trafo di remote bus sebagai batas atas cap, dan data
+itu tidak ditemukan di sumber mana pun yang sudah ditelusuri — rincian
+lengkap ada di "Update implementasi v3a" pada bagian *Kenapa v3 bisa lebih
+cepat dari perkiraan* di bawah. Fitur Zone-2/Zone-3 tidak bisa dilanjutkan
+tanpa sumber data trafo baru; kemungkinan besar baru terjawab lewat matriks
+otoritas v7a. v3b (grading OCR/GFR sampai incoming trafo) kemungkinan besar
+kena blocker yang sama — belum dikonfirmasi sampai v3b benar-benar mulai.
+
 ### Scope tetap berjenjang
 
 | Tahap | Scope data/organisasi | Yang belum boleh dilakukan |
