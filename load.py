@@ -35,13 +35,33 @@ from plms_etl import bay_to_gi_lawan, canon
 # beda: node DIgSILENT untuk Karet Lama itu 'KARET' polos, tanpa 'LAMA'.
 # Jangan generalisasi jadi 'strip semua kata LAMA' -- 'KARET BARU' adalah
 # node LAIN, bukan alias 'KARET'.
+#
+# DURIKOSAMBI (bay 500kV) -> DKSBI: rele di GITET 500kV lain (mis.
+# KEMBANGAN7, M. KARANG BARU) yang bay-nya 'PHT 500kV DURIKOSAMBI'
+# menyebut lawan dgn nama panjang, tapi node 500kV Durikosambi
+# site_name-nya 'DKSBI' (singkatan DIgSILENT, site FISIK TERPISAH dari GI
+# 150kV Durikosambi -- lihat SEPARATE_PHYSICAL_SITE, dikonfirmasi ~200m).
+#
+# TIDAK BOLEH jadi alias polos 'DURIKOSAMBI'->'DKSBI': bay 150kV 'PHT
+# 150kV DURIKOSAMBI' (mis. dari GI Cengkareng, Kebon Jeruk, M. Karang
+# Lama) MEMANG merujuk node DURIKOSAMBI 150kV yang berbeda site dari
+# DKSBI, dan sudah ter-link benar tanpa alias ini -- generalisasi ke
+# semua level tegangan akan MERUSAK match yang sudah benar. Scoped
+# hanya ke bay 500kV via OPPONENT_ALIAS_BY_VOLTAGE.
 OPPONENT_ALIAS = {
     'KARET LAMA': 'KARET',
 }
+OPPONENT_ALIAS_BY_VOLTAGE = {
+    (500.0, 'DURIKOSAMBI'): 'DKSBI',
+}
 
 
-def resolve_opponent_name(name):
-    return OPPONENT_ALIAS.get(name, name) if name else name
+def resolve_opponent_name(name, voltage=None):
+    if not name:
+        return name
+    if voltage is not None and (voltage, name) in OPPONENT_ALIAS_BY_VOLTAGE:
+        return OPPONENT_ALIAS_BY_VOLTAGE[(voltage, name)]
+    return OPPONENT_ALIAS.get(name, name)
 
 SEED_GI = [
     'ALAM SUTERA','ANGKE','BALARAJA','CENGKARENG','CENGKARENG BARU','CIKUPA',
@@ -82,6 +102,29 @@ BUS_SC_ALIAS = {
     'DAAN MOGOT': 'DAAN MOGOT GIS',
 }
 
+# GI multi-tegangan yang site_name-nya SAMA (jadi digabung 1 site oleh
+# load_substations()) tapi SECARA FISIK lokasinya terpisah -- dikonfirmasi
+# pemilik data kasus-per-kasus (bukan aturan umum "GITET selalu terpisah",
+# ada juga yang memang satu kompleks -- lihat CURUG, KEMBANGAN di bawah).
+#
+# name_digsilent yang didaftarkan di sini dapat site SENDIRI, terpisah
+# dari site_name grup lainnya.
+#
+# DKSBI7 (500kV): dikonfirmasi ~200m dari GI 150kV Durikosambi. Sudah
+# otomatis terpisah krn site_name-nya sendiri beda ('DKSBI' vs
+# 'DURIKOSAMBI', lihat MANUAL_ALIAS) -- didaftarkan di sini juga supaya
+# eksplisit tercatat sbg keputusan, bukan kebetulan penamaan.
+# NEW BALARAJA7 (500kV): dikonfirmasi site terpisah dari GI 150kV New
+# Balaraja (site_name sama-sama 'NEW BALARAJA', jadi TANPA entry ini akan
+# digabung 1 site secara keliru).
+#
+# DIKONFIRMASI SATU SITE (site_name sama, TIDAK didaftarkan di sini):
+# CURUG (150kV+70kV), KEMBANGAN (150kV+500kV) -- satu kompleks GI.
+SEPARATE_PHYSICAL_SITE = {
+    'DKSBI7',
+    'NEW BALARAJA7',
+}
+
 
 def read_csv(path):
     with open(path, newline='', encoding='utf-8-sig') as f:
@@ -113,6 +156,13 @@ def load_substations(conn, rows):
     """substation.csv -> site fisik + node site/tegangan.
 
     Identity key untuk lookup nanti: name_digsilent bila ada, else site_name.
+
+    Default: substation dgn site_name sama digabung 1 site (kompleks GI
+    dgn beberapa level tegangan, mis. KEMBANGAN 150kV+500kV). Kecuali
+    name_digsilent ada di SEPARATE_PHYSICAL_SITE -- itu dikonfirmasi
+    pemilik data sbg lokasi fisik terpisah meski site_name sama (mis. GITET
+    NEW BALARAJA7, ~200m dari GI 150kV New Balaraja), jadi HARUS dapat
+    site_id sendiri, bukan ikut digabung.
     """
     key_to_ssid = {}
     site_by_name = {}
@@ -122,12 +172,14 @@ def load_substations(conn, rows):
         key = name_dig or site_name
         if not key:
             continue
-        site_id = site_by_name.get(site_name)
+        separate = name_dig in SEPARATE_PHYSICAL_SITE
+        site_id = None if separate else site_by_name.get(site_name)
         if site_id is None:
             cur = conn.execute(
                 'INSERT INTO site (site_name, is_gis) VALUES (?, NULL)', (site_name,))
             site_id = cur.lastrowid
-            site_by_name[site_name] = site_id
+            if not separate:
+                site_by_name[site_name] = site_id
         cur = conn.execute(
             '''INSERT INTO substation
                (site_id, voltage_kv, name_digsilent, in_scope, hop_distance, topology_source)
@@ -357,7 +409,9 @@ def resolve_lines(conn, ss_id, raw_bay, raw_circuit='', allow_multiple=False):
     if not lines:
         return [], 'NO_INCIDENT_LINE'
     bay = str(raw_bay or '')
-    target = resolve_opponent_name(bay_to_gi_lawan(bay))
+    bay_voltage_match = re.search(r'\b(20|70|150|500)\s*KV\b', bay, re.I)
+    bay_voltage = float(bay_voltage_match.group(1)) if bay_voltage_match else None
+    target = resolve_opponent_name(bay_to_gi_lawan(bay), bay_voltage)
     target_name = normalized_gi(target)[0] if target else None
     if target_name:
         lines = [row for row in lines if normalized_gi(row['other_site'])[0] == target_name]
