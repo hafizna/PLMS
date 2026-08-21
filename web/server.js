@@ -146,6 +146,33 @@ function describeIdentity(confidence) {
   }
 }
 
+// Kelompokkan baris per GI (site fisik, BUKAN substation -- satu GI bisa
+// py beberapa level tegangan tapi tetap 1 site/grup, mis. KEMBANGAN 150kV
+// & 500kV masuk grup sama) utk toggle collapse spt outline Excel di
+// spreadsheet UPT asal. ss_from/ss_to arahnya ARBITRER (terverifikasi:
+// DURIKOSAMBI muncul di from utk sebagian line, di to utk sebagian lain)
+// -- jadi grouping HANYA dari from_site_name akan memecah GI yg sama jadi
+// tidak lengkap. Tiap line sengaja dimasukkan ke KEDUA grup GI ujungnya,
+// konsisten dgn cara UPT sendiri mendaftar bay per GI (row per GI+bay,
+// kolom GI lawan terpisah) dan dgn "Tetangga satu hop" yg sudah ada di
+// halaman detail. Fungsi murni (tanpa akses db) supaya bisa diuji langsung.
+function groupLinesBySite(lines) {
+  const groups = new Map(); // site_name -> lines[]
+  for (const line of lines) {
+    for (const siteName of new Set([line.from_site_name, line.to_site_name])) {
+      if (!siteName) continue;
+      if (!groups.has(siteName)) groups.set(siteName, []);
+      groups.get(siteName).push(line);
+    }
+  }
+  return Array.from(groups.entries())
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([siteName, siteLines]) => ({
+      siteName,
+      lines: siteLines.slice().sort((a, b) => (a.line_name || '').localeCompare(b.line_name || '')),
+    }));
+}
+
 function createApp(dbPath = DEFAULT_DB_PATH) {
   const db = new Database(dbPath, { readonly: true, fileMustExist: true });
   const app = express();
@@ -159,7 +186,8 @@ function listInScopeLines() {
     SELECT
       l.line_id, l.line_name, l.voltage_kv, l.is_boundary, l.source,
       ${substationLabel.replace(/sub\./g, 'sf.').replace(/site\./g, 'sitef.')} AS from_label,
-      ${substationLabel.replace(/sub\./g, 'st.').replace(/site\./g, 'sitet.')} AS to_label
+      ${substationLabel.replace(/sub\./g, 'st.').replace(/site\./g, 'sitet.')} AS to_label,
+      sitef.site_name AS from_site_name, sitet.site_name AS to_site_name
     FROM line l
     LEFT JOIN substation sf ON l.ss_from = sf.ss_id
     LEFT JOIN site sitef ON sf.site_id = sitef.site_id
@@ -170,6 +198,16 @@ function listInScopeLines() {
   `).all();
 }
 
+// Kelompokkan baris per GI (site fisik, BUKAN substation -- satu GI bisa
+// py beberapa level tegangan tapi tetap 1 site/grup, mis. KEMBANGAN 150kV
+// & 500kV masuk grup sama) utk toggle collapse spt outline Excel di
+// spreadsheet UPT asal. ss_from/ss_to arahnya ARBITRER (terverifikasi:
+// DURIKOSAMBI muncul di from utk sebagian line, di to utk sebagian lain)
+// -- jadi grouping HANYA dari from_site_name akan memecah GI yg sama jadi
+// tidak lengkap. Tiap line sengaja dimasukkan ke KEDUA grup GI ujungnya,
+// konsisten dgn cara UPT sendiri mendaftar bay per GI (row per GI+bay,
+// kolom GI lawan terpisah) dan dgn "Tetangga satu hop" yg sudah ada di
+// halaman detail. Fungsi murni (tanpa akses db) supaya bisa diuji langsung.
 function getLine(lineId) {
   return db.prepare(`
     SELECT l.*,
@@ -262,7 +300,8 @@ function getOfficialHistory(lineId) {
 
 app.get('/', (req, res) => {
   const lines = listInScopeLines();
-  res.render('index', { lines });
+  const groupsBySite = groupLinesBySite(lines);
+  res.render('index', { lines, groupsBySite });
 });
 
 app.get('/line/:id', (req, res) => {
@@ -301,4 +340,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { createApp, pivotSettings, groupSettingsByFunction, describeIdentity };
+module.exports = { createApp, pivotSettings, groupSettingsByFunction, describeIdentity, groupLinesBySite };

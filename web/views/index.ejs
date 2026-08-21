@@ -30,32 +30,81 @@
       <span id="count" class="result-count"></span>
     </div>
 
-    <div class="table-scroll">
-    <table id="lines-table">
-      <thead>
-        <tr>
-          <th>Nama penghantar</th>
-          <th>Dari</th>
-          <th>Ke</th>
-          <th>kV</th>
-          <th>Sumber</th>
-          <th>Boundary</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% lines.forEach(l => { %>
-        <tr data-name="<%= (l.line_name || '').toLowerCase() %>" data-from="<%= l.from_label.toLowerCase() %>" data-to="<%= l.to_label.toLowerCase() %>" data-kv="<%= l.voltage_kv == null ? '' : l.voltage_kv %>" data-source="<%= l.source %>" data-boundary="<%= l.is_boundary ? '1' : '0' %>">
-          <td><a href="/line/<%= l.line_id %>"><%= l.line_name || '(tanpa nama)' %></a></td>
-          <td><%= l.from_label %></td>
-          <td><%= l.to_label %></td>
-          <td><%= l.voltage_kv == null ? 'tdk diketahui' : l.voltage_kv %></td>
-          <td class="source-<%= l.source.toLowerCase() %>"><%= l.source %></td>
-          <td><% if (l.is_boundary) { %><span class="class-tag class-review">boundary</span><% } %></td>
-        </tr>
-        <% }) %>
-      </tbody>
-    </table>
+    <div class="view-toggle" role="tablist">
+      <button type="button" id="view-flat" class="view-btn is-active" role="tab" aria-selected="true">Daftar rata</button>
+      <button type="button" id="view-grouped" class="view-btn" role="tab" aria-selected="false">Kelompok per GI</button>
+      <span class="outline-controls" id="outline-controls" hidden>
+        <button type="button" id="expand-all" class="outline-btn">Buka semua</button>
+        <button type="button" id="collapse-all" class="outline-btn">Tutup semua</button>
+      </span>
     </div>
+
+    <div id="flat-view">
+      <div class="table-scroll">
+      <table id="lines-table">
+        <thead>
+          <tr>
+            <th>Nama penghantar</th>
+            <th>Dari</th>
+            <th>Ke</th>
+            <th>kV</th>
+            <th>Sumber</th>
+            <th>Boundary</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% lines.forEach(l => { %>
+          <tr data-name="<%= (l.line_name || '').toLowerCase() %>" data-from="<%= l.from_label.toLowerCase() %>" data-to="<%= l.to_label.toLowerCase() %>" data-kv="<%= l.voltage_kv == null ? '' : l.voltage_kv %>" data-source="<%= l.source %>" data-boundary="<%= l.is_boundary ? '1' : '0' %>">
+            <td><a href="/line/<%= l.line_id %>"><%= l.line_name || '(tanpa nama)' %></a></td>
+            <td><%= l.from_label %></td>
+            <td><%= l.to_label %></td>
+            <td><%= l.voltage_kv == null ? 'tdk diketahui' : l.voltage_kv %></td>
+            <td class="source-<%= l.source.toLowerCase() %>"><%= l.source %></td>
+            <td><% if (l.is_boundary) { %><span class="class-tag class-review">boundary</span><% } %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <div id="grouped-view" hidden>
+      <% groupsBySite.forEach(group => { %>
+        <details class="gi-group" data-gi="<%= group.siteName.toLowerCase() %>">
+          <summary>
+            <span class="gi-name"><%= group.siteName %></span>
+            <span class="gi-count"><%= group.lines.length %> penghantar</span>
+          </summary>
+          <div class="table-scroll">
+          <table class="gi-group-table">
+            <thead>
+              <tr>
+                <th>Nama penghantar</th>
+                <th>Dari</th>
+                <th>Ke</th>
+                <th>kV</th>
+                <th>Sumber</th>
+                <th>Boundary</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% group.lines.forEach(l => { %>
+              <tr data-name="<%= (l.line_name || '').toLowerCase() %>" data-from="<%= l.from_label.toLowerCase() %>" data-to="<%= l.to_label.toLowerCase() %>" data-kv="<%= l.voltage_kv == null ? '' : l.voltage_kv %>" data-source="<%= l.source %>" data-boundary="<%= l.is_boundary ? '1' : '0' %>">
+                <td><a href="/line/<%= l.line_id %>"><%= l.line_name || '(tanpa nama)' %></a></td>
+                <td><%= l.from_label %></td>
+                <td><%= l.to_label %></td>
+                <td><%= l.voltage_kv == null ? 'tdk diketahui' : l.voltage_kv %></td>
+                <td class="source-<%= l.source.toLowerCase() %>"><%= l.source %></td>
+                <td><% if (l.is_boundary) { %><span class="class-tag class-review">boundary</span><% } %></td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          </div>
+        </details>
+      <% }) %>
+    </div>
+
     <p id="empty-state" class="empty" style="display:none">Tidak ada penghantar yang cocok dengan filter ini.</p>
   </main>
 
@@ -63,22 +112,44 @@
     // Filter murni client-side di atas data yang sudah dirender server --
     // tidak ada nilai difilter yang tidak berasal dari database (prinsip
     // "tidak ada nilai hardcoded"). Dipilih vanilla JS krn dataset kecil
-    // (~185 baris) tidak butuh pustaka tabel/pencarian pihak ketiga.
-    const rows = Array.from(document.querySelectorAll('#lines-table tbody tr'));
+    // (~185 baris, ~130 GI) tidak butuh pustaka tabel/pencarian pihak ketiga.
+    //
+    // Dua mode tampilan: "Daftar rata" (flat, 1 baris = 1 penghantar) dan
+    // "Kelompok per GI" (<details> collapsible per GI, meniru outline +/-
+    // Excel pada spreadsheet UPT asal -- lihat groupLinesBySite() di
+    // server.js). Satu penghantar sengaja muncul di KEDUA grup GI ujungnya
+    // krn ss_from/ss_to arahnya arbitrer di data, bukan berarti baris
+    // "terduplikasi salah" -- itu representasi penghantar yg sama dari
+    // sudut pandang GI berbeda, sama spt spreadsheet UPT sendiri.
+    const allRows = Array.from(document.querySelectorAll('#lines-table tbody tr, #grouped-view tbody tr'));
     const q = document.getElementById('q');
     const fKv = document.getElementById('f-kv');
     const fSource = document.getElementById('f-source');
     const fBoundary = document.getElementById('f-boundary');
     const count = document.getElementById('count');
     const emptyState = document.getElementById('empty-state');
+    const flatView = document.getElementById('flat-view');
+    const groupedView = document.getElementById('grouped-view');
+    const viewFlatBtn = document.getElementById('view-flat');
+    const viewGroupedBtn = document.getElementById('view-grouped');
+    const outlineControls = document.getElementById('outline-controls');
+    const giGroups = Array.from(document.querySelectorAll('.gi-group'));
 
     function applyFilters() {
       const term = q.value.trim().toLowerCase();
       const kv = fKv.value;
       const source = fSource.value;
       const boundaryOnly = fBoundary.checked;
+      const isGrouped = !groupedView.hidden;
       let visible = 0;
-      for (const row of rows) {
+      const searching = term !== '' || kv !== '' || source !== '' || boundaryOnly;
+
+      for (const row of allRows) {
+        // Baris di flat-view yg tersembunyi krn mode aktif beda tetap
+        // dihitung/di-skip agar counter selalu merefer ke mode yg aktif.
+        if (isGrouped && row.closest('#flat-view')) continue;
+        if (!isGrouped && row.closest('#grouped-view')) continue;
+
         const matchesTerm = !term
           || row.dataset.name.includes(term)
           || row.dataset.from.includes(term)
@@ -90,13 +161,45 @@
         row.style.display = show ? '' : 'none';
         if (show) visible++;
       }
-      count.textContent = `${visible} / ${rows.length} ditampilkan`;
+
+      if (isGrouped) {
+        for (const group of giGroups) {
+          const rowsInGroup = Array.from(group.querySelectorAll('tbody tr'));
+          const visibleInGroup = rowsInGroup.some(r => r.style.display !== 'none');
+          group.hidden = !visibleInGroup;
+          // Saat sedang mencari/filter, buka grup yg py hasil supaya user
+          // tidak perlu expand manual satu-satu (spt Excel yg auto-expand
+          // outline saat AutoFilter aktif). Saat kosong, kembalikan ke
+          // tertutup supaya "Tutup semua" tetap jadi baseline.
+          if (searching && visibleInGroup) group.open = true;
+          else if (!searching) group.open = false;
+        }
+      }
+
+      count.textContent = `${visible} / ${isGrouped ? giGroups.reduce((n, g) => n + g.querySelectorAll('tbody tr').length, 0) : allRows.filter(r => r.closest('#flat-view')).length} ditampilkan`;
       emptyState.style.display = visible === 0 ? '' : 'none';
+    }
+
+    function setView(mode) {
+      const grouped = mode === 'grouped';
+      flatView.hidden = grouped;
+      groupedView.hidden = !grouped;
+      outlineControls.hidden = !grouped;
+      viewFlatBtn.classList.toggle('is-active', !grouped);
+      viewFlatBtn.setAttribute('aria-selected', String(!grouped));
+      viewGroupedBtn.classList.toggle('is-active', grouped);
+      viewGroupedBtn.setAttribute('aria-selected', String(grouped));
+      applyFilters();
     }
 
     [q].forEach(el => el.addEventListener('input', applyFilters));
     [fKv, fSource].forEach(el => el.addEventListener('change', applyFilters));
     fBoundary.addEventListener('change', applyFilters);
+    viewFlatBtn.addEventListener('click', () => setView('flat'));
+    viewGroupedBtn.addEventListener('click', () => setView('grouped'));
+    document.getElementById('expand-all').addEventListener('click', () => giGroups.forEach(g => { g.open = true; }));
+    document.getElementById('collapse-all').addEventListener('click', () => giGroups.forEach(g => { g.open = false; }));
+
     applyFilters();
   </script>
 </body>

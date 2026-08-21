@@ -122,3 +122,67 @@ table.settings th:first-child, table.settings td:first-child { white-space: norm
   color: var(--muted);
   white-space: nowrap;
 }
+
+/* Toggle "Daftar rata" / "Kelompok per GI" -- lihat groupLinesBySite()
+   di server.js dan index.ejs. */
+.view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.view-btn {
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.view-btn.is-active {
+  background: #1a5fb433;
+  color: #1a5fb4;
+  border-color: #1a5fb4;
+  font-weight: 600;
+}
+.outline-controls { display: flex; gap: 0.4rem; margin-left: 0.5rem; }
+.outline-btn {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.outline-btn:hover { color: inherit; border-color: var(--muted); }
+
+/* Grup per GI -- <details> native memberi collapse/expand +/- gratis
+   spt outline Excel, termasuk keyboard & accessibility bawaan browser. */
+.gi-group {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+.gi-group summary {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.5rem 0.8rem;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+}
+.gi-group summary::-webkit-details-marker { display: none; }
+.gi-group summary::before {
+  content: '▸';
+  color: var(--muted);
+  font-size: 0.75rem;
+  transition: transform 0.15s ease;
+}
+.gi-group[open] summary::before { transform: rotate(90deg); }
+.gi-name { font-size: 1rem; }
+.gi-count { font-size: 0.8rem; font-weight: 400; color: var(--muted); }
+.gi-group-table { margin: 0; }
+.gi-group .table-scroll { padding: 0 0.8rem 0.6rem; }

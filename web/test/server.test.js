@@ -116,3 +116,14 @@ test('daftar: toolbar cari/filter dirender dgn data-attribute per baris, opsi fi
   assert.match(html, /data-boundary="0"/);
   assert.match(html, /data-name="lontar-dadap"/, 'nama baris utk pencarian harus lowercase');
 });
+
+test('daftar: mode kelompok per GI merender kedua GI ujung sbg grup terpisah', async () => {
+  const root = await fetch(`${baseUrl}/`);
+  const html = await root.text();
+  assert.match(html, /id="view-grouped"/, 'tombol toggle ke mode kelompok harus ada');
+  // Fixture: 1 line LONTAR-DADAP -- harus muncul di KEDUA grup GI (lihat
+  // groupLinesBySite() di server.js), bukan cuma salah satu ujung.
+  assert.match(html, /data-gi="lontar"/);
+  assert.match(html, /data-gi="dadap"/);
+  assert.match(html, /<span class="gi-count">1 penghantar<\/span>/g);
+});
