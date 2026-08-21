@@ -252,3 +252,59 @@ CREATE TABLE scope_definition (
     snapshot_date     TEXT NOT NULL,
     notes             TEXT
 );
+
+-- v3a: engine koordinasi distance. calculation_context TIDAK menaikkan
+-- management scope (+1 hop tetap dipakai utk register/UI) -- ini konteks
+-- perhitungan PER RELE yang traversal graph-nya independen dari batas
+-- scope, sesuai "Management scope vs calculation context" di prompt v2.
+--
+-- 1 baris = 1 (relay_function, zone) yang dihitung. `zone` bebas teks
+-- ('Z1','Z2','Z3','REVERSE', dst) supaya tidak terikat 1 taksonomi zona
+-- vendor tertentu -- rele ABB REL670 py ZM01..ZM05 terpisah, vendor lain
+-- mungkin py penamaan beda; jangan hardcode ke skema 1 vendor.
+--
+-- `status` HANYA salah satu dari 4 nilai yang didefinisikan prompt:
+-- complete | incomplete_topology | incomplete_external | ambiguous_branch.
+-- Bila graph terputus, `status` menandai TITIK PUTUSNYA (lewat
+-- calculation_branch.status di baris terakhir yang berhasil) -- BUKAN
+-- mengestimasi impedansi/line yang hilang.
+CREATE TABLE calculation_context (
+    context_id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    relay_function_id  INTEGER NOT NULL REFERENCES relay_function(relay_function_id),
+    line_id            INTEGER NOT NULL REFERENCES line(line_id),  -- protected line
+    zone                TEXT NOT NULL,       -- 'Z1' | 'Z2' | 'Z3' | 'REVERSE' | ...
+    direction           TEXT NOT NULL,       -- 'FORWARD' | 'REVERSE'
+    status              TEXT NOT NULL,       -- complete | incomplete_topology | incomplete_external | ambiguous_branch
+    cumulative_r_ohm    REAL,     -- impedansi kumulatif R sepanjang path yang DIPAKAI (bukan semua cabang dicoba)
+    cumulative_x_ohm    REAL,
+    safety_cap_hops     INTEGER NOT NULL DEFAULT 3,  -- prompt: cap 3 hop, traversal tidak boleh lewat ini
+    model_version       TEXT,     -- versi topologi yang jadi dasar hitung (selaras line_electrical.model_version)
+    computed_at         TEXT NOT NULL,
+    UNIQUE (relay_function_id, zone, direction)
+);
+
+CREATE INDEX idx_calculation_context_relay_function ON calculation_context(relay_function_id);
+CREATE INDEX idx_calculation_context_line ON calculation_context(line_id);
+
+-- Ordered path/cabang yang DICOBA selama traversal satu calculation_context
+-- -- bukan cuma path yang akhirnya dipakai. Z3 minimal py >1 baris (protected
+-- line + tiap cabang di remote bus + next line), termasuk cabang yang
+-- dicoba lalu tidak dipakai (mis. karena ambiguous_branch/beda arah) --
+-- transparansi keputusan traversal adalah bagian dari spek, bukan detail
+-- implementasi yang boleh disembunyikan.
+CREATE TABLE calculation_branch (
+    branch_id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    context_id           INTEGER NOT NULL REFERENCES calculation_context(context_id),
+    step_order           INTEGER NOT NULL,     -- urutan traversal, 1-based
+    line_id               INTEGER REFERENCES line(line_id),  -- NULL bila step gagal sebelum resolve ke line manapun
+    from_ss_id            INTEGER REFERENCES substation(ss_id),
+    to_ss_id              INTEGER REFERENCES substation(ss_id),
+    branch_r_ohm          REAL,     -- kontribusi R segmen INI saja (bukan kumulatif)
+    branch_x_ohm          REAL,
+    is_selected           INTEGER NOT NULL DEFAULT 0,  -- 1 = bagian dari path final yang dipakai reach
+    branch_status         TEXT NOT NULL,   -- complete | incomplete_topology | incomplete_external | ambiguous_branch
+    note                  TEXT,     -- alasan (mis. kenapa cabang ini tidak dipilih)
+    UNIQUE (context_id, step_order)
+);
+
+CREATE INDEX idx_calculation_branch_context ON calculation_branch(context_id);
