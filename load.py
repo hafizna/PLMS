@@ -56,9 +56,16 @@ from plms_etl import bay_to_gi_lawan, canon
 # terpisah utk resolve lawan penghantar). Aman diterapkan polos (semua
 # level tegangan): tidak ada bay lain yg menyebut 'SUMMARECON GADING
 # SERPONG' dgn konteks berbeda.
+#
+# TANJUNG PRIOK -> TANJUNG PRIOK 500KV: semua bay yg menyebut 'TANJUNG
+# PRIOK' konsisten 500kV ('PHT 500kV TANJUNG PRIOK#1/#2', tidak ada
+# konteks 150kV lain), node sintetis-nya site_name unik (lihat
+# MANUAL_SUBSTATIONS) supaya jelas beda dari NEW PRIOK/PRIOK BARAT/PRIOK
+# TIMUR5 (150kV, tidak jelas berelasi).
 OPPONENT_ALIAS = {
     'KARET LAMA': 'KARET',
     'SUMMARECON GADING SERPONG': 'SUMMARECON',
+    'TANJUNG PRIOK': 'TANJUNG PRIOK 500KV',
 }
 OPPONENT_ALIAS_BY_VOLTAGE = {
     (500.0, 'DURIKOSAMBI'): 'DKSBI',
@@ -82,6 +89,49 @@ SEED_GI = [
     'SEPATAN','SEPATAN BARU','SINDANG JAYA','SPINMILL',
     'SUMMARECON GADING SERPONG','SUVARNA','TANGERANG','TANGERANG BARU',
     'TELUK NAGA','TIGARAKSA','TOMANG','ULUJAMI',
+]
+
+# Node 500kV yang muncul di bay rele UPT tapi TIDAK ada substation-nya
+# sama sekali di database (beda dari DKSBI7/KEMBANGAN7/GANDUL7/SURALAYA7
+# yang sudah ada). Dibuat sintetis (site+substation baru, topology_source
+# =NULL) SEBELUM load_relays() jalan -- supaya resolve_ss() (yang query
+# langsung ke tabel substation/site, bukan cache) bisa exact-match by-
+# voltage dgn benar. Tanpa ini, rele 500kV-nya nyasar ke node 150kV
+# bernama serupa (satu-satunya opsi yg ada saat itu) -- itu BUG yg sudah
+# terjadi utk relay 804/805/dst (raw_gi 'GITET 500KV BALARAJA' -> nyasar
+# ke node BALARAJA 150kV krn resolve_ss() fallback ke exact-name saat
+# exact-name-voltage tidak ketemu opsi manapun).
+#
+# site_name (dipakai di MANUAL_LINES & tampilan UI) sengaja dibuat NAMA
+# SENDIRI yg jelas beda dari GI 150kV -- 'GITET MUARAKARANG' (bukan
+# 'MUARAKARANG BARU', supaya tidak ketuker dgn GI 150kV Muarakarang Baru
+# ATAU GIS Muarakarang Baru yang sudah ada, dikonfirmasi pemilik data).
+# resolve_aliases: nama mentah (hasil normalized_gi(raw_gi) dari data
+# rele) yg HARUS diarahkan ke node ini via ss_alias, supaya resolve_ss()
+# tetap otomatis exact-match by-voltage meski site_name-nya tidak sama
+# persis dgn raw_gi.
+#
+# GITET BALARAJA: kode aset TRS-3413-008.008, py bay 'PHT 500kV BALARAJA
+# (FUTURE) #1/#2' -- trafo 500kV blm operasi saat data direkam.
+# raw_gi='GITET 500KV BALARAJA' -> normalized_gi() -> ('BALARAJA', 500.0).
+#
+# GITET MUARAKARANG: dikonfirmasi via helper sheet resmi ([500kV]
+# MUARAKARANG - DURIKOSAMBI, 15 Okt 2025) dan SLD 2024 -- site fisik
+# nyata, penghantar 500kV solid ke DKSBI7. Lihat
+# legacy-knowledge/TOPOLOGI_GI_TANPA_DIGSILENT.md.
+# raw_gi='GISTET 500KV MUARAKARANG BARU' -> ('MUARAKARANG BARU', 500.0).
+#
+# TANJUNG PRIOK (500kV): TIDAK ada kandidat node 150kV yg jelas berelasi
+# (DIgSILENT cuma py NEW PRIOK/PRIOK BARAT/PRIOK TIMUR5). Dibuat sintetis
+# JUGA (bay-nya jelas 'PHT 500kV TANJUNG PRIOK#1/#2') -- relasinya ke node
+# 150kV mana pun BELUM diverifikasi.
+MANUAL_SUBSTATIONS = [
+    dict(site_name='GITET BALARAJA', voltage_kv=500.0,
+         resolve_aliases=['BALARAJA']),
+    dict(site_name='GITET MUARAKARANG', voltage_kv=500.0,
+         resolve_aliases=['MUARAKARANG BARU']),
+    dict(site_name='TANJUNG PRIOK 500KV', voltage_kv=500.0,
+         resolve_aliases=['TANJUNG PRIOK']),
 ]
 
 # Penghantar tanpa node DIgSILENT, ditelusuri manual dari dokumen UPT.
@@ -149,6 +199,38 @@ MANUAL_LINES = [
     # butuh verifikasi tambahan kalau area ini digarap v3+.
     dict(line_name='SINDANG JAYA-BALARAJA', ss_from_name='SINDANG JAYA', ss_to_name='BALARAJA',
          voltage_kv=150.0, source='UPT_MANUAL'),
+
+    # Jaringan 500kV -- dikonfirmasi pemilik data: setiap GITET/GISTET
+    # punya penghantar 500kV SENDIRI yang solid/nyata (bukan gap data),
+    # sebagian besar belum termodelkan DIgSILENT (Maret 2021). ss_from/to
+    # merujuk MANUAL_SUBSTATIONS (site_name unik, bukan nama GI 150kV --
+    # lihat komentar MANUAL_SUBSTATIONS) utk GITET BALARAJA/MUARAKARANG,
+    # atau node 500kV existing (KEMBANGAN7 dkk) via name_digsilent.
+    #
+    # KEMBANGAN(FUTURE): bay 'PHT 500kV KEMBANGAN (FUTURE)' -- trafo blm
+    # operasi saat data direkam. out_of_service=1, bukan disembunyikan.
+    dict(line_name='GITET BALARAJA-KEMBANGAN (FUTURE)', ss_from_name='GITET BALARAJA', ss_to_name='KEMBANGAN7',
+         voltage_kv=500.0, source='UPT_MANUAL', out_of_service=True),
+    dict(line_name='GITET BALARAJA-SURALAYA', ss_from_name='GITET BALARAJA', ss_to_name='SURALAYA7',
+         voltage_kv=500.0, source='UPT_MANUAL'),
+    # LENGKONG dan JAWA 7 SENGAJA tidak dimuat -- LENGKONG di database
+    # tercatat 150kV (kontradiksi dgn topologi sheet DB yg mengaitkannya
+    # ke NEW BALARAJA7/GANDUL7, keduanya 500kV -- kemungkinan salah
+    # assign voltage dari IHS, bukan dari sheet DB), JAWA 7 tidak py node
+    # substation manapun. Keduanya butuh klarifikasi sebelum dimuat.
+
+    # GITET MUARAKARANG -- dikonfirmasi via helper sheet resmi ([500kV]
+    # MUARAKARANG - DURIKOSAMBI): rantai L1=Muarakarang->Durikosambi,
+    # L2=Durikosambi->Gandul.
+    dict(line_name='GITET MUARAKARANG-DKSBI7', ss_from_name='GITET MUARAKARANG', ss_to_name='DKSBI7',
+         voltage_kv=500.0, source='UPT_MANUAL'),
+    dict(line_name='DKSBI7-GANDUL7', ss_from_name='DKSBI7', ss_to_name='GANDUL7',
+         voltage_kv=500.0, source='UPT_MANUAL'),
+    # TANJUNG PRIOK: hanya bukti satu arah (M. Karang Baru menyebut
+    # Tanjung Priok), node 150kV kandidat (NEW PRIOK/PRIOK BARAT/PRIOK
+    # TIMUR5) tidak jelas berelasi -- butuh verifikasi tambahan.
+    dict(line_name='GITET MUARAKARANG-TANJUNG PRIOK', ss_from_name='GITET MUARAKARANG', ss_to_name='TANJUNG PRIOK 500KV',
+         voltage_kv=500.0, source='UPT_MANUAL'),
 ]
 
 # Sheet IHS (sumber bus_sc) dan sheet DB (sumber topologi/substation) di
@@ -250,6 +332,42 @@ def load_substations(conn, rows):
     return key_to_ssid
 
 
+def load_manual_substations(conn, key_to_ssid):
+    """MANUAL_SUBSTATIONS -> site + substation baru, utk node yg disebut
+    bay rele UPT tapi tidak ada di DIgSILENT sama sekali (beda dari GI
+    150kV tanpa topologi yg sudah datang dari substation.csv -- ini node
+    500kV yg baru ketahuan lewat analisis rele, jadi dibuat di sini).
+    topology_source selalu NULL (konsisten dgn GI tanpa DIgSILENT lain).
+    in_scope=1 krn ini bagian topologi 500kV yg relevan cluster
+    Durikosambi (dikonfirmasi via helper sheet resmi)."""
+    n_ok = 0
+    for m in MANUAL_SUBSTATIONS:
+        if m['site_name'] in key_to_ssid:
+            continue
+        cur = conn.execute(
+            'INSERT INTO site (site_name, is_gis) VALUES (?, NULL)', (m['site_name'],))
+        site_id = cur.lastrowid
+        cur = conn.execute(
+            '''INSERT INTO substation
+               (site_id, voltage_kv, name_digsilent, in_scope, hop_distance, topology_source)
+               VALUES (?, ?, NULL, 1, 0, NULL)''',
+            (site_id, m['voltage_kv']))
+        ss_id = cur.lastrowid
+        key_to_ssid[m['site_name']] = ss_id
+        # resolve_aliases: nama mentah dari raw_gi rele (mis. 'BALARAJA')
+        # -- didaftarkan sbg ss_alias supaya resolve_ss()/build_ss_lookup()
+        # exact-match by-voltage otomatis menemukan node 500kV sintetis
+        # ini, meski site_name-nya sengaja dibuat beda (mis. 'GITET
+        # BALARAJA') supaya tidak ketuker dgn GI 150kV di UI.
+        for alias_name in m.get('resolve_aliases', []):
+            conn.execute(
+                '''INSERT INTO ss_alias (ss_id, alias_text, source_system, is_curated)
+                   VALUES (?, ?, 'UPT_MANUAL', 1)''',
+                (ss_id, alias_name))
+        n_ok += 1
+    return n_ok
+
+
 def load_aliases(conn, rows, key_to_ssid):
     """alias_review.csv, baris match='exact' -> ss_alias. Kandidat 'partial'/
     'rejected' TIDAK dimuat -- itu jejak keputusan kurasi, bukan identitas DB."""
@@ -326,9 +444,10 @@ def load_manual_lines(conn, key_to_ssid):
             continue
         conn.execute(
             '''INSERT INTO line
-               (line_name, ss_from, ss_to, voltage_kv, is_boundary, source)
-               VALUES (?, ?, ?, ?, 0, ?)''',
-            (m['line_name'], ss_from, ss_to, m['voltage_kv'], m['source']))
+               (line_name, ss_from, ss_to, voltage_kv, out_of_service, is_boundary, source)
+               VALUES (?, ?, ?, ?, ?, 0, ?)''',
+            (m['line_name'], ss_from, ss_to, m['voltage_kv'],
+             1 if m.get('out_of_service') else 0, m['source']))
         n_ok += 1
     return n_ok, n_skip
 
@@ -695,6 +814,7 @@ def main(etl_dir, alias_path, db_path, v2_dir=None):
 
     key_to_ssid = load_substations(conn, substation_rows)
     n_alias = load_aliases(conn, alias_rows, key_to_ssid)
+    n_manual_ss = load_manual_substations(conn, key_to_ssid)
     load_scope(conn)
     n_line_ok, n_line_skip = load_lines(conn, line_rows, key_to_ssid)
     n_manual_ok, n_manual_skip = load_manual_lines(conn, key_to_ssid)
@@ -715,6 +835,7 @@ def main(etl_dir, alias_path, db_path, v2_dir=None):
     print('=== PLMS loader v2 ===')
     print(f'Substation dimuat     : {len(key_to_ssid)}')
     print(f'Alias dimuat          : {n_alias}')
+    print(f'Substation manual 500kV: {n_manual_ss}  (GITET/GISTET tanpa node DIgSILENT)')
     print(f'Line DIgSILENT dimuat : {n_line_ok}  (skip FK hilang: {n_line_skip})')
     print(f'Line manual dimuat    : {n_manual_ok}  (skip FK hilang: {n_manual_skip})')
     print(f'Bus SC dimuat         : {n_bus_ok}  (skip di luar scope: {n_bus_skip})')

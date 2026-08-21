@@ -71,11 +71,12 @@ def test_database_integrity_and_current_scope_baseline(rebuilt):
         assert conn.execute('PRAGMA foreign_key_check').fetchall() == []
 
         # Workbook saat ini: 113 seed / 148 +1-hop dari DIgSILENT setelah
-        # KOSAMBI BARU dikeluarkan eksplisit. 19 penghantar manual UPT
-        # (4 Lontar/Dadap + 15 sisipan/ekstensi GI pasca-2021: Metland,
+        # KOSAMBI BARU dikeluarkan eksplisit. 24 penghantar manual UPT
+        # (4 Lontar/Dadap + 15 sisipan/ekstensi GI pasca-2021 [Metland,
         # Pasar Kemis Baru, Grogol Baru, ITS, Jatake Baru, Milenium,
-        # Sindang Jaya -- lihat MANUAL_LINES di load.py) membuat daftar
-        # UI menjadi 167.
+        # Sindang Jaya] + 5 jaringan 500kV [GITET Balaraja/Muarakarang/
+        # Tanjung Priok] -- lihat MANUAL_LINES di load.py) membuat daftar
+        # UI menjadi 172.
         digs_seed = conn.execute('''
             SELECT count(*) FROM line l
             JOIN substation a ON l.ss_from = a.ss_id
@@ -97,14 +98,28 @@ def test_database_integrity_and_current_scope_baseline(rebuilt):
         ''').fetchone()[0]
         assert digs_seed == 113
         assert digs_hop1 == 148
-        assert ui_total == 167
+        assert ui_total == 172
 
 
 def test_all_44_seed_gi_are_represented(rebuilt):
     _, db_path = rebuilt
     with connect(db_path) as conn:
+        # Node 500kV sintetis (load.MANUAL_SUBSTATIONS) -- GITET/GISTET yg
+        # ditemukan lewat analisis bay rele, BUKAN bagian 44 GI seed --
+        # dikecualikan dari perbandingan represented==SEED_GI di bawah.
+        # resolve_aliases (mis. 'TANJUNG PRIOK') jg masuk ss_alias krn
+        # load_manual_substations() mendaftarkannya utk resolve_ss()
+        # otomatis -- ikut dikecualikan.
+        synthetic_500kv = {m['site_name'] for m in load.MANUAL_SUBSTATIONS}
+        synthetic_500kv |= {
+            alias for m in load.MANUAL_SUBSTATIONS
+            for alias in m.get('resolve_aliases', [])
+            if alias not in plms_etl.SEED_GI
+        }
+
         represented = {
             row[0] for row in conn.execute('SELECT alias_text FROM ss_alias')
+            if row[0] not in synthetic_500kv
         }
         represented |= {
             row[0] for row in conn.execute('''
@@ -112,6 +127,7 @@ def test_all_44_seed_gi_are_represented(rebuilt):
                 FROM substation JOIN site USING (site_id)
                 WHERE substation.topology_source IS NULL
             ''')
+            if row[0] not in synthetic_500kv
         }
         assert represented == set(plms_etl.SEED_GI)
         # 13 -> 12: ALAM SUTERA dipindah ke MANUAL_ALIAS (plms_etl.py) --
@@ -119,9 +135,11 @@ def test_all_44_seed_gi_are_represented(rebuilt):
         # (hilang huruf 'E'), terhubung dua-arah terverifikasi ke
         # CILEDUG dan SUMMARECON. Bukan gap topologi, jadi topology_source
         # sekarang 'DIGSILENT' bukan NULL.
+        # 12 + 3 node 500kV sintetis (GITET BALARAJA, GITET MUARAKARANG,
+        # TANJUNG PRIOK 500KV -- lihat load.MANUAL_SUBSTATIONS) = 15.
         assert conn.execute('''
             SELECT count(*) FROM substation WHERE topology_source IS NULL
-        ''').fetchone()[0] == 12
+        ''').fetchone()[0] == 12 + len(load.MANUAL_SUBSTATIONS)
 
 
 def test_voltage_and_line_metadata_are_not_defaulted(rebuilt):
@@ -208,9 +226,9 @@ def test_loader_is_idempotent(rebuilt, tmp_path):
     for _ in range(2):
         load.main(str(etl_out), str(ROOT / 'alias_review.csv'), str(db_path))
     with connect(db_path) as conn:
-        # 1183 DIgSILENT + 19 manual (4 Lontar/Dadap + 15 sisipan/ekstensi
-        # GI pasca-2021, lihat MANUAL_LINES di load.py).
-        assert conn.execute('SELECT count(*) FROM line').fetchone()[0] == 1202
+        # 1183 DIgSILENT + 24 manual (4 Lontar/Dadap + 15 sisipan/ekstensi
+        # GI pasca-2021 + 5 jaringan 500kV, lihat MANUAL_LINES di load.py).
+        assert conn.execute('SELECT count(*) FROM line').fetchone()[0] == 1207
         assert conn.execute('PRAGMA foreign_key_check').fetchall() == []
 
 
@@ -224,8 +242,19 @@ def test_v2_settings_and_official_history_are_loaded_with_provenance(rebuilt):
         assert conn.execute('SELECT count(*) FROM official_event_line').fetchone()[0] > 100
         assert conn.execute("SELECT count(*) FROM relay_source WHERE source_sheet='FR_OCR'").fetchone()[0] == 11
         assert conn.execute("SELECT count(*) FROM relay_setting WHERE source_sheet='FR_OCR'").fetchone()[0] == 66
-        assert conn.execute("SELECT count(*) FROM relay_source WHERE source_sheet='CBF&CCP'").fetchone()[0] == 65
-        assert conn.execute("SELECT count(*) FROM relay_setting WHERE source_sheet='CBF&CCP'").fetchone()[0] == 142
+        # 65->13, 142->38: load.MANUAL_SUBSTATIONS menambah node 500kV
+        # sintetis (GITET BALARAJA, GITET MUARAKARANG) -- raw_gi sheet
+        # CBF&CCP sering polos ('GITET Balaraja', tanpa '500KV' eksplisit
+        # dalam teks; info voltage sebenarnya ada di kolom RATIO (kV)
+        # terpisah yg tidak diekstrak plms_v2_etl.py ke row['gi']).
+        # resolve_ss() sekarang py 2 opsi voltage (150/500) utk nama yg
+        # sama -> AMBIGUOUS_VOLTAGE, row TIDAK masuk relay_source (hanya
+        # v2_data_review) alih-alih dulu diam-diam nyasar ke node 150kV
+        # yang salah. Ini peningkatan akurasi, bukan regresi -- perbaikan
+        # lanjutan (plms_v2_etl.py membaca kolom RATIO (kV)) akan
+        # mengembalikan rele ini dgn ss_id yang benar.
+        assert conn.execute("SELECT count(*) FROM relay_source WHERE source_sheet='CBF&CCP'").fetchone()[0] == 13
+        assert conn.execute("SELECT count(*) FROM relay_setting WHERE source_sheet='CBF&CCP'").fetchone()[0] == 38
         assert conn.execute("SELECT count(*) FROM v2_data_review WHERE review_type='SPECIAL_LAYOUT_PARSER'").fetchone()[0] == 0
         assert conn.execute('''
             SELECT count(*) FROM relay_setting
