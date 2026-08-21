@@ -71,8 +71,11 @@ def test_database_integrity_and_current_scope_baseline(rebuilt):
         assert conn.execute('PRAGMA foreign_key_check').fetchall() == []
 
         # Workbook saat ini: 113 seed / 148 +1-hop dari DIgSILENT setelah
-        # KOSAMBI BARU dikeluarkan eksplisit. Empat penghantar manual UPT
-        # membuat daftar UI menjadi 152.
+        # KOSAMBI BARU dikeluarkan eksplisit. 19 penghantar manual UPT
+        # (4 Lontar/Dadap + 15 sisipan/ekstensi GI pasca-2021: Metland,
+        # Pasar Kemis Baru, Grogol Baru, ITS, Jatake Baru, Milenium,
+        # Sindang Jaya -- lihat MANUAL_LINES di load.py) membuat daftar
+        # UI menjadi 167.
         digs_seed = conn.execute('''
             SELECT count(*) FROM line l
             JOIN substation a ON l.ss_from = a.ss_id
@@ -94,7 +97,7 @@ def test_database_integrity_and_current_scope_baseline(rebuilt):
         ''').fetchone()[0]
         assert digs_seed == 113
         assert digs_hop1 == 148
-        assert ui_total == 152
+        assert ui_total == 167
 
 
 def test_all_44_seed_gi_are_represented(rebuilt):
@@ -205,7 +208,9 @@ def test_loader_is_idempotent(rebuilt, tmp_path):
     for _ in range(2):
         load.main(str(etl_out), str(ROOT / 'alias_review.csv'), str(db_path))
     with connect(db_path) as conn:
-        assert conn.execute('SELECT count(*) FROM line').fetchone()[0] == 1187
+        # 1183 DIgSILENT + 19 manual (4 Lontar/Dadap + 15 sisipan/ekstensi
+        # GI pasca-2021, lihat MANUAL_LINES di load.py).
+        assert conn.execute('SELECT count(*) FROM line').fetchone()[0] == 1202
         assert conn.execute('PRAGMA foreign_key_check').fetchall() == []
 
 

@@ -98,6 +98,57 @@ MANUAL_LINES = [
          voltage_kv=150.0, source='UPT_MANUAL'),
     dict(line_name='DADAP-LONTAR', ss_from_name='DADAP', ss_to_name='LONTAR',
          voltage_kv=150.0, source='UPT_MANUAL'),
+
+    # Pola dikonfirmasi pemilik data: GITET latest DIgSILENT (Maret 2021)
+    # ketinggalan dari setting UPT (~2025) yg mencatat puluhan GI baru --
+    # baik SISIPAN (GI baru memotong penghantar eksisting jadi 2 segmen)
+    # maupun EKSTENSI (GI baru/cabang yg sebelumnya tak ada). Semua
+    # pasangan di bawah dua-arah terverifikasi dari bay UPT (kedua ujung
+    # saling menyebut), kecuali ditandai.
+
+    # SISIPAN -- DIgSILENT MASIH punya line langsung A<->B yg disisipi;
+    # cross-check line 481/482 KBNGN-CLDUG dan 818/819 PSMIS-SPTAN.
+    # ss_from/to_name HARUS pakai key yg benar-benar ada di key_to_ssid:
+    # name_digsilent kalau node py DIgSILENT (mis. 'KEMBANGAN5', bukan
+    # 'KEMBANGAN' polos -- Kembangan py 2 node 150/500kV), site_name kalau
+    # tidak (GI tanpa DIgSILENT sama sekali).
+    dict(line_name='KEMBANGAN-METLAND', ss_from_name='KEMBANGAN5', ss_to_name='METLAND',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+    dict(line_name='METLAND-CILEDUG', ss_from_name='METLAND', ss_to_name='CILEDUG',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+    dict(line_name='PASAR KEMIS-PASAR KEMIS BARU', ss_from_name='PASAR KEMIS', ss_to_name='PASAR KEMIS BARU',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+    dict(line_name='PASAR KEMIS BARU-SEPATAN', ss_from_name='PASAR KEMIS BARU', ss_to_name='SEPATAN',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+
+    # EKSTENSI/cabang baru -- TIDAK ada line langsung A<->B di DIgSILENT
+    # utk disisipi; GI baru menghubungkan node yg sebelumnya tak terhubung
+    # langsung.
+    dict(line_name='DURIKOSAMBI-GROGOL BARU', ss_from_name='DURIKOSAMBI', ss_to_name='GROGOL BARU',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+    dict(line_name='GROGOL BARU-GROGOL', ss_from_name='GROGOL BARU', ss_to_name='GROGOL',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+    dict(line_name='CENGKARENG BARU-ITS', ss_from_name='CENGKARENG BARU', ss_to_name='ITS',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+    dict(line_name='ITS-TANGERANG BARU', ss_from_name='ITS', ss_to_name='TANGERANG BARU',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+    dict(line_name='JATAKE-JATAKE BARU', ss_from_name='JATAKE', ss_to_name='JATAKE BARU',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+    dict(line_name='JATAKE BARU-TANGERANG', ss_from_name='JATAKE BARU', ss_to_name='TANGERANG',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+    dict(line_name='CITRA HABITAT-MILENIUM', ss_from_name='CITRA HABITAT', ss_to_name='MILENIUM',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+    dict(line_name='MILENIUM-SPINMILL', ss_from_name='MILENIUM', ss_to_name='SPINMILL',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+    dict(line_name='LONTAR-SINDANG JAYA', ss_from_name='LONTAR', ss_to_name='SINDANG JAYA',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+    dict(line_name='SINDANG JAYA-SUVARNA SUTERA', ss_from_name='SINDANG JAYA', ss_to_name='SUVARNA SUTERA',
+         voltage_kv=150.0, source='UPT_MANUAL'),
+    # SINDANG JAYA-BALARAJA: bukti SATU ARAH saja (Sindang Jaya sebut
+    # Balaraja; belum dicek balik dari sisi Balaraja) -- dimuat, tapi
+    # butuh verifikasi tambahan kalau area ini digarap v3+.
+    dict(line_name='SINDANG JAYA-BALARAJA', ss_from_name='SINDANG JAYA', ss_to_name='BALARAJA',
+         voltage_kv=150.0, source='UPT_MANUAL'),
 ]
 
 # Sheet IHS (sumber bus_sc) dan sheet DB (sumber topologi/substation) di
