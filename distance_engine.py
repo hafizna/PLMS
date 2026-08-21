@@ -160,3 +160,171 @@ def rfpe_z1_from_z2(rfpe_z2_primary_ohm: float) -> float:
     RLdFw/RFPEZ3P/RFPEZ2P sendiri -- itu tanggung jawab modul Z2/Z3.
     """
     return RFPE_Z1_FROM_Z2_FRACTION * rfpe_z2_primary_ohm
+
+
+# ---------------------------------------------------------------- Zone-2
+#
+# Z2min  := 1.2 * ZL11
+# Z2mak1 := 0.8 * (ZL11 + 0.8*ZL_branch*K)   -- utk TIAP cabang di remote bus
+# Z21mak := kandidat terbesar antara Z2min dan SEMUA Z2mak1 per-cabang
+# ZTrf   := 0.8 * (ZL11 + 0.5*XT1*j)         -- cap arah trafo remote
+# Z2P    := Z21mak, TAPI dibatasi tidak boleh melebihi |ZTrf|
+#
+# Di file Mathcad sumber hanya ada 1 "cabang" krn 4 sirkit sejajar
+# (L1=L2=L3=L4) diperlakukan sbg satu ZL21 -- utk engine v3a yang
+# general, traversal ini HARUS menerima SEMUA cabang nyata di remote
+# bus (dari incident_lines() sisi pemanggil), bukan 1 next-line
+# hardcoded (dilarang eksplisit di prompt v2). Faktor infeed K dari
+# file sumber di-hardcode = 1 (dikonfirmasi bug/simplifikasi lama,
+# BUKAN dihitung dari studi hubung singkat) -- parameter ini sengaja
+# dibuka sbg argumen (infeed_factor) supaya pemanggil bisa menyediakan
+# nilai yang benar nanti tanpa mengubah rumus intinya.
+Z2_MIN_FRACTION = 1.2           # Z2min = 1.2 x ZL11
+Z2_OWN_LINE_FRACTION = 0.8      # faktor luar: 0.8 x (...)
+Z2_BRANCH_FRACTION = 0.8        # faktor infeed cabang: 0.8 x ZL_branch x K
+Z2_TRANSFORMER_FRACTION = 0.8   # faktor luar utk cap trafo: 0.8 x (...)
+Z2_TRANSFORMER_XT_FRACTION = 0.5  # porsi XT1 yg diperhitungkan: 0.5 x XT1
+
+
+@dataclass(frozen=True)
+class RemoteBranch:
+    """Satu cabang yang terhubung ke remote bus (ujung protected line),
+    SELAIN protected line itu sendiri -- hasil traversal graph nyata
+    (mis. dari incident_lines() di load.py), bukan next-line tunggal
+    yang di-hardcode. line_id disimpan utk audit/calculation_branch,
+    bukan dipakai dlm rumus.
+    """
+    line_id: int
+    impedance: LineImpedance
+
+
+@dataclass(frozen=True)
+class Zone2Result:
+    zone: str
+    z_primary_ohm: complex
+    z_secondary_ohm: complex
+    z0_primary_ohm: complex
+    z0_secondary_ohm: complex
+    rfpp_primary_ohm: float
+    rfpp_secondary_ohm: float
+    reach_percent: float
+    delay_s: float
+    # Transparansi keputusan traversal -- line_id cabang yang dipilih
+    # (None bila hasil akhir dibatasi cap trafo, bukan cabang manapun),
+    # dan apakah cap trafo yang menentukan hasil akhir.
+    selected_branch_line_id: int | None
+    capped_by_transformer: bool
+    candidates_considered: int  # jumlah kandidat cabang yang dievaluasi
+
+
+def calculate_zone2(
+    line: LineImpedance,
+    branches: list[RemoteBranch],
+    transformer_reactance_x_ohm: float,
+    ratio: CtPtRatio,
+    infeed_factor: float = 1.0,
+) -> Zone2Result:
+    """Hitung reach Zone-2 dengan traversal SEMUA cabang di remote bus.
+
+    branches: daftar SEMUA line lain yang terhubung ke remote bus
+    (ujung protected line yang bukan local bus), didapat dari traversal
+    graph topologi nyata -- BUKAN 1 next-line yang diasumsikan.
+    Boleh kosong (remote bus tanpa cabang lain selain protected line
+    itu sendiri) -- maka Z2P jatuh ke Z2min atau cap trafo saja.
+
+    transformer_reactance_x_ohm: XT1, reaktansi trafo di arah remote
+    (dipakai sbg cap atas reach Z2 -- "Dipilih Zone 2 terbesar tetapi
+    tidak lebih besar dari zone 2 trafo", dikonfirmasi Mathcad).
+
+    infeed_factor: K, faktor infeed per-cabang. Default 1.0 (nilai yg
+    dipakai file Mathcad sumber, dikonfirmasi bug/simplifikasi lama --
+    lihat komentar di atas), TAPI parameter ini sengaja dibuka supaya
+    pemanggil bisa menyuplai K yang dihitung dari studi hubung singkat
+    sungguhan begitu tersedia, tanpa mengubah rumus.
+    """
+    zl11 = line.z1
+    zl10 = line.z0
+    n1 = ratio.n1
+
+    z2min = Z2_MIN_FRACTION * zl11
+    ztrf = Z2_TRANSFORMER_FRACTION * (zl11 + complex(0, Z2_TRANSFORMER_XT_FRACTION * transformer_reactance_x_ohm))
+
+    # Kandidat: Z2min selalu ada; tiap cabang remote menghasilkan 1
+    # kandidat Z2mak. Pilih magnitudo TERBESAR di antara semuanya
+    # (bukan pertama/terakhir -- urutan traversal tidak boleh
+    # mempengaruhi hasil, sesuai transparansi keputusan yang diminta).
+    best_candidate = z2min
+    best_branch_line_id: int | None = None
+    for branch in branches:
+        z2mak = Z2_OWN_LINE_FRACTION * (zl11 + Z2_BRANCH_FRACTION * branch.impedance.z1 * infeed_factor)
+        if abs(z2mak) > abs(best_candidate):
+            best_candidate = z2mak
+            best_branch_line_id = branch.line_id
+
+    capped_by_transformer = abs(best_candidate) > abs(ztrf)
+    z2p = ztrf if capped_by_transformer else best_candidate
+    if capped_by_transformer:
+        best_branch_line_id = None
+    z2s = z2p * n1
+
+    # Ground fault (zero-sequence): pola identik, pakai ZL10/ZL_branch.z0.
+    z20min = Z2_MIN_FRACTION * zl10
+    z20trf = Z2_TRANSFORMER_FRACTION * (zl10 + complex(0, Z2_TRANSFORMER_XT_FRACTION * transformer_reactance_x_ohm))
+    best_candidate0 = z20min
+    for branch in branches:
+        z20mak = Z2_OWN_LINE_FRACTION * (zl10 + Z2_BRANCH_FRACTION * branch.impedance.z0 * infeed_factor)
+        if abs(z20mak) > abs(best_candidate0):
+            best_candidate0 = z20mak
+    z20p = z20trf if abs(best_candidate0) > abs(z20trf) else best_candidate0
+    z20s = z20p * n1
+
+    x1z2p = z2p.imag
+    rfpp_max = RFPP_MAX_MULTIPLIER * x1z2p
+    rfpp_p = RFPP_USED_FRACTION * rfpp_max
+    rfpp_s = rfpp_p * n1
+
+    reach_percent = (abs(z2p) / abs(zl11)) * 100 if abs(zl11) else 0.0
+
+    return Zone2Result(
+        zone="Z2",
+        z_primary_ohm=z2p,
+        z_secondary_ohm=z2s,
+        z0_primary_ohm=z20p,
+        z0_secondary_ohm=z20s,
+        rfpp_primary_ohm=rfpp_p,
+        rfpp_secondary_ohm=rfpp_s,
+        reach_percent=reach_percent,
+        delay_s=0.0,  # diisi oleh zone2_delay() terpisah -- lihat di bawah
+        selected_branch_line_id=best_branch_line_id,
+        capped_by_transformer=capped_by_transformer,
+        candidates_considered=len(branches),
+    )
+
+
+# Timer T2 kondisional -- Mathcad: X1sg := 0.8*XL_branch (reach 80% dari
+# X cabang tetangga, dipakai sbg AMBANG KEPUTUSAN waktu, bukan utk
+# menghitung reach Z2 itu sendiri). Jika overreach Z2 di luar protected
+# line (|Z2P|-|ZL11|) masih di bawah ambang itu, T2 cepat (T2A); kalau
+# tidak, T2 lambat (T2B). Nilai T2A/T2B dari file Mathcad: 0.4s / 0.8s.
+#
+# CATATAN: file sumber mendefinisikan variabel `q := |Z2P - ZL11|` yang
+# TIDAK DIPAKAI dlm formula T2 aktual (T2 pakai |Z2P|-|ZL11|, selisih
+# magnitudo, bukan magnitudo selisih kompleks `q`) -- dikonfirmasi
+# subagent riset sbg kemungkinan sisa draft lama di file sumber. Engine
+# ini mengikuti formula yg BENAR-BENAR dipakai (selisih magnitudo),
+# bukan variabel vestigial itu.
+ZONE2_DELAY_FAST_S = 0.4
+ZONE2_DELAY_SLOW_S = 0.8
+
+
+def zone2_delay(z2_primary_ohm: complex, zl11: complex, branch_x_threshold_ohm: float) -> float:
+    """T2 = 0.4s bila overreach (|Z2P|-|ZL11|) < ambang cabang (0.8 x X
+    cabang tetangga); else 0.8s. branch_x_threshold_ohm HARUS dihitung
+    pemanggil sbg 0.8 x X (bagian imajiner impedansi) cabang yang
+    relevan -- fungsi ini tidak mengasumsikan cabang mana yang dipakai
+    sbg ambang (file Mathcad memakai cabang tetangga L2 scr spesifik,
+    tapi utk engine general ini harus jadi keputusan eksplisit
+    pemanggil, bukan asumsi tersembunyi di dalam fungsi ini).
+    """
+    overreach = abs(z2_primary_ohm) - abs(zl11)
+    return ZONE2_DELAY_FAST_S if overreach < branch_x_threshold_ohm else ZONE2_DELAY_SLOW_S

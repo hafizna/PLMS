@@ -24,9 +24,13 @@ import pytest
 from distance_engine import (
     CtPtRatio,
     LineImpedance,
+    RemoteBranch,
     Zone1Result,
+    Zone2Result,
     calculate_zone1,
+    calculate_zone2,
     rfpe_z1_from_z2,
+    zone2_delay,
 )
 
 
@@ -115,3 +119,111 @@ def test_zone1_zero_length_or_zero_impedance_line_does_not_crash():
     result = calculate_zone1(zero_line, LSI_MILLENIUM_RATIO)
     assert result.reach_percent == 0.0
     assert result.z_primary_ohm == 0j
+
+
+# ------------------------------------------------------------------ Zone-2
+# Di file Mathcad sumber, L1=L2=L3=L4 (4 sirkit paralel identik) --
+# "cabang di remote bus" utk kasus referensi ini SECARA KEBETULAN py
+# impedansi yang sama dgn protected line itu sendiri. Ini bukan
+# kelemahan test: rumus & traversal logic yang diuji tetap sama
+# terlepas dari berapa banyak/macam cabang -- dibuktikan terpisah oleh
+# test edge-case (0 cabang, cabang dgn impedansi beda, cap trafo aktif)
+# yang TIDAK bergantung pada kebetulan L1=L2 itu.
+XT1_GI_MILLENIUM = 5.85  # min(IBT 500/150kV 13% -> 5.85, Trafo2 12.5% -> 46.875)
+
+
+@pytest.fixture(scope="module")
+def zone2() -> Zone2Result:
+    branch = RemoteBranch(line_id=1, impedance=LSI_MILLENIUM_L1)  # ZL21 = ZL11 (L1=L2 di sumber)
+    return calculate_zone2(LSI_MILLENIUM_L1, [branch], XT1_GI_MILLENIUM, LSI_MILLENIUM_RATIO)
+
+
+def test_zone2_primary_impedance_matches_mathcad(zone2):
+    # Z2P -> 0.517104 + j3.796632 Ohm (primer); |Z2P| = 3.83168515
+    assert zone2.z_primary_ohm.real == pytest.approx(0.517104, rel=1e-4)
+    assert zone2.z_primary_ohm.imag == pytest.approx(3.796632, rel=1e-4)
+    assert abs(zone2.z_primary_ohm) == pytest.approx(3.83168515, rel=1e-4)
+
+
+def test_zone2_secondary_impedance_matches_mathcad(zone2):
+    # Z2S -> 0.689472 + j5.062176 Ohm (sekunder); |Z2S| = 5.108913534
+    assert zone2.z_secondary_ohm.real == pytest.approx(0.689472, rel=1e-4)
+    assert zone2.z_secondary_ohm.imag == pytest.approx(5.062176, rel=1e-4)
+    assert abs(zone2.z_secondary_ohm) == pytest.approx(5.108913534, rel=1e-4)
+
+
+def test_zone2_ground_fault_reach_matches_mathcad(zone2):
+    # Z20P -> 1.42128 + j8.66772 Ohm (primer)
+    assert zone2.z0_primary_ohm.real == pytest.approx(1.42128, rel=1e-4)
+    assert zone2.z0_primary_ohm.imag == pytest.approx(8.66772, rel=1e-4)
+
+
+def test_zone2_rfpp_matches_mathcad(zone2):
+    assert zone2.rfpp_primary_ohm == pytest.approx(7.972927, rel=1e-4)
+    assert zone2.rfpp_secondary_ohm == pytest.approx(10.630570, rel=1e-4)
+
+
+def test_zone2_reach_percent_matches_mathcad(zone2):
+    # Z2% := (|Z2P|/|ZL11|)*100 -> 144.0% (magnitudo, BUKA pembagian
+    # kompleks spt Z1% -- regresi yg wajib dicegah: memakai rumus Z1
+    # utk Z2, hasilnya akan beda krn Z2P tidak sefasa dgn ZL11).
+    assert zone2.reach_percent == pytest.approx(144.0, rel=1e-4)
+
+
+def test_zone2_not_capped_when_transformer_reach_is_larger(zone2):
+    # |ZTrf| = 4.45850 Ohm > |Z21mak| = 3.83169 Ohm -> Z2P = Z21mak,
+    # BUKAN ZTrf. Regresi yg wajib dicegah: cap selalu diterapkan tanpa
+    # cek magnitudo, akan salah pilih ZTrf padahal seharusnya tidak.
+    assert zone2.capped_by_transformer is False
+    assert zone2.selected_branch_line_id == 1
+
+
+def test_zone2_delay_matches_mathcad(zone2):
+    # T2 = 0.4s krn overreach (|Z2P|-|ZL11|) < X1sg (0.8 x X cabang).
+    x1sg = 0.8 * LSI_MILLENIUM_L1.x1_ohm
+    delay = zone2_delay(zone2.z_primary_ohm, LSI_MILLENIUM_L1.z1, x1sg)
+    assert delay == pytest.approx(0.4, rel=1e-9)
+
+
+def test_zone2_falls_back_to_1_2x_line_when_no_branches_at_remote_bus():
+    # Remote bus tanpa cabang lain (mis. GI ujung/radial) -> Z2P harus
+    # jatuh ke Z2min = 1.2*ZL11, BUKAN error atau 0.
+    result = calculate_zone2(LSI_MILLENIUM_L1, [], XT1_GI_MILLENIUM, LSI_MILLENIUM_RATIO)
+    assert result.z_primary_ohm == pytest.approx(1.2 * LSI_MILLENIUM_L1.z1, rel=1e-9)
+    assert result.selected_branch_line_id is None
+    assert result.candidates_considered == 0
+
+
+def test_zone2_is_capped_by_transformer_when_transformer_reach_is_smaller():
+    # Trafo remote sangat kecil (XT1 kecil) -> ZTrf harus jadi batas
+    # atas, Z2P TIDAK boleh melebihi |ZTrf| walau kandidat cabang lebih
+    # besar. selected_branch_line_id harus None krn hasil akhir bukan
+    # cabang manapun, melainkan cap trafo.
+    tiny_xt1 = 0.1
+    branch = RemoteBranch(line_id=42, impedance=LSI_MILLENIUM_L1)
+    result = calculate_zone2(LSI_MILLENIUM_L1, [branch], tiny_xt1, LSI_MILLENIUM_RATIO)
+    assert result.capped_by_transformer is True
+    assert result.selected_branch_line_id is None
+    ztrf = 0.8 * (LSI_MILLENIUM_L1.z1 + complex(0, 0.5 * tiny_xt1))
+    assert result.z_primary_ohm == pytest.approx(ztrf, rel=1e-9)
+
+
+def test_zone2_picks_largest_candidate_among_multiple_branches_regardless_of_order():
+    # Traversal HARUS memilih magnitudo terbesar di antara semua cabang,
+    # bukan cabang pertama/terakhir yang ditemukan -- urutan traversal
+    # tidak boleh mempengaruhi hasil (dilarang next-line hardcoded).
+    small_branch_line = LineImpedance(r1_ohm=0.05, x1_ohm=0.3, r0_ohm=0.2, x0_ohm=0.9)
+    big_branch_line = LSI_MILLENIUM_L1  # jauh lebih besar impedansinya
+    branches_order_a = [
+        RemoteBranch(line_id=1, impedance=small_branch_line),
+        RemoteBranch(line_id=2, impedance=big_branch_line),
+    ]
+    branches_order_b = [
+        RemoteBranch(line_id=2, impedance=big_branch_line),
+        RemoteBranch(line_id=1, impedance=small_branch_line),
+    ]
+    result_a = calculate_zone2(LSI_MILLENIUM_L1, branches_order_a, XT1_GI_MILLENIUM, LSI_MILLENIUM_RATIO)
+    result_b = calculate_zone2(LSI_MILLENIUM_L1, branches_order_b, XT1_GI_MILLENIUM, LSI_MILLENIUM_RATIO)
+    assert result_a.selected_branch_line_id == 2
+    assert result_b.selected_branch_line_id == 2
+    assert result_a.z_primary_ohm == result_b.z_primary_ohm
