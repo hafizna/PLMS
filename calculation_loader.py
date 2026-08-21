@@ -21,12 +21,15 @@ mengembalikan None saat ini -- disediakan sbg hook satu titik utk nanti
 kalau sumber data trafo tersedia (lihat AskUserQuestion di sesi ini:
 user blm py sumber, ini murni placeholder eksplisit, BUKAN estimasi).
 
-Modul ini TIDAK mengubah plms.db langsung -- fungsi build_*() murni
-baca (read-only), caller (load.py atau CLI terpisah) yang menulis ke
-calculation_context/calculation_branch.
+Fungsi build_*()/compute_relay_function_zones() murni baca (read-only).
+persist_calculation_context() (di bawah) yang menulis ke
+calculation_context/calculation_branch -- idempoten: DELETE baris lama
+utk relay_function_id yg sama sebelum INSERT baru, jadi aman dipanggil
+ulang (re-run) tanpa duplikasi/sisa data basi.
 """
 from __future__ import annotations
 
+import datetime
 import re
 import sqlite3
 from dataclasses import dataclass, replace
@@ -326,3 +329,82 @@ def _parse_ratio_pair(raw: str | None) -> tuple[float, float] | None:
             return None
         numbers.append(float(match.group()))
     return numbers[0], numbers[1]
+
+
+# ---------------------------------------------------------------- persist
+
+def persist_calculation_context(
+    conn: sqlite3.Connection, relay_function_id: int, line_id: int,
+    computations: list[ZoneComputation], model_version: str | None = None,
+) -> int:
+    """Tulis hasil compute_relay_function_zones() ke calculation_context/
+    calculation_branch. Idempoten: DELETE dulu baris lama utk
+    relay_function_id ini (via calculation_context, cascade manual krn
+    SQLite FK tidak auto-cascade tanpa PRAGMA) sebelum INSERT baru --
+    aman dipanggil ulang tanpa duplikasi.
+
+    line_id: protected line rele ini (sama utk semua zona 1 rele).
+    model_version: diteruskan apa adanya ke tiap baris -- None berarti
+    caller belum py concept versioning topologi (blm masuk scope
+    sebelum v3; field ini disediakan skema utk nanti).
+
+    Return: jumlah baris calculation_context yang ditulis (0-3, biasanya
+    3 krn Z1/Z2/Z3 semua diproses walau statusnya bukan complete).
+    """
+    computed_at = datetime.date.today().isoformat()
+
+    old_context_ids = [
+        row[0] for row in conn.execute(
+            "SELECT context_id FROM calculation_context WHERE relay_function_id = ?", (relay_function_id,),
+        ).fetchall()
+    ]
+    if old_context_ids:
+        placeholders = ",".join("?" * len(old_context_ids))
+        conn.execute(f"DELETE FROM calculation_branch WHERE context_id IN ({placeholders})", old_context_ids)
+        conn.execute("DELETE FROM calculation_context WHERE relay_function_id = ?", (relay_function_id,))
+
+    written = 0
+    for computation in computations:
+        result = computation.result
+        # Field yang HANYA ada di Zone2Result/Zone3Result (traversal),
+        # tidak di Zone1Result (murni lokal, tanpa cabang/cap trafo).
+        selected_branch_line_id = getattr(result, "selected_branch_line_id", None)
+
+        context_id = conn.execute(
+            """INSERT INTO calculation_context
+               (relay_function_id, line_id, zone, direction, status,
+                cumulative_r_ohm, cumulative_x_ohm,
+                reach_secondary_r_ohm, reach_secondary_x_ohm,
+                ground_fault_primary_r_ohm, ground_fault_primary_x_ohm,
+                ground_fault_secondary_r_ohm, ground_fault_secondary_x_ohm,
+                rfpp_primary_ohm, rfpp_secondary_ohm, reach_percent, delay_s,
+                selected_branch_line_id, safety_cap_hops, model_version, computed_at)
+               VALUES (?, ?, ?, 'FORWARD', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                relay_function_id, line_id, computation.zone, computation.status,
+                result.z_primary_ohm.real if result else None,
+                result.z_primary_ohm.imag if result else None,
+                result.z_secondary_ohm.real if result else None,
+                result.z_secondary_ohm.imag if result else None,
+                result.z0_primary_ohm.real if result else None,
+                result.z0_primary_ohm.imag if result else None,
+                result.z0_secondary_ohm.real if result else None,
+                result.z0_secondary_ohm.imag if result else None,
+                result.rfpp_primary_ohm if result else None,
+                result.rfpp_secondary_ohm if result else None,
+                result.reach_percent if result else None,
+                result.delay_s if result else None,
+                selected_branch_line_id, SAFETY_CAP_HOPS, model_version, computed_at,
+            ),
+        ).lastrowid
+        written += 1
+
+        for step_order, (branch_line_id, is_selected, note) in enumerate(computation.branch_trace, start=1):
+            conn.execute(
+                """INSERT INTO calculation_branch
+                   (context_id, step_order, line_id, is_selected, branch_status, note)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (context_id, step_order, branch_line_id, int(is_selected), computation.status, note or None),
+            )
+
+    return written

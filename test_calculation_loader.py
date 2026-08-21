@@ -20,6 +20,7 @@ from calculation_loader import (
     build_remote_branches,
     build_two_hop_branches,
     compute_relay_function_zones,
+    persist_calculation_context,
     remote_endpoint,
     resolve_line_impedance,
 )
@@ -343,3 +344,78 @@ def test_compute_zones_z3_without_scanning_timers_argument_defaults_to_ambiguous
     z3 = next(r for r in results if r.zone == "Z3")
     assert z3.status == STATUS_AMBIGUOUS_BRANCH
     assert z3.result.delay_s is None
+
+
+# ------------------------------------------------------ persist_calculation_context
+
+def test_persist_writes_one_row_per_zone_with_expected_fields(conn):
+    ss_a = _insert_site_ss(conn, "A")
+    ss_b = _insert_site_ss(conn, "B")
+    line_id = _insert_line(conn, "A-B", ss_a, ss_b)
+    rf_id = _insert_dist_relay(conn, ss_a, line_id)
+
+    results = compute_relay_function_zones(conn, rf_id)
+    written = persist_calculation_context(conn, rf_id, line_id, results)
+    assert written == 3
+
+    rows = {r["zone"]: r for r in conn.execute(
+        "SELECT * FROM calculation_context WHERE relay_function_id = ?", (rf_id,)
+    ).fetchall()}
+    assert set(rows) == {"Z1", "Z2", "Z3"}
+    z1 = rows["Z1"]
+    assert z1["status"] == STATUS_COMPLETE
+    assert z1["reach_percent"] == pytest.approx(80.0, rel=1e-4)
+    assert z1["cumulative_r_ohm"] == pytest.approx(0.28728, rel=1e-4)
+    assert z1["cumulative_x_ohm"] == pytest.approx(2.10924, rel=1e-4)
+    assert z1["delay_s"] == 0.0
+    # Z2/Z3 tanpa data trafo -- semua field numerik NULL, bukan 0/tebakan.
+    assert rows["Z2"]["status"] == STATUS_INCOMPLETE_TOPOLOGY
+    assert rows["Z2"]["cumulative_r_ohm"] is None
+    assert rows["Z3"]["status"] == STATUS_INCOMPLETE_TOPOLOGY
+    assert rows["Z3"]["cumulative_r_ohm"] is None
+
+
+def test_persist_writes_branch_trace_with_selection_flag(conn, monkeypatch):
+    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda conn, ss_id: 5.85)
+
+    ss_a = _insert_site_ss(conn, "A")
+    ss_b = _insert_site_ss(conn, "B")
+    ss_c = _insert_site_ss(conn, "C")
+    protected = _insert_line(conn, "A-B", ss_a, ss_b)
+    branch = _insert_line(conn, "B-C", ss_b, ss_c)
+    rf_id = _insert_dist_relay(conn, ss_a, protected)
+
+    results = compute_relay_function_zones(conn, rf_id)
+    persist_calculation_context(conn, rf_id, protected, results)
+
+    z2_context = conn.execute(
+        "SELECT context_id, selected_branch_line_id FROM calculation_context WHERE relay_function_id=? AND zone='Z2'",
+        (rf_id,),
+    ).fetchone()
+    assert z2_context["selected_branch_line_id"] == branch
+
+    branches = conn.execute(
+        "SELECT line_id, is_selected, branch_status FROM calculation_branch WHERE context_id=?",
+        (z2_context["context_id"],),
+    ).fetchall()
+    assert len(branches) == 1
+    assert branches[0]["line_id"] == branch
+    assert branches[0]["is_selected"] == 1
+    assert branches[0]["branch_status"] == STATUS_COMPLETE
+
+
+def test_persist_is_idempotent_on_rerun(conn):
+    ss_a = _insert_site_ss(conn, "A")
+    ss_b = _insert_site_ss(conn, "B")
+    line_id = _insert_line(conn, "A-B", ss_a, ss_b)
+    rf_id = _insert_dist_relay(conn, ss_a, line_id)
+
+    results = compute_relay_function_zones(conn, rf_id)
+    persist_calculation_context(conn, rf_id, line_id, results)
+    persist_calculation_context(conn, rf_id, line_id, results)
+    persist_calculation_context(conn, rf_id, line_id, results)
+
+    count = conn.execute(
+        "SELECT COUNT(*) FROM calculation_context WHERE relay_function_id = ?", (rf_id,)
+    ).fetchone()[0]
+    assert count == 3, "re-run tidak boleh menduplikasi baris"

@@ -268,6 +268,13 @@ CREATE TABLE scope_definition (
 -- Bila graph terputus, `status` menandai TITIK PUTUSNYA (lewat
 -- calculation_branch.status di baris terakhir yang berhasil) -- BUKAN
 -- mengestimasi impedansi/line yang hilang.
+-- Diperluas (semula cuma cumulative_r/x_ohm) supaya hasil kaya
+-- Zone1/2/3Result (distance_engine.py) queryable langsung tanpa parse
+-- JSON -- konsisten dgn pola relay_setting yang jg eksplisit per kolom,
+-- bukan blob. cumulative_r/x_ohm dipertahankan sbg ALIAS reach primer
+-- (nama netral-vendor utk keperluan traversal/audit graph, lihat
+-- komentar asli di bawah); reach_*_ohm/ground_fault_*_ohm/rfpp_ohm/
+-- delay_s/reach_percent adalah field spesifik distance_engine.py.
 CREATE TABLE calculation_context (
     context_id         INTEGER PRIMARY KEY AUTOINCREMENT,
     relay_function_id  INTEGER NOT NULL REFERENCES relay_function(relay_function_id),
@@ -275,8 +282,19 @@ CREATE TABLE calculation_context (
     zone                TEXT NOT NULL,       -- 'Z1' | 'Z2' | 'Z3' | 'REVERSE' | ...
     direction           TEXT NOT NULL,       -- 'FORWARD' | 'REVERSE'
     status              TEXT NOT NULL,       -- complete | incomplete_topology | incomplete_external | ambiguous_branch
-    cumulative_r_ohm    REAL,     -- impedansi kumulatif R sepanjang path yang DIPAKAI (bukan semua cabang dicoba)
-    cumulative_x_ohm    REAL,
+    cumulative_r_ohm    REAL,     -- impedansi kumulatif R sepanjang path yang DIPAKAI (bukan semua cabang dicoba) -- alias reach_primary_r_ohm
+    cumulative_x_ohm    REAL,     -- alias reach_primary_x_ohm
+    reach_secondary_r_ohm REAL,   -- reach phase-phase sisi sekunder (relay), Zone1/2/3Result.z_secondary_ohm.real
+    reach_secondary_x_ohm REAL,   -- Zone1/2/3Result.z_secondary_ohm.imag
+    ground_fault_primary_r_ohm   REAL,  -- reach ground fault (zero-sequence), Zone*Result.z0_primary_ohm.real
+    ground_fault_primary_x_ohm   REAL,
+    ground_fault_secondary_r_ohm REAL,
+    ground_fault_secondary_x_ohm REAL,
+    rfpp_primary_ohm     REAL,    -- resistive reach phase-to-phase, Zone*Result.rfpp_primary_ohm
+    rfpp_secondary_ohm   REAL,
+    reach_percent        REAL,    -- thd |ZL11| protected line -- Zone*Result.reach_percent
+    delay_s              REAL,    -- NULL bila T3/T2 belum py sumber definitif (jangan ditebak)
+    selected_branch_line_id INTEGER REFERENCES line(line_id),  -- NULL bila fallback/cap trafo, bukan cabang manapun
     safety_cap_hops     INTEGER NOT NULL DEFAULT 3,  -- prompt: cap 3 hop, traversal tidak boleh lewat ini
     model_version       TEXT,     -- versi topologi yang jadi dasar hitung (selaras line_electrical.model_version)
     computed_at         TEXT NOT NULL,
