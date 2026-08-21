@@ -418,10 +418,124 @@ alasan melakukan fuzzy merge.
 | **v3a** | Engine koordinasi distance + calculation context forward/reverse berbasis impedansi | Cocok dengan Mathcad untuk ≥10 kasus uji; graph putus tertandai eksplisit |
 | **v3b** | OCR/GFR grading dalam batas transmisi — penghantar 150 kV → incoming trafo | Rantai terbentuk; yang putus di bawah incoming tertandai `incomplete_external` |
 | **v4** | SLD sebagai validasi visual | Selisih DB vs gambar tertandai otomatis |
-| **v5** | Governance: case, revisi, approval, audit | Hanya bila v1–v3 dipakai rutin |
-| **v6** | Relasi rele ↔ Defence Scheme P2B | Prasyarat: mapping DS ≥80% terisi dan kepemilikan data disepakati |
+| **v5** | Governance domain proteksi: case, revisi, approval, audit untuk setting | Hanya bila v1–v3 dipakai rutin; satu lifecycle setting teruji di scope PLMS tanpa integrasi enterprise |
+| **v6** | Perluasan konteks governance v5: relasi rele ↔ Defence Scheme P2B | Prasyarat: mapping DS ≥80% terisi dan kepemilikan data disepakati; tidak membuat approval engine kedua |
+| **v7a** | Perluasan governance v5 lintas UPT–UIT–UIP2B/NMM: federated authority dan kontrak data | Matriks otoritas dan RACI disahkan; lifecycle/status v5 dipakai ulang; ID aset/topologi dapat dicrosswalk; waktu berlaku, bukti, serta skema change-event disepakati |
+| **v7b** | Implementasi closed-loop publishing di atas governance v5: kondisi as-built dan setting → model steward/NMM → DIgSILENT serta consumer lain | Pilot perubahan nyata melewati propose–validate–approve–publish–reconcile dalam workflow yang sama tanpa entry ulang; versi, diff, rollback, dan SLA teruji |
+| **v8** | Validasi model otomatis dan perluasan enterprise | Hanya setelah antarmuka NMM terbukti; drift lapangan–model terdeteksi dan ditindaklanjuti terukur |
 
-**Aturan tangga:** jangan naik sebelum tahap sebelumnya benar-benar **dipakai**, bukan sekadar selesai dikoding. Gerbang v1 → v2 sudah terpenuhi melalui pemakaian langsung; syarat pemakaian rutin tetap berlaku sebelum governance v5. Repo lama gagal karena melompat ke v5.
+**Aturan tangga:** jangan naik sebelum tahap sebelumnya benar-benar **dipakai**, bukan sekadar selesai dikoding. Gerbang v1 → v2 sudah terpenuhi melalui pemakaian langsung; syarat pemakaian rutin tetap berlaku sebelum governance v5. Repo lama gagal karena melompat ke v5. Setiap versi mewarisi lifecycle, identitas, provenance, dan audit versi sebelumnya; dilarang membuat jalur approval paralel per integrasi.
+
+### Scope tetap berjenjang
+
+| Tahap | Scope data/organisasi | Yang belum boleh dilakukan |
+|---|---|---|
+| **v1–v4** | Register +1 hop dan calculation context baca-saja sesuai definisi di atas | Case, approval, atau integrasi enterprise |
+| **v5** | Workflow setting domain proteksi pada aset in-scope | Menguasai model jaringan NMM/DIgSILENT atau memperluas register global |
+| **v6** | Tambah konteks Defence Scheme untuk rele in-scope | Mengubah approval DS atau model operasi P2B dari PLMS |
+| **v7a** | Discovery dan data contract lintas UPT–UIT–UIP2B/NMM, dimulai dari aset in-scope | Connector production dan migrasi massal |
+| **v7b** | Pilot closed loop pada subset perubahan nyata yang disepakati | Rollout enterprise atau perluasan scope otomatis |
+| **v8** | Scale-out bertahap setelah pilot dan ownership lolos gate | Big-bang replacement sistem sumber |
+
+Management scope tetap `+1 hop`. Kebutuhan calculation context v3, referensi Defence
+Scheme v6, dan pembacaan model enterprise v7 tidak otomatis membuat seluruh aset
+tersebut masuk register kelolaan. Perluasan wilayah/aset harus menjadi keputusan
+scope tersendiri dengan acceptance target baru.
+
+## Arah v7 — perluasan governance v5, bukan governance baru
+
+V5 membangun primitives satu kali: `case`, revision, status transition, approval,
+evidence, dan immutable audit. V6 dan v7 **memperluas aktor, objek, serta handoff**
+di atas primitives yang sama. Tidak ada `NMM approval`, `DS approval`, atau workflow
+lain yang berdiri paralel. Bila sistem eksternal memiliki approval resminya sendiri,
+PLMS menyimpan reference dan status sinkronisasinya, bukan menduplikasi keputusan.
+
+SSOT bukan berarti satu tabel yang boleh diedit semua pihak.
+
+Masalah yang hendak diselesaikan v7 bukan sekadar "hubungkan PLMS ke NMM". Snapshot
+DIgSILENT Maret 2021 yang tertinggal dari dokumen unit menunjukkan adanya **model
+drift** dan mata rantai perubahan yang belum tertutup. Pemisahan peran antara unit
+pengelola transmisi dan pengelola operasi sistem tetap dipertahankan; yang harus
+dibangun adalah kontrak handoff, otoritas per atribut, versi model, dan rekonsiliasi.
+
+PLMS tidak otomatis menjadi master enterprise. Perannya adalah **system of record
+domain proteksi** untuk bukti lapangan, setting, provenance, dan usulan delta. NMM
+hanya boleh disebut master model jaringan setelah fungsi, owner, dan interface
+resminya dikonfirmasi. DIgSILENT diposisikan sebagai consumer/study view dari
+baseline model yang telah dipublikasikan, bukan tempat setiap unit menulis langsung.
+
+### Hipotesis matriks otoritas — wajib dikonfirmasi pada discovery v7a
+
+| Domain data | Otoritas yang diusulkan | Peran PLMS |
+|---|---|---|
+| Kondisi fisik/as-built: konduktor, bay, CT/PT, IED, serial, firmware, hasil commissioning | UPT/ULTG sebagai penghasil dan pemilik bukti lapangan; validasi induk sesuai kewenangan | Register bukti, histori, dan delta |
+| Tap setting/perhitungan yang disetujui | UIT/induk fungsi proteksi | Simpan paket perhitungan, approval, versi, dan waktu berlaku |
+| Setting terpasang/as-left | UPT/ULTG | Rekam pembacaan aktual dan bandingkan dengan tap setting yang disetujui |
+| Koordinasi lintas batas, kriteria operasi, Defence Scheme, dan dampak ke sistem | UIP2B/P2B | Menyediakan konteks serta status persetujuan; bukan menggantikannya |
+| Baseline model jaringan operasional dan publikasi ke consumer | Model steward/NMM — **belum boleh diasumsikan; konfirmasi v7a** | Ajukan delta dan rekonsiliasi hasil publish |
+| Model studi DIgSILENT | Turunan berversi dari baseline yang disahkan, ditambah study case | Tautkan setiap hasil/setting ke `model_version` |
+
+SSOT di sini bersifat **federated authoritative model**: satu identitas kanonik dan
+satu nilai efektif yang dapat ditemukan untuk setiap atribut, tetapi pembuat,
+validator, dan pemberi persetujuan dapat berbeda. Setiap nilai wajib memiliki
+`source`, `owner`, `status`, `recorded_at`, `valid_from`, `valid_to`, bukti, dan
+riwayat koreksi. Data rencana tidak boleh menimpa kondisi aktual; minimal pisahkan
+state `planned`, `approved_for_commissioning`, `as_built`, `operational`, dan
+`superseded`.
+
+### Closed loop perubahan yang dituju
+
+```text
+perencanaan/desain
+  → model dan tap setting usulan
+  → validasi/approval UIT serta koordinasi UIP2B bila berdampak sistem
+  → commissioning dan pencatatan as-left oleh UPT
+  → pemeriksaan deviasi approved vs installed
+  → publish baseline model oleh model steward/NMM
+  → ekspor berversi ke DIgSILENT/EMS/consumer
+  → rekonsiliasi dan penutupan change-event
+```
+
+Unit tidak menulis langsung ke production model. Unit mengirim change-event dan
+bukti; validator memeriksa domainnya; model steward mempublikasikan baseline baru.
+Perubahan darurat boleh masuk sebagai `provisional`, tetapi tetap membutuhkan
+rekonsiliasi dan approval retrospektif. Target waktunya ditetapkan sebagai SLA
+organisasi pada v7a, bukan di-hardcode oleh aplikasi.
+
+### Landasan arah — bukan pengganti SOP internal
+
+- [Permen ESDM 20/2020 tentang Grid Code](https://jdih.esdm.go.id/dokumen/view?id=2120)
+  membedakan pengelola transmisi dan pengelola operasi sistem serta menetapkan
+  kebutuhan pelaporan, evaluasi, dan koordinasi ketika peralatan atau konfigurasi
+  transmisi berubah. Jadi separation of duties tetap dipertahankan.
+- [PLN Sulawesi Control Center of the Future Road Map](https://globalpst.org/wp-content/uploads/Sulawesi-Control-Center-of-the-Future-Road-Map_02.27_clean.pdf)
+  merekomendasikan inventaris parameter beserta data owner, governance model,
+  authoritative single-base model, IEC CIM/unique ID, serta validasi berkala untuk
+  mencegah model divergence. Ini arah arsitektur, bukan bukti bahwa fungsi NMM di
+  Jawa-Bali saat ini sudah persis demikian.
+- Dokumen publik yang diperiksa belum cukup untuk menetapkan kepanjangan, scope,
+  owner, atau interface NMM di proses internal ini. Semua klaim NMM tetap hipotesis
+  sampai discovery v7a dan SOP/keputusan internal tersedia.
+
+### Gerbang discovery sebelum integrasi NMM
+
+Sebelum membuat connector atau menambah tabel integrasi, jawab dan dokumentasikan:
+
+1. NMM sebenarnya menguasai apa: registry aset, model konektivitas, workflow
+   perubahan, atau kombinasi? Siapa owner dan model steward-nya?
+2. Siapa pemegang master DIgSILENT sekarang, bagaimana cadence pembaruannya, dan
+   model mana yang dipakai untuk perencanaan, operasi, serta kajian setting?
+3. Apa rantai formal tap setting dari UPT/ULTG, UIT, sampai UIP2B/P2B; kasus mana
+   yang wajib koordinasi sistem dan mana yang cukup disetujui induk?
+4. Dokumen/event apa yang memicu perubahan: energize, commissioning, uprating,
+   reconductoring, penggantian CT/PT/IED, revisi setting, atau koreksi data?
+5. Interface yang tersedia apa: API, event, export file, IEC CIM, atau proses
+   manual; bagaimana kontrol akses, approval, audit, rollback, dan SLA-nya?
+
+Output v7a bukan connector. Outputnya adalah matriks field-level authority, RACI,
+canonical ID crosswalk, pemetaan setiap transisi ke lifecycle v5, aturan waktu
+berlaku, data contract, serta pilot scope. Baru v7b mengimplementasikan jalur
+publish dan reconciliation sebagai extension workflow v5.
 
 ## Kenapa v3 bisa lebih cepat dari perkiraan
 
