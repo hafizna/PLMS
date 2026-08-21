@@ -100,3 +100,19 @@ test('line yang tidak ada menghasilkan 404', async () => {
   assert.equal(response.status, 404);
   assert.match(await response.text(), /tidak ditemukan/);
 });
+
+test('daftar: toolbar cari/filter dirender dgn data-attribute per baris, opsi filter dari data nyata (bukan hardcode)', async () => {
+  const root = await fetch(`${baseUrl}/`);
+  const html = await root.text();
+  assert.match(html, /id="q"/, 'search box harus ada');
+  assert.match(html, /id="f-kv"/);
+  assert.match(html, /id="f-source"/);
+  assert.match(html, /id="f-boundary"/);
+  // Fixture ini cuma py 1 line voltage_kv NULL, source UPT_MANUAL -- opsi
+  // kV NULL sengaja tidak dimasukkan ke <select> (lihat index.ejs), tapi
+  // opsi source harus muncul dari nilai aktual.
+  assert.match(html, /<option value="UPT_MANUAL">UPT_MANUAL<\/option>/);
+  assert.match(html, /data-source="UPT_MANUAL"/);
+  assert.match(html, /data-boundary="0"/);
+  assert.match(html, /data-name="lontar-dadap"/, 'nama baris utk pencarian harus lowercase');
+});

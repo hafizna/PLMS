@@ -12,7 +12,26 @@
   </header>
 
   <main>
-    <table>
+    <div class="toolbar">
+      <input type="search" id="q" class="search-box" placeholder="Cari nama penghantar atau GI…" autocomplete="off">
+      <select id="f-kv" class="filter-select">
+        <option value="">Semua kV</option>
+        <% [...new Set(lines.map(l => l.voltage_kv))].sort((a,b) => (a ?? -1) - (b ?? -1)).forEach(kv => { %>
+          <option value="<%= kv == null ? '' : kv %>"><%= kv == null ? 'tdk diketahui' : kv + ' kV' %></option>
+        <% }) %>
+      </select>
+      <select id="f-source" class="filter-select">
+        <option value="">Semua sumber</option>
+        <% [...new Set(lines.map(l => l.source))].sort().forEach(s => { %>
+          <option value="<%= s %>"><%= s %></option>
+        <% }) %>
+      </select>
+      <label class="filter-check"><input type="checkbox" id="f-boundary"> hanya boundary</label>
+      <span id="count" class="result-count"></span>
+    </div>
+
+    <div class="table-scroll">
+    <table id="lines-table">
       <thead>
         <tr>
           <th>Nama penghantar</th>
@@ -25,17 +44,60 @@
       </thead>
       <tbody>
         <% lines.forEach(l => { %>
-        <tr>
+        <tr data-name="<%= (l.line_name || '').toLowerCase() %>" data-from="<%= l.from_label.toLowerCase() %>" data-to="<%= l.to_label.toLowerCase() %>" data-kv="<%= l.voltage_kv == null ? '' : l.voltage_kv %>" data-source="<%= l.source %>" data-boundary="<%= l.is_boundary ? '1' : '0' %>">
           <td><a href="/line/<%= l.line_id %>"><%= l.line_name || '(tanpa nama)' %></a></td>
           <td><%= l.from_label %></td>
           <td><%= l.to_label %></td>
           <td><%= l.voltage_kv == null ? 'tdk diketahui' : l.voltage_kv %></td>
           <td class="source-<%= l.source.toLowerCase() %>"><%= l.source %></td>
-          <td><%= l.is_boundary ? 'ya' : '' %></td>
+          <td><% if (l.is_boundary) { %><span class="class-tag class-review">boundary</span><% } %></td>
         </tr>
         <% }) %>
       </tbody>
     </table>
+    </div>
+    <p id="empty-state" class="empty" style="display:none">Tidak ada penghantar yang cocok dengan filter ini.</p>
   </main>
+
+  <script>
+    // Filter murni client-side di atas data yang sudah dirender server --
+    // tidak ada nilai difilter yang tidak berasal dari database (prinsip
+    // "tidak ada nilai hardcoded"). Dipilih vanilla JS krn dataset kecil
+    // (~185 baris) tidak butuh pustaka tabel/pencarian pihak ketiga.
+    const rows = Array.from(document.querySelectorAll('#lines-table tbody tr'));
+    const q = document.getElementById('q');
+    const fKv = document.getElementById('f-kv');
+    const fSource = document.getElementById('f-source');
+    const fBoundary = document.getElementById('f-boundary');
+    const count = document.getElementById('count');
+    const emptyState = document.getElementById('empty-state');
+
+    function applyFilters() {
+      const term = q.value.trim().toLowerCase();
+      const kv = fKv.value;
+      const source = fSource.value;
+      const boundaryOnly = fBoundary.checked;
+      let visible = 0;
+      for (const row of rows) {
+        const matchesTerm = !term
+          || row.dataset.name.includes(term)
+          || row.dataset.from.includes(term)
+          || row.dataset.to.includes(term);
+        const matchesKv = !kv || row.dataset.kv === kv;
+        const matchesSource = !source || row.dataset.source === source;
+        const matchesBoundary = !boundaryOnly || row.dataset.boundary === '1';
+        const show = matchesTerm && matchesKv && matchesSource && matchesBoundary;
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+      }
+      count.textContent = `${visible} / ${rows.length} ditampilkan`;
+      emptyState.style.display = visible === 0 ? '' : 'none';
+    }
+
+    [q].forEach(el => el.addEventListener('input', applyFilters));
+    [fKv, fSource].forEach(el => el.addEventListener('change', applyFilters));
+    fBoundary.addEventListener('change', applyFilters);
+    applyFilters();
+  </script>
 </body>
 </html>

@@ -80,3 +80,45 @@ table.settings th:first-child, table.settings td:first-child { white-space: norm
    (bukan kesalahan sistem) -- garis putus-putus menandai ada penjelasan
    di tooltip, lihat describeIdentity() di server.js */
 .identity-tag { border-bottom: 1px dotted var(--muted); cursor: help; }
+
+/* Toolbar cari/filter di daftar penghantar -- dataset kecil (~185 baris)
+   difilter murni client-side di atas hasil render server, lihat index.ejs. */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+.search-box {
+  flex: 1 1 16rem;
+  min-width: 12rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: Field;
+  color: FieldText;
+}
+.filter-select {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: Field;
+  color: FieldText;
+}
+.filter-check {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.result-count {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
