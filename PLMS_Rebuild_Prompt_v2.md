@@ -336,8 +336,8 @@ calculation context Z3/reverse di atas. Gerbang v1 → v2 terpenuhi.
    yang ditetapkan prompt; tab helper tetap dilaporkan dan tidak dibuang diam-diam.
 2. Bentuk kandidat identitas IED fisik secara deterministik. Fungsi **bukan**
    bagian identity key karena satu IED dapat menjalankan/muncul pada beberapa
-   fungsi. Prioritas key: nomor seri exact; fallback exact GI + bay + merk + type
-   + peran rele. Jangan melakukan fuzzy match.
+   fungsi. Prioritas key: nomor seri exact; fallback exact GI + bay + sirkit +
+   merk + type + peran rele. Jangan melakukan fuzzy match.
 3. Profilkan 7 tab workbook official sebagai event history atau helper. Belum
    ada write ke database, perubahan UI, atau penentuan `is_current` pada v2a.
 4. Konflik exact identity, key ber-confidence rendah, layout wide/grouped, dan
@@ -350,7 +350,7 @@ workbook nyata; belum menjadi loader.** Hasil baseline:
 - 7/7 tab official terprofil (`DV` ditandai helper, bukan event history)
 - 1.504 kandidat row/device-slot dan 292 event official bermakna
 - 199 grup exact identity lintas-sheet; 3 konflik nomor seri vs bay/model masuk review
-- 716 baris review eksplisit: 693 identity confidence rendah, 18 klasifikasi,
+- 749 baris review eksplisit: 726 identity confidence rendah, 18 klasifikasi,
   3 konflik metadata, dan 2 layout dengan parser khusus
 - 18 kandidat `CAP_UNBALANCE`/`UVR_OVR` tetap `REVIEW`, tidak dipaksa ke kelas produksi
 - `FR_OCR` (wide form 143 kolom) dan `CBF&CCP` (setting multi-row) ditandai parser khusus v2b
@@ -366,6 +366,26 @@ workbook nyata; belum menjadi loader.** Hasil baseline:
 4. Gabungkan riwayat dari workbook official. Jangan menimpa record lama;
    tentukan `is_current` dari urutan tanggal berlaku dan tandai konflik tanggal.
 5. Tampilkan rele, setting terkini, dan riwayat pada layar detail yang sama.
+
+**Status implementasi v2b (21 Agustus 2026): core loader + UI sudah berjalan
+terhadap database nyata.** Baseline hasil load atomik:
+
+- 1.580 candidate source termasuk parser khusus `FR_OCR` dan `CBF&CCP`
+- 1.394 IED fisik, 1.576 fungsi rele, dan 10.239 nilai setting long-form termuat
+- 7.296 nilai current; constraint/test memastikan maksimum satu current per
+  `relay_function + parameter_name`
+- 66 ruas mempunyai rele exact-linked; 50 ruas mempunyai setting current
+- 292 event official dipertahankan dan 115 relasi event-ke-ruas terbentuk exact
+- 1.510 review/gap eksplisit; mayoritas identity source tidak lengkap, link bay
+  ke ruas belum exact, atau event official belum punya bukti link ruas
+- UI detail menampilkan rele multi-fungsi, kelas koordinasi, setting current,
+  workbook/sheet/row/column/header, dan riwayat official pada layar yang sama
+
+Event official tidak dipakai untuk menimpa nilai setting workbook. Event yang
+belum dapat dikaitkan exact tetap disimpan tanpa `official_event_line` dan masuk
+review queue. Penyelesaian 18 klasifikasi `CAP_UNBALANCE`/`UVR_OVR`, 50 konflik
+identity metadata lintas layout, dan gap link adalah kurasi data lanjutan—bukan
+alasan melakukan fuzzy merge.
 
 **Kriteria penerimaan v2:**
 

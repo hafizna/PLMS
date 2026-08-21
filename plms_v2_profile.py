@@ -181,7 +181,14 @@ def cell_value(sheet, row: int, column: int | None) -> Any:
 def header_path(sheet, column: int, rows: tuple[int, ...]) -> str:
     parts = []
     for row in rows:
-        value = clean(sheet.cell(row, column).value)
+        cell = sheet.cell(row, column)
+        value = cell.value
+        if value in (None, ""):
+            for merged in sheet.merged_cells.ranges:
+                if merged.min_row <= row <= merged.max_row and merged.min_col <= column <= merged.max_col:
+                    value = sheet.cell(merged.min_row, merged.min_col).value
+                    break
+        value = clean(value)
         if value and value not in parts:
             parts.append(value)
     return " > ".join(parts)
@@ -230,10 +237,11 @@ def identity_for(candidate: dict[str, Any]) -> tuple[str, str, str]:
     if meaningful(serial):
         return f"SERIAL|{serial}", "HIGH", "exact normalized serial"
 
-    parts = [norm(candidate.get(field)) for field in ("gi", "bay", "manufacturer", "model", "relay_role")]
+    parts = [norm(candidate.get(field)) for field in
+             ("gi", "bay", "circuit", "manufacturer", "model", "relay_role")]
     completeness = sum(bool(part) for part in parts)
     key = "ASSET|" + "|".join(part or "?" for part in parts)
-    if completeness == 5:
+    if completeness == 6:
         return key, "MEDIUM", "exact normalized asset attributes"
     return key, "LOW", "incomplete exact attributes; no fuzzy merge"
 
@@ -552,7 +560,7 @@ those labels explicitly.
 ## Identity rule
 
 1. A meaningful normalized serial number creates `SERIAL|...` (HIGH confidence).
-2. Without serial, exact normalized GI + bay + manufacturer + model + relay role creates `ASSET|...`
+2. Without serial, exact normalized GI + bay + circuit + manufacturer + model + relay role creates `ASSET|...`
    (MEDIUM when complete, otherwise LOW).
 3. Function type is deliberately excluded from the identity key: one physical IED can appear in LCD,
    DIST, AR, CBF, or other function sheets.

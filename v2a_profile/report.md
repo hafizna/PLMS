@@ -10,7 +10,7 @@ Generated read-only on `2026-08-21`. No source workbook, database, or UI was cha
 - Relay candidates: **1504** exact-source rows/device slots.
 - Official history events: **292** meaningful rows.
 - Cross-sheet exact-identity groups: **199**; metadata conflicts requiring review: **3**.
-- Review queue rows: **716** — COORDINATION_CLASS_REVIEW: 18, IDENTITY_METADATA_CONFLICT: 3, LOW_IDENTITY_CONFIDENCE: 693, SPECIAL_LAYOUT_PARSER: 2.
+- Review queue rows: **749** — COORDINATION_CLASS_REVIEW: 18, IDENTITY_METADATA_CONFLICT: 3, LOW_IDENTITY_CONFIDENCE: 726, SPECIAL_LAYOUT_PARSER: 2.
 
 ## Coordination classification (candidate rows)
 
@@ -26,7 +26,7 @@ those labels explicitly.
 ## Identity rule
 
 1. A meaningful normalized serial number creates `SERIAL|...` (HIGH confidence).
-2. Without serial, exact normalized GI + bay + manufacturer + model + relay role creates `ASSET|...`
+2. Without serial, exact normalized GI + bay + circuit + manufacturer + model + relay role creates `ASSET|...`
    (MEDIUM when complete, otherwise LOW).
 3. Function type is deliberately excluded from the identity key: one physical IED can appear in LCD,
    DIST, AR, CBF, or other function sheets.

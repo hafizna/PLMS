@@ -7,6 +7,7 @@ __pycache__/
 .env
 *.db
 etl_out/
+v2b_out/profile/
 .pytest_cache/
 
 # Evidence engineering lokal berukuran besar; scan read-only, tidak disimpan Git.

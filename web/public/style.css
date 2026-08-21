@@ -26,6 +26,9 @@ th { background: rgba(128, 128, 128, 0.1); }
 
 table.mini { width: auto; min-width: 300px; }
 table.mini th { width: 10rem; }
+.table-scroll { overflow-x: auto; }
+table.settings { min-width: 1050px; }
+td small, li small { color: var(--muted); }
 
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
 @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }

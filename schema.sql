@@ -114,35 +114,64 @@ CREATE TABLE bus_sc (
 
 CREATE INDEX idx_bus_sc_ss ON bus_sc(ss_id);
 
--- v2+: register rele. Didefinisikan sekarang karena protection_chain/
--- relay_setting mereferensikannya, tapi loader v1 TIDAK mengisi tabel ini.
+-- v2: IED fisik. Fungsi dipisahkan karena satu IED dapat muncul pada lebih
+-- dari satu sheet/fungsi (mis. LCD + DIST + AR).
 CREATE TABLE relay (
     relay_id           INTEGER PRIMARY KEY AUTOINCREMENT,
     ss_id              INTEGER NOT NULL REFERENCES substation(ss_id),
     bay                TEXT,
     line_id            INTEGER REFERENCES line(line_id),
-    function_type      TEXT,     -- DIST, LCD, OCR, OCR_KOPEL, DIFF, DV,
-                                  -- BUSPRO, AR, CBF, SYNCHRO, CCP, SZP, KAPASITOR
-    coordination_class TEXT,     -- GRADED | UNIT | AUXILIARY
     manufacturer       TEXT,
     model              TEXT,
     serial_no          TEXT,
     ct_ratio           TEXT,
     pt_ratio           TEXT,
     status             TEXT,
-    pst_asset_id       TEXT      -- rujukan register aset PLN; tidak diintegrasikan tahap ini
+    pst_asset_id       TEXT,
+    identity_key       TEXT NOT NULL UNIQUE,
+    identity_confidence TEXT NOT NULL,
+    identity_status    TEXT NOT NULL
 );
 
 CREATE INDEX idx_relay_ss ON relay(ss_id);
 CREATE INDEX idx_relay_line ON relay(line_id);
+
+CREATE TABLE relay_function (
+    relay_function_id  INTEGER PRIMARY KEY AUTOINCREMENT,
+    relay_id           INTEGER NOT NULL REFERENCES relay(relay_id),
+    function_type      TEXT NOT NULL,
+    coordination_class TEXT NOT NULL,
+    source_logical     TEXT NOT NULL,
+    status             TEXT,
+    UNIQUE (relay_id, function_type, source_logical)
+);
+
+CREATE INDEX idx_relay_function_relay ON relay_function(relay_id);
+
+CREATE TABLE relay_source (
+    relay_source_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    relay_id           INTEGER NOT NULL REFERENCES relay(relay_id),
+    relay_function_id  INTEGER NOT NULL REFERENCES relay_function(relay_function_id),
+    candidate_ref      TEXT NOT NULL UNIQUE,
+    source_workbook    TEXT NOT NULL,
+    source_sheet       TEXT NOT NULL,
+    source_row         INTEGER NOT NULL,
+    device_slot        TEXT NOT NULL,
+    source_hash        TEXT NOT NULL,
+    observed_at        TEXT NOT NULL,
+    raw_gi             TEXT,
+    raw_bay            TEXT,
+    raw_circuit        TEXT,
+    line_link_status   TEXT NOT NULL
+);
 
 -- v3+: rantai grading vertikal. TERPISAH dari `line` karena arahnya
 -- menembus level tegangan di dalam satu GI, bukan antar-GI.
 CREATE TABLE protection_chain (
     chain_id          INTEGER PRIMARY KEY AUTOINCREMENT,
     chain_type        TEXT,      -- OCR_GRADING | GFR_GRADING
-    relay_id          INTEGER NOT NULL REFERENCES relay(relay_id),
-    upstream_relay_id INTEGER REFERENCES relay(relay_id),
+    relay_function_id INTEGER NOT NULL REFERENCES relay_function(relay_function_id),
+    upstream_relay_function_id INTEGER REFERENCES relay_function(relay_function_id),
     level_order       INTEGER,
     voltage_kv        REAL,
     chain_status      TEXT       -- complete | incomplete_external
@@ -152,6 +181,7 @@ CREATE TABLE protection_chain (
 CREATE TABLE relay_setting (
     setting_id       INTEGER PRIMARY KEY AUTOINCREMENT,
     relay_id         INTEGER NOT NULL REFERENCES relay(relay_id),
+    relay_function_id INTEGER NOT NULL REFERENCES relay_function(relay_function_id),
     parameter_name   TEXT,
     parameter_value  TEXT,
     unit             TEXT,
@@ -159,11 +189,60 @@ CREATE TABLE relay_setting (
     effective_date   TEXT,
     source_doc       TEXT,
     is_current       INTEGER,
-    topology_version TEXT,       -- versi model yang jadi dasar hitung
-    source_event_id  TEXT        -- rujukan Power Inspect; tidak diintegrasikan tahap ini
+    topology_version TEXT,
+    source_event_id  INTEGER REFERENCES official_event(official_event_id),
+    source_workbook  TEXT NOT NULL,
+    source_sheet     TEXT NOT NULL,
+    source_row       INTEGER NOT NULL,
+    source_column    TEXT NOT NULL,
+    source_header    TEXT NOT NULL,
+    source_formula_present INTEGER NOT NULL DEFAULT 0,
+    source_formula_hash TEXT,
+    source_hash      TEXT NOT NULL,
+    observed_at      TEXT NOT NULL,
+    UNIQUE (relay_function_id, setting_group, parameter_name,
+            source_workbook, source_sheet, source_row, source_column)
 );
 
 CREATE INDEX idx_relay_setting_relay ON relay_setting(relay_id);
+CREATE INDEX idx_relay_setting_function ON relay_setting(relay_function_id);
+
+CREATE TABLE official_event (
+    official_event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ultg              TEXT,
+    gi                TEXT,
+    bay               TEXT,
+    protections       TEXT,
+    requester         TEXT,
+    sequence_no       TEXT,
+    effective_date    TEXT,
+    official_setting  TEXT,
+    note              TEXT,
+    status            TEXT,
+    source_workbook   TEXT NOT NULL,
+    source_sheet      TEXT NOT NULL,
+    source_row        INTEGER NOT NULL,
+    source_hash       TEXT NOT NULL,
+    observed_at       TEXT NOT NULL,
+    UNIQUE (source_workbook, source_sheet, source_row)
+);
+
+CREATE TABLE official_event_line (
+    official_event_id INTEGER NOT NULL REFERENCES official_event(official_event_id),
+    line_id           INTEGER NOT NULL REFERENCES line(line_id),
+    link_status       TEXT NOT NULL,
+    PRIMARY KEY (official_event_id, line_id)
+);
+
+CREATE TABLE v2_data_review (
+    review_id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    review_type        TEXT NOT NULL,
+    source_ref         TEXT,
+    identity_key       TEXT,
+    logical_source     TEXT,
+    detail             TEXT,
+    recommended_action TEXT
+);
 
 CREATE TABLE scope_definition (
     scope_id          INTEGER PRIMARY KEY AUTOINCREMENT,

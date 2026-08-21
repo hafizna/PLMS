@@ -30,9 +30,9 @@
 
         <h3>Rele terpasang</h3>
         <% if (relaysFrom.length === 0) { %>
-          <p class="empty">Belum ada data rele (register rele diisi mulai v2).</p>
+          <p class="empty">Belum ada rele yang dapat dikaitkan secara exact ke ruas ini.</p>
         <% } else { %>
-          <ul><% relaysFrom.forEach(r => { %><li><%= r.function_type || '(fungsi tdk diketahui)' %> — <%= [r.manufacturer, r.model].filter(Boolean).join(' ') || '(merk/type tdk diketahui)' %></li><% }) %></ul>
+          <ul><% relaysFrom.forEach(r => { %><li><%= r.function_types || '(fungsi tdk diketahui)' %> — <%= [r.manufacturer, r.model].filter(Boolean).join(' ') || '(merk/type tdk diketahui)' %><% if (r.serial_no) { %> &middot; S/N <%= r.serial_no %><% } %><br><small><%= r.coordination_classes %> &middot; identity <%= r.identity_confidence %></small></li><% }) %></ul>
         <% } %>
 
         <h3>Parameter hubung singkat (bus)</h3>
@@ -74,9 +74,9 @@
 
         <h3>Rele terpasang</h3>
         <% if (relaysTo.length === 0) { %>
-          <p class="empty">Belum ada data rele (register rele diisi mulai v2).</p>
+          <p class="empty">Belum ada rele yang dapat dikaitkan secara exact ke ruas ini.</p>
         <% } else { %>
-          <ul><% relaysTo.forEach(r => { %><li><%= r.function_type || '(fungsi tdk diketahui)' %> — <%= [r.manufacturer, r.model].filter(Boolean).join(' ') || '(merk/type tdk diketahui)' %></li><% }) %></ul>
+          <ul><% relaysTo.forEach(r => { %><li><%= r.function_types || '(fungsi tdk diketahui)' %> — <%= [r.manufacturer, r.model].filter(Boolean).join(' ') || '(merk/type tdk diketahui)' %><% if (r.serial_no) { %> &middot; S/N <%= r.serial_no %><% } %><br><small><%= r.coordination_classes %> &middot; identity <%= r.identity_confidence %></small></li><% }) %></ul>
         <% } %>
 
         <h3>Parameter hubung singkat (bus)</h3>
@@ -109,24 +109,46 @@
     <section>
       <h2>Setting terkini</h2>
       <% if (currentSettings.length === 0) { %>
-        <p class="empty">Belum ada data setting (relay_setting diisi mulai v2 — lihat roadmap PLMS_Rebuild_Prompt_v2.md).</p>
+        <p class="empty">Belum ada setting yang dapat dikaitkan secara exact ke ruas ini; gap link tetap ada di review queue v2.</p>
       <% } else { %>
-        <table class="mini">
-          <thead><tr><th>GI / bay</th><th>Rele</th><th>Grup</th><th>Parameter</th><th>Nilai</th><th>Berlaku</th><th>Sumber</th></tr></thead>
+        <div class="table-scroll"><table class="mini settings">
+          <thead><tr><th>GI / bay</th><th>Rele</th><th>Kelas</th><th>Grup</th><th>Parameter</th><th>Nilai</th><th>Berlaku</th><th>Provenance</th></tr></thead>
           <tbody>
           <% currentSettings.forEach(s => { %>
             <tr>
               <td><%= s.substation_name %><%= s.bay ? ' / ' + s.bay : '' %></td>
               <td><%= s.function_type || '—' %> &middot; <%= [s.manufacturer, s.model].filter(Boolean).join(' ') || '—' %></td>
+              <td><%= s.coordination_class %></td>
               <td><%= s.setting_group || '—' %></td>
               <td><%= s.parameter_name || '—' %></td>
               <td><%= s.parameter_value ?? '—' %><%= s.unit ? ' ' + s.unit : '' %></td>
               <td><%= s.effective_date || '—' %></td>
-              <td><%= s.source_doc || '—' %></td>
+              <td><%= s.source_sheet %>!<%= s.source_row %>:<%= s.source_column %><br><small><%= s.source_header %><% if (s.source_doc) { %> &middot; <%= s.source_doc %><% } %></small></td>
             </tr>
           <% }) %>
           </tbody>
-        </table>
+        </table></div>
+      <% } %>
+    </section>
+
+    <section>
+      <h2>Riwayat official</h2>
+      <% if (officialHistory.length === 0) { %>
+        <p class="empty">Belum ada event official yang dapat dikaitkan secara exact ke ruas ini.</p>
+      <% } else { %>
+        <div class="table-scroll"><table class="mini">
+          <thead><tr><th>Tanggal</th><th>GI / bay</th><th>Proteksi</th><th>Status</th><th>Official setting</th><th>Provenance</th></tr></thead>
+          <tbody><% officialHistory.forEach(e => { %>
+            <tr>
+              <td><%= e.effective_date || '—' %></td>
+              <td><%= e.gi || '—' %><%= e.bay ? ' / ' + e.bay : '' %></td>
+              <td><%= e.protections || '—' %></td>
+              <td><%= e.status || '—' %></td>
+              <td><%= e.official_setting || '—' %></td>
+              <td><%= e.source_sheet %>!<%= e.source_row %> &middot; <%= e.link_status %></td>
+            </tr>
+          <% }) %></tbody>
+        </table></div>
       <% } %>
     </section>
 

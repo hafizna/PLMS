@@ -1,10 +1,9 @@
-// PLMS v1 -- satu layar: daftar penghantar in-scope -> detail penghantar.
+// PLMS v2 -- satu layar: daftar penghantar in-scope -> detail penghantar.
 // Kriteria v1 (PLMS_Rebuild_Prompt_v2.md): tampil kedua ujung, bay, rele
 // terpasang, setting terkini, parameter kelistrikan, tetangga satu hop.
 // Tanpa autentikasi, case, approval, audit (belum masuk scope sampai v5).
 //
-// relay/relay_setting belum diisi loader (v2+) -- ditampilkan sbg
-// "belum ada data" eksplisit, BUKAN disembunyikan atau ditebak.
+// Relay, fungsi, setting, provenance sel, dan riwayat official dimuat oleh v2b.
 
 const express = require('express');
 const Database = require('better-sqlite3');
@@ -92,27 +91,42 @@ function getBusSc(ssId) {
 }
 
 function getRelays(ssId, lineId) {
-  // Relay selalu punya ss_id. Syarat line_id mencegah rele penghantar lain
-  // pada GI yang sama ikut tampil dan mencegah rele line terduplikasi di
-  // kedua ujung.
+  // Hanya relay yang terhubung exact ke ruas. Relay site/bus-level yang belum
+  // punya line_id tidak ditempelkan ke semua ruas pada GI yang sama.
   if (!ssId) return [];
   return db.prepare(`
-    SELECT * FROM relay
-    WHERE ss_id = ? AND (line_id IS NULL OR line_id = ?)
-    ORDER BY function_type, manufacturer, model
+    SELECT r.*,
+      group_concat(DISTINCT rf.function_type) AS function_types,
+      group_concat(DISTINCT rf.coordination_class) AS coordination_classes
+    FROM relay r
+    JOIN relay_function rf ON rf.relay_id = r.relay_id
+    WHERE r.ss_id = ? AND r.line_id = ?
+    GROUP BY r.relay_id
+    ORDER BY function_types, r.manufacturer, r.model
   `).all(ssId, lineId);
 }
 
 function getCurrentSettings(lineId) {
   return db.prepare(`
-    SELECT rs.*, r.function_type, r.manufacturer, r.model,
+    SELECT rs.*, rf.function_type, rf.coordination_class, r.manufacturer, r.model,
       s.site_name AS substation_name, r.bay
     FROM relay_setting rs
     JOIN relay r ON rs.relay_id = r.relay_id
+    JOIN relay_function rf ON rs.relay_function_id = rf.relay_function_id
     JOIN substation ss ON r.ss_id = ss.ss_id
     JOIN site s ON ss.site_id = s.site_id
     WHERE r.line_id = ? AND rs.is_current = 1
-    ORDER BY s.site_name, r.function_type, rs.setting_group, rs.parameter_name
+    ORDER BY s.site_name, rf.function_type, rs.setting_group, rs.parameter_name
+  `).all(lineId);
+}
+
+function getOfficialHistory(lineId) {
+  return db.prepare(`
+    SELECT oe.*, oel.link_status
+    FROM official_event_line oel
+    JOIN official_event oe ON oe.official_event_id = oel.official_event_id
+    WHERE oel.line_id = ?
+    ORDER BY oe.effective_date DESC, oe.source_sheet DESC, oe.source_row DESC
   `).all(lineId);
 }
 
@@ -145,6 +159,7 @@ app.get('/line/:id', (req, res) => {
   const relaysFrom = getRelays(line.from_ss_id, line.line_id);
   const relaysTo = getRelays(line.to_ss_id, line.line_id);
   const currentSettings = getCurrentSettings(line.line_id);
+  const officialHistory = getOfficialHistory(line.line_id);
   const busScFrom = getBusSc(line.from_ss_id);
   const busScTo = getBusSc(line.to_ss_id);
   const bayFrom = describeBay(line.bay_from);
@@ -152,7 +167,7 @@ app.get('/line/:id', (req, res) => {
 
   res.render('detail', {
     line, electrical, neighborsFrom, neighborsTo,
-    relaysFrom, relaysTo, currentSettings,
+    relaysFrom, relaysTo, currentSettings, officialHistory,
     busScFrom, busScTo, bayFrom, bayTo,
   });
 });
@@ -163,7 +178,7 @@ app.get('/line/:id', (req, res) => {
 if (require.main === module) {
   const app = createApp();
   app.listen(PORT, () => {
-    console.log(`PLMS v1 jalan di http://localhost:${PORT}`);
+    console.log(`PLMS v2 jalan di http://localhost:${PORT}`);
     console.log(`Database: ${DEFAULT_DB_PATH}`);
   });
 }

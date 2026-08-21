@@ -16,6 +16,7 @@ import pytest
 
 import load
 import plms_etl
+import plms_v2_etl
 
 
 ROOT = Path(__file__).resolve().parent
@@ -32,7 +33,9 @@ def rebuilt(tmp_path_factory):
     etl_out = work / 'etl_out'
     db_path = work / 'plms.db'
     plms_etl.main(str(ROOT), str(etl_out))
-    load.main(str(etl_out), str(ROOT / 'alias_review.csv'), str(db_path))
+    v2b_out = work / 'v2b_out'
+    plms_v2_etl.run(ROOT, v2b_out, observed_at='2026-08-21')
+    load.main(str(etl_out), str(ROOT / 'alias_review.csv'), str(db_path), str(v2b_out))
     return etl_out, db_path
 
 
@@ -199,3 +202,41 @@ def test_loader_is_idempotent(rebuilt, tmp_path):
     with connect(db_path) as conn:
         assert conn.execute('SELECT count(*) FROM line').fetchone()[0] == 1187
         assert conn.execute('PRAGMA foreign_key_check').fetchall() == []
+
+
+def test_v2_settings_and_official_history_are_loaded_with_provenance(rebuilt):
+    _, db_path = rebuilt
+    with connect(db_path) as conn:
+        assert conn.execute('SELECT count(*) FROM relay').fetchone()[0] > 1200
+        assert conn.execute('SELECT count(*) FROM relay_function').fetchone()[0] > 1400
+        assert conn.execute('SELECT count(*) FROM relay_setting').fetchone()[0] > 10000
+        assert conn.execute('SELECT count(*) FROM official_event').fetchone()[0] == 292
+        assert conn.execute('SELECT count(*) FROM official_event_line').fetchone()[0] > 100
+        assert conn.execute("SELECT count(*) FROM relay_source WHERE source_sheet='FR_OCR'").fetchone()[0] == 11
+        assert conn.execute("SELECT count(*) FROM relay_setting WHERE source_sheet='FR_OCR'").fetchone()[0] == 66
+        assert conn.execute("SELECT count(*) FROM relay_source WHERE source_sheet='CBF&CCP'").fetchone()[0] == 65
+        assert conn.execute("SELECT count(*) FROM relay_setting WHERE source_sheet='CBF&CCP'").fetchone()[0] == 142
+        assert conn.execute("SELECT count(*) FROM v2_data_review WHERE review_type='SPECIAL_LAYOUT_PARSER'").fetchone()[0] == 0
+        assert conn.execute('''
+            SELECT count(*) FROM relay_setting
+            WHERE source_workbook IS NULL OR source_sheet IS NULL OR source_row IS NULL
+               OR source_column IS NULL OR source_header IS NULL OR source_hash IS NULL
+        ''').fetchone()[0] == 0
+
+
+def test_v2_current_setting_is_unique_per_function_parameter(rebuilt):
+    _, db_path = rebuilt
+    with connect(db_path) as conn:
+        duplicates = conn.execute('''
+            SELECT count(*) FROM (
+              SELECT relay_function_id, parameter_name
+              FROM relay_setting WHERE is_current = 1
+              GROUP BY relay_function_id, parameter_name HAVING count(*) > 1
+            )
+        ''').fetchone()[0]
+        assert duplicates == 0
+        assert conn.execute('''
+            SELECT count(DISTINCT r.line_id)
+            FROM relay_setting rs JOIN relay r USING (relay_id)
+            WHERE rs.is_current = 1 AND r.line_id IS NOT NULL
+        ''').fetchone()[0] >= 50

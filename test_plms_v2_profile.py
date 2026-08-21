@@ -47,9 +47,9 @@ def test_serial_normalization_handles_excel_integral_float_only():
 def test_missing_serial_uses_exact_non_fuzzy_fallback():
     key, confidence, rule = identity_for({
         "gi": "GI Angke", "bay": "PHT Ancol #1", "manufacturer": "GE",
-        "model": "MiCOM P545", "serial_no": "-", "relay_role": "MPU",
+        "circuit": "#1", "model": "MiCOM P545", "serial_no": "-", "relay_role": "MPU",
     })
-    assert key == "ASSET|GI ANGKE|PHT ANCOL #1|GE|MICOM P545|MPU"
+    assert key == "ASSET|GI ANGKE|PHT ANCOL #1|#1|GE|MICOM P545|MPU"
     assert confidence == "MEDIUM"
     assert "exact" in rule
 

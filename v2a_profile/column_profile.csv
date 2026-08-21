@@ -143,6 +143,8 @@ Data Setting Penghantar UPT DKSBI.xlsx,FR_OCR,FR_OCR,register,141,EK,Upload File
 Data Setting Penghantar UPT DKSBI.xlsx,FR_OCR,FR_OCR,register,142,EL,Jenis Relay,SETTING_OR_DOMAIN,1,1,text:1,Numerik
 Data Setting Penghantar UPT DKSBI.xlsx,FR_OCR,FR_OCR,register,143,EM,Tahun Operasi,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,Rekap,Rekap,summary,2,B,DATA RELE,SETTING_OR_DOMAIN,3,3,text:3,HEALTH INDEX | HEALTH INDEX - BACKUP PROT | HEALTH INDEX - MAIN PROT
+Data Setting Penghantar UPT DKSBI.xlsx,Rekap,Rekap,summary,3,C,DATA RELE,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,Rekap,Rekap,summary,4,D,DATA RELE,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,Rekap,Rekap,summary,11,K,,UNLABELED,1,1,number:1,0
 Data Setting Penghantar UPT DKSBI.xlsx,Rekap,Rekap,summary,12,L,Main Prot > Backup,SETTING_OR_DOMAIN,11,9,text:11,Backup | Belum Aktif | DIFF 150
 Data Setting Penghantar UPT DKSBI.xlsx,Rekap,Rekap,summary,13,M,0,SETTING_OR_DOMAIN,18,6,number:14;text:4,0 | 1 | 9.0
@@ -158,30 +160,30 @@ Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,7,G,RATIO CT -
 Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,8,H,RATIO PT,IDENTITY,184,2,text:184,150 kV/100 V | 500 kV/100 V
 Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,9,I,HELPER,HELPER,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,10,J,HELPER ASET SEKUNDER > GI/GIS,HELPER,184,35,text:184,GI 150KV ANGKE | GI 150KV CENGKARENG | GI 150KV CENGKARENG BARU
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,11,K,BAY,IDENTITY,184,106,text:184,PHT 150kV ALAM SUTERA #1 | PHT 150kV ALAM SUTERA #2 | PHT 150kV ANCOL #1
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,12,L,SIRKIT,IDENTITY,184,2,text:184,#1 | #2
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,13,M,CT > PRI,SETTING_OR_DOMAIN,184,11,text:184,#VALUE! | 1000 | 1200
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,14,N,SEC,SETTING_OR_DOMAIN,184,3,text:184,#VALUE! | 1 | 5
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,15,O,PT > PRI,SETTING_OR_DOMAIN,184,2,text:184,150 | 500
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,16,P,SEC,SETTING_OR_DOMAIN,184,1,text:184,100 V
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,17,Q,RELAY MPU > JENIS,SETTING_OR_DOMAIN,184,3,text:184,DIST | LCD | LCD+DIST
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,18,R,SKEMA AR,SETTING_OR_DOMAIN,176,3,text:176,Eksternal | Internal | Tidak Aktif
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,19,S,SYNCHRO,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,11,K,HELPER ASET SEKUNDER > BAY,HELPER,184,106,text:184,PHT 150kV ALAM SUTERA #1 | PHT 150kV ALAM SUTERA #2 | PHT 150kV ANCOL #1
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,12,L,HELPER ASET SEKUNDER > SIRKIT,HELPER,184,2,text:184,#1 | #2
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,13,M,HELPER ASET SEKUNDER > CT > PRI,HELPER,184,11,text:184,#VALUE! | 1000 | 1200
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,14,N,HELPER ASET SEKUNDER > CT > SEC,HELPER,184,3,text:184,#VALUE! | 1 | 5
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,15,O,HELPER ASET SEKUNDER > PT > PRI,HELPER,184,2,text:184,150 | 500
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,16,P,HELPER ASET SEKUNDER > PT > SEC,HELPER,184,1,text:184,100 V
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,17,Q,HELPER ASET SEKUNDER > RELAY MPU > JENIS,HELPER,184,3,text:184,DIST | LCD | LCD+DIST
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,18,R,HELPER ASET SEKUNDER > RELAY MPU > SKEMA AR,HELPER,176,3,text:176,Eksternal | Internal | Tidak Aktif
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,19,S,HELPER ASET SEKUNDER > RELAY MPU > SYNCHRO,HELPER,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,20,T,HELPER TOOLS KALKULASI > PANJANG PHT > https://docs.google.com/spreadsheets/d/1mp1-eOq9kSt8qW4khlQvSFfgBSTCmTRHZWDiV-XB7a0/edit?gid=1921826523#gid=1921826523,HELPER,143,37,number:139;text:4,0.22 | 0.3 | 0.4
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,21,U,CCC,SETTING_OR_DOMAIN,143,21,number:143,1000 | 1191 | 1200
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,22,V,TIPE KONDUKTOR,IDENTITY,143,14,text:143,ACCC Hamburg | ACCC Lisbon | ACSR
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,23,W,mm konduktor,SETTING_OR_DOMAIN,143,16,text:143,1000 | 1x1000 | 1x2000
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,24,X,PANJANG PHT > *MANUAL EDIT SESUAI 4 KOLOM SEBELUMNYA,SETTING_OR_DOMAIN,177,50,number:177,0.22 | 0.3 | 0.4
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,25,Y,CCC,SETTING_OR_DOMAIN,180,35,number:33;text:147,1000 | 1191 | 1200
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,26,Z,TIPE KONDUKTOR,IDENTITY,180,21,text:180,ACCC Hamburg | ACCC Lisbon | ACCC Warsaw
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,27,AA,mm konduktor,SETTING_OR_DOMAIN,180,25,number:2;text:178,1000 | 1X1000 | 1x1000
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,28,AB,SEGMEN 1 > REAL,SETTING_OR_DOMAIN,184,31,text:184,ALAM SUTERA | ANGKE | CENGKARENG
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,29,AC,ALIAS,SETTING_OR_DOMAIN,184,34,text:184,ALAMSUTERA | ANGKE | CENGKARENG BARU
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,30,AD,SEGMEN 2 > REAL,SETTING_OR_DOMAIN,184,52,text:184,ALAM SUTERA | ANCOL | ANGKE
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,31,AE,ALIAS,SETTING_OR_DOMAIN,184,53,text:184,ALAMSUTERA | ANCOL | ANGKE
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,32,AF,HELPER SHEET SCANNING KOORDINASI PHT,HELPER,180,88,text:180,https://docs.google.com/spreadsheets/d/1-nwNPdfDOMCTNUYWn2bQhQKKgAHu_X_xBccDAOJNwgQ/edit?usp=drive_link | https://docs.google.com/spreadsheets/d/10eovQaptUGLeJOmyBLc8rpfUN3ly2WDxNmIVKu2YLsE/edit?usp=drive_link | https://docs.google.com/spreadsheets/d/10fRiHsxsfAtI_ZQLPJ5DD2rfZCETcvNnOcyvoEFJEIY/edit?usp=drive_link
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,33,AG,HELPER SHEET IMPLEMENTASI SETTING,HELPER,180,174,text:180,https://docs.google.com/spreadsheets/d/1-IJaaTiettplWcaFkecHD5zfnswK8b_tCcnH3d7p_eY/edit?usp=drive_link | https://docs.google.com/spreadsheets/d/1-MyjOpotSCGEaWnns23yqX-OV3sWSEvkq5-Q2DE-NcA/edit?usp=drive_link | https://docs.google.com/spreadsheets/d/1-rDkfQkizAlX0VLdsvC2PMXvj8PPwlCoVvYlYQu2zVQ/edit?usp=drive_link
-Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,34,AH,JENIS PHT,SETTING_OR_DOMAIN,184,4,text:184,Hybrid | SKTT | SUTET
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,21,U,HELPER TOOLS KALKULASI > CCC > https://docs.google.com/spreadsheets/d/1mp1-eOq9kSt8qW4khlQvSFfgBSTCmTRHZWDiV-XB7a0/edit?gid=1921826523#gid=1921826523,HELPER,143,21,number:143,1000 | 1191 | 1200
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,22,V,HELPER TOOLS KALKULASI > TIPE KONDUKTOR > https://docs.google.com/spreadsheets/d/1mp1-eOq9kSt8qW4khlQvSFfgBSTCmTRHZWDiV-XB7a0/edit?gid=1921826523#gid=1921826523,HELPER,143,14,text:143,ACCC Hamburg | ACCC Lisbon | ACSR
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,23,W,HELPER TOOLS KALKULASI > mm konduktor > https://docs.google.com/spreadsheets/d/1mp1-eOq9kSt8qW4khlQvSFfgBSTCmTRHZWDiV-XB7a0/edit?gid=1921826523#gid=1921826523,HELPER,143,16,text:143,1000 | 1x1000 | 1x2000
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,24,X,HELPER TOOLS KALKULASI > PANJANG PHT > *MANUAL EDIT SESUAI 4 KOLOM SEBELUMNYA,HELPER,177,50,number:177,0.22 | 0.3 | 0.4
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,25,Y,HELPER TOOLS KALKULASI > CCC > *MANUAL EDIT SESUAI 4 KOLOM SEBELUMNYA,HELPER,180,35,number:33;text:147,1000 | 1191 | 1200
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,26,Z,HELPER TOOLS KALKULASI > TIPE KONDUKTOR > *MANUAL EDIT SESUAI 4 KOLOM SEBELUMNYA,HELPER,180,21,text:180,ACCC Hamburg | ACCC Lisbon | ACCC Warsaw
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,27,AA,HELPER TOOLS KALKULASI > mm konduktor > *MANUAL EDIT SESUAI 4 KOLOM SEBELUMNYA,HELPER,180,25,number:2;text:178,1000 | 1X1000 | 1x1000
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,28,AB,HELPER TOOLS KALKULASI > SEGMEN 1 > REAL,HELPER,184,31,text:184,ALAM SUTERA | ANGKE | CENGKARENG
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,29,AC,HELPER TOOLS KALKULASI > SEGMEN 1 > ALIAS,HELPER,184,34,text:184,ALAMSUTERA | ANGKE | CENGKARENG BARU
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,30,AD,HELPER TOOLS KALKULASI > SEGMEN 2 > REAL,HELPER,184,52,text:184,ALAM SUTERA | ANCOL | ANGKE
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,31,AE,HELPER TOOLS KALKULASI > SEGMEN 2 > ALIAS,HELPER,184,53,text:184,ALAMSUTERA | ANCOL | ANGKE
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,32,AF,HELPER TOOLS KALKULASI > HELPER SHEET SCANNING KOORDINASI PHT,HELPER,180,88,text:180,https://docs.google.com/spreadsheets/d/1-nwNPdfDOMCTNUYWn2bQhQKKgAHu_X_xBccDAOJNwgQ/edit?usp=drive_link | https://docs.google.com/spreadsheets/d/10eovQaptUGLeJOmyBLc8rpfUN3ly2WDxNmIVKu2YLsE/edit?usp=drive_link | https://docs.google.com/spreadsheets/d/10fRiHsxsfAtI_ZQLPJ5DD2rfZCETcvNnOcyvoEFJEIY/edit?usp=drive_link
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,33,AG,HELPER TOOLS KALKULASI > HELPER SHEET IMPLEMENTASI SETTING,HELPER,180,174,text:180,https://docs.google.com/spreadsheets/d/1-IJaaTiettplWcaFkecHD5zfnswK8b_tCcnH3d7p_eY/edit?usp=drive_link | https://docs.google.com/spreadsheets/d/1-MyjOpotSCGEaWnns23yqX-OV3sWSEvkq5-Q2DE-NcA/edit?usp=drive_link | https://docs.google.com/spreadsheets/d/1-rDkfQkizAlX0VLdsvC2PMXvj8PPwlCoVvYlYQu2zVQ/edit?usp=drive_link
+Data Setting Penghantar UPT DKSBI.xlsx,MASTER_PHT,LCD+DIST,helper,34,AH,HELPER TOOLS KALKULASI > JENIS PHT,HELPER,184,4,text:184,Hybrid | SKTT | SUTET
 Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,1,A,ID,SETTING_OR_DOMAIN,184,184,text:184,PHT.01 | PHT.02 | PHT.03
 Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,2,B,NO,SETTING_OR_DOMAIN,184,184,number:184,1 | 10.0 | 100.0
 Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,3,C,ULTG,IDENTITY,184,3,text:184,ULTG ANGKE | ULTG CITRA RAYA | ULTG DURIKOSAMBI
@@ -192,7 +194,7 @@ Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,7,G,RATIO CT - MPU,
 Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,8,H,RATIO PT,IDENTITY,184,2,text:184,150 kV/100 V | 500 kV/100 V
 Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,9,I,RELAY,SETTING_OR_DOMAIN,184,3,text:184,MPU | MPU-A | MPU-B
 Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,10,J,HELPER ASET > GI/GIS,HELPER,184,35,text:184,GI 150KV ANGKE | GI 150KV CENGKARENG | GI 150KV CENGKARENG BARU
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,11,K,BAY,IDENTITY,184,106,text:184,PHT 150kV ALAM SUTERA #1 | PHT 150kV ALAM SUTERA #2 | PHT 150kV ANCOL #1
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,11,K,HELPER ASET > BAY,HELPER,184,106,text:184,PHT 150kV ALAM SUTERA #1 | PHT 150kV ALAM SUTERA #2 | PHT 150kV ANCOL #1
 Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,12,L,MERK,IDENTITY,184,9,text:184,ABB | ALSTOM | AREVA
 Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,13,M,TIPE,IDENTITY,184,13,text:184,7SD61 | 7SL87 | GRL 200
 Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,14,N,NO. SERI,IDENTITY,176,176,number:3;text:173,1307744.0 | 1307747.0 | 197931U
@@ -200,35 +202,37 @@ Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,15,O,JENIS RELE,IDE
 Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,16,P,TH OPERASI,IDENTITY,152,12,number:152,2011.0 | 2012.0 | 2014.0
 Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,17,Q,LCD > TAP SET,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,18,R,SETTING CURRENT DIFF > Line Imp,SETTING_OR_DOMAIN,184,72,number:184,0 | 0.02 | 0.043
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,19,S,Line Angle,SETTING_OR_DOMAIN,170,43,number:170,0 | 23.661 | 56.6
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,20,T,In,SETTING_OR_DOMAIN,180,2,text:180,1 | 5
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,21,U,Is1,SETTING_OR_DOMAIN,167,15,number:167,0 | 0.18 | 0.2
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,22,V,Is2,SETTING_OR_DOMAIN,173,17,number:173,0 | 0.8 | 1
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,23,W,k1,SETTING_OR_DOMAIN,105,2,number:105,0 | 30
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,24,X,k2,SETTING_OR_DOMAIN,105,3,number:105,0 | 150 | 80
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,25,Y,Firmware,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,26,Z,Komunikasi (Direct/Mux),SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,27,AA,Supervisi Idiff,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,28,AB,Starter Diff,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,29,AC,Starter ISEF,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,30,AD,PDF,PROVENANCE,159,92,text:159,(OFFICIAL)TAP SETTING MUARAKARANG LAMA - BUDI KEMULIAAN 1 DAN 2 MICOM P545-546.pdf | (Official) KEMBANGAN - NEW SENAYAN 1 DAN 2 - TAP MICOM P545-546.pdf | (Official) NEW SENAYAN - KEMBANGAN 1 DAN 2 - TAP MICOM P545-546_Revisi 1.pdf
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,31,AE,TGL,PROVENANCE,159,62,date:159,2017-09-12T00:00:00 | 2017-12-06T00:00:00 | 2018-03-06T00:00:00
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,19,S,SETTING CURRENT DIFF > Line Angle,SETTING_OR_DOMAIN,170,43,number:170,0 | 23.661 | 56.6
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,20,T,SETTING CURRENT DIFF > In,SETTING_OR_DOMAIN,180,2,text:180,1 | 5
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,21,U,SETTING CURRENT DIFF > Is1,SETTING_OR_DOMAIN,167,15,number:167,0 | 0.18 | 0.2
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,22,V,SETTING CURRENT DIFF > Is2,SETTING_OR_DOMAIN,173,17,number:173,0 | 0.8 | 1
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,23,W,SETTING CURRENT DIFF > k1,SETTING_OR_DOMAIN,105,2,number:105,0 | 30
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,24,X,SETTING CURRENT DIFF > k2,SETTING_OR_DOMAIN,105,3,number:105,0 | 150 | 80
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,25,Y,SETTING CURRENT DIFF > Firmware,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,26,Z,SETTING CURRENT DIFF > Komunikasi (Direct/Mux),SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,27,AA,SETTING CURRENT DIFF > Supervisi Idiff,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,28,AB,SETTING CURRENT DIFF > Starter Diff,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,29,AC,SETTING CURRENT DIFF > Starter ISEF,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,30,AD,SETTING CURRENT DIFF > PDF,PROVENANCE,159,92,text:159,(OFFICIAL)TAP SETTING MUARAKARANG LAMA - BUDI KEMULIAAN 1 DAN 2 MICOM P545-546.pdf | (Official) KEMBANGAN - NEW SENAYAN 1 DAN 2 - TAP MICOM P545-546.pdf | (Official) NEW SENAYAN - KEMBANGAN 1 DAN 2 - TAP MICOM P545-546_Revisi 1.pdf
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,31,AE,SETTING CURRENT DIFF > TGL,PROVENANCE,159,62,date:159,2017-09-12T00:00:00 | 2017-12-06T00:00:00 | 2018-03-06T00:00:00
 Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,32,AF,LCD > SET RELAY,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,33,AG,SETTING CURRENT DIFF > Source : Form Implementasi Scanning > Line Imp,SETTING_OR_DOMAIN,184,71,number:184,0 | 0.014 | 0.02
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,34,AH,Line Angle,SETTING_OR_DOMAIN,170,27,number:170,0 | 23 | 23.66
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,35,AI,In,SETTING_OR_DOMAIN,180,2,text:180,1 | 5
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,36,AJ,Is1,SETTING_OR_DOMAIN,173,13,number:173,0 | 0.18 | 0.2
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,37,AK,Is2,SETTING_OR_DOMAIN,173,13,number:173,0 | 0.04 | 0.8
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,38,AL,k1,SETTING_OR_DOMAIN,105,3,number:105,0 | 30 | 60
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,39,AM,k2,SETTING_OR_DOMAIN,105,3,number:105,0 | 150 | 80
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,40,AN,Firmware,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,41,AO,Komunikasi (Direct/Mux),SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,42,AP,Supervisi Idiff,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,43,AQ,Starter Diff,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,44,AR,Starter ISEF,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,45,AS,FILE,PROVENANCE,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,46,AT,km,SETTING_OR_DOMAIN,183,53,number:183,0 | 0.26 | 0.3
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,34,AH,SETTING CURRENT DIFF > Source : Form Implementasi Scanning > Line Angle,SETTING_OR_DOMAIN,170,27,number:170,0 | 23 | 23.66
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,35,AI,SETTING CURRENT DIFF > Source : Form Implementasi Scanning > In,SETTING_OR_DOMAIN,180,2,text:180,1 | 5
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,36,AJ,SETTING CURRENT DIFF > Source : Form Implementasi Scanning > Is1,SETTING_OR_DOMAIN,173,13,number:173,0 | 0.18 | 0.2
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,37,AK,SETTING CURRENT DIFF > Source : Form Implementasi Scanning > Is2,SETTING_OR_DOMAIN,173,13,number:173,0 | 0.04 | 0.8
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,38,AL,SETTING CURRENT DIFF > Source : Form Implementasi Scanning > k1,SETTING_OR_DOMAIN,105,3,number:105,0 | 30 | 60
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,39,AM,SETTING CURRENT DIFF > Source : Form Implementasi Scanning > k2,SETTING_OR_DOMAIN,105,3,number:105,0 | 150 | 80
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,40,AN,SETTING CURRENT DIFF > Firmware,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,41,AO,SETTING CURRENT DIFF > Komunikasi (Direct/Mux),SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,42,AP,SETTING CURRENT DIFF > Supervisi Idiff,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,43,AQ,SETTING CURRENT DIFF > Starter Diff,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,44,AR,SETTING CURRENT DIFF > Starter ISEF,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,45,AS,SETTING CURRENT DIFF > FILE,PROVENANCE,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,LCD,LCD+DIST,register,46,AT,SETTING CURRENT DIFF > km,SETTING_OR_DOMAIN,183,53,number:183,0 | 0.26 | 0.3
 Data Setting Penghantar UPT DKSBI.xlsx,Rekap1,Rekap1,summary,2,B,DATA RELE,SETTING_OR_DOMAIN,3,3,text:3,RELE BACKUP PROT | RELE MAIN PROT 150 kV | RELE MAIN PROT 500 kV
+Data Setting Penghantar UPT DKSBI.xlsx,Rekap1,Rekap1,summary,3,C,DATA RELE,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,Rekap1,Rekap1,summary,4,D,DATA RELE,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,Rekap1,Rekap1,summary,23,W,ABB > Alsthom > Alstom > Areva,SETTING_OR_DOMAIN,23,18,text:23,Asea | DIFF | DIFF Pilot
 Data Setting Penghantar UPT DKSBI.xlsx,Rekap1,Rekap1,summary,24,X,total > 0,SETTING_OR_DOMAIN,30,3,number:23;text:7,0 | 4 | Numerik
 Data Setting Penghantar UPT DKSBI.xlsx,Rekap1,Rekap1,summary,25,Y,DIFF 500 > 0,SETTING_OR_DOMAIN,30,3,number:23;text:7,0 | Elektromekanik | Kontrak KI 2018
@@ -266,23 +270,23 @@ Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,7,G,BAY,ID
 Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,8,H,Sirkit,IDENTITY,4,2,text:4,#1 | #2
 Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,9,I,RATIO CT,IDENTITY,4,1,text:4,1000 / 5
 Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,10,J,DIFFERENTIAL PILOT 1 > MERK,IDENTITY,4,1,text:4,Areva
-Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,11,K,TYPE,IDENTITY,4,1,text:4,MiCom P521
-Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,12,L,NO. SERIE,IDENTITY,4,4,text:4,0507874 | 0507875 | 0807303
-Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,13,M,JENIS RELE,IDENTITY,4,1,text:4,Numerik
-Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,14,N,TH OPERASI,IDENTITY,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,15,O,SETTING > In,SETTING_OR_DOMAIN,4,1,number:4,5.0
-Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,16,P,Rset,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,17,Q,Iset,SETTING_OR_DOMAIN,4,1,number:4,1.0
-Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,18,R,waktu,SETTING_OR_DOMAIN,4,1,text:4,instant
+Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,11,K,DIFFERENTIAL PILOT 1 > TYPE,IDENTITY,4,1,text:4,MiCom P521
+Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,12,L,DIFFERENTIAL PILOT 1 > NO. SERIE,IDENTITY,4,4,text:4,0507874 | 0507875 | 0807303
+Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,13,M,DIFFERENTIAL PILOT 1 > JENIS RELE,IDENTITY,4,1,text:4,Numerik
+Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,14,N,DIFFERENTIAL PILOT 1 > TH OPERASI,IDENTITY,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,15,O,DIFFERENTIAL PILOT 1 > SETTING > In,SETTING_OR_DOMAIN,4,1,number:4,5.0
+Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,16,P,DIFFERENTIAL PILOT 1 > SETTING > Rset,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,17,Q,DIFFERENTIAL PILOT 1 > SETTING > Iset,SETTING_OR_DOMAIN,4,1,number:4,1.0
+Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,18,R,DIFFERENTIAL PILOT 1 > SETTING > waktu,SETTING_OR_DOMAIN,4,1,text:4,instant
 Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,19,S,DIFFERENTIAL PILOT 2 > MERK,IDENTITY,4,1,text:4,Areva
-Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,20,T,TYPE,IDENTITY,4,1,text:4,MiCom P521
-Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,21,U,NO. SERIE,IDENTITY,4,4,text:4,0507876 | 0507877 | 0807302
-Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,22,V,JENIS RELE,IDENTITY,4,1,text:4,Numerik
-Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,23,W,TH OPERASI,IDENTITY,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,24,X,SETTING > In,SETTING_OR_DOMAIN,4,1,number:4,5.0
-Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,25,Y,Rset,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,26,Z,Iset,SETTING_OR_DOMAIN,4,1,number:4,1.0
-Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,27,AA,waktu,SETTING_OR_DOMAIN,4,1,text:4,instant
+Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,20,T,DIFFERENTIAL PILOT 2 > TYPE,IDENTITY,4,1,text:4,MiCom P521
+Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,21,U,DIFFERENTIAL PILOT 2 > NO. SERIE,IDENTITY,4,4,text:4,0507876 | 0507877 | 0807302
+Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,22,V,DIFFERENTIAL PILOT 2 > JENIS RELE,IDENTITY,4,1,text:4,Numerik
+Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,23,W,DIFFERENTIAL PILOT 2 > TH OPERASI,IDENTITY,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,24,X,DIFFERENTIAL PILOT 2 > SETTING > In,SETTING_OR_DOMAIN,4,1,number:4,5.0
+Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,25,Y,DIFFERENTIAL PILOT 2 > SETTING > Rset,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,26,Z,DIFFERENTIAL PILOT 2 > SETTING > Iset,SETTING_OR_DOMAIN,4,1,number:4,1.0
+Data Setting Penghantar UPT DKSBI.xlsx,DIFF Pilot,DIFF Pilot,register,27,AA,DIFFERENTIAL PILOT 2 > SETTING > waktu,SETTING_OR_DOMAIN,4,1,text:4,instant
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,1,A,ID,SETTING_OR_DOMAIN,184,184,text:184,PHT.01 | PHT.02 | PHT.03
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,2,B,NO,SETTING_OR_DOMAIN,184,184,number:184,1 | 10.0 | 100.0
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,3,C,ULTG,IDENTITY,184,3,text:184,ULTG ANGKE | ULTG CITRA RAYA | ULTG DURIKOSAMBI
@@ -293,7 +297,7 @@ Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,7,G,RATIO CT - MPU
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,8,H,RATIO PT,IDENTITY,184,2,text:184,150 kV/100 V | 500 kV/100 V
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,9,I,RELAY,SETTING_OR_DOMAIN,184,3,text:184,MPU | MPU-A | MPU-B
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,10,J,HELPER ASET > GI/GIS,HELPER,184,35,text:184,GI 150KV ANGKE | GI 150KV CENGKARENG | GI 150KV CENGKARENG BARU
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,11,K,BAY,IDENTITY,184,106,text:184,PHT 150kV ALAM SUTERA #1 | PHT 150kV ALAM SUTERA #2 | PHT 150kV ANCOL #1
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,11,K,HELPER ASET > BAY,HELPER,184,106,text:184,PHT 150kV ALAM SUTERA #1 | PHT 150kV ALAM SUTERA #2 | PHT 150kV ANCOL #1
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,12,L,MERK,IDENTITY,184,9,text:184,ABB | ALSTOM | AREVA
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,13,M,TIPE,IDENTITY,184,13,text:184,7SD61 | 7SL87 | GRL 200
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,14,N,NO. SERI,IDENTITY,176,176,number:3;text:173,1307744.0 | 1307747.0 | 197931U
@@ -301,45 +305,45 @@ Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,15,O,JENIS RELE,ID
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,16,P,TH OPERASI,IDENTITY,152,12,number:152,2011.0 | 2012.0 | 2014.0
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,17,Q,DIST > TAP SET,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,18,R,SETTING IMPEDANSI > CHAR > ph-ph,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,19,S,ph-gnd,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,20,T,Z1 > ph-ph,SETTING_OR_DOMAIN,184,63,number:184,0 | 0.01 | 0.084
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,21,U,ph-gnd,SETTING_OR_DOMAIN,184,62,number:184,0 | 0.01 | 0.084
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,22,V,Z2 > ph-ph,SETTING_OR_DOMAIN,184,70,number:184,0 | 0.126 | 0.18
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,23,W,ph-gnd,SETTING_OR_DOMAIN,184,70,number:184,0 | 0.126 | 0.18
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,24,X,Z3 > ph-ph,SETTING_OR_DOMAIN,184,74,number:184,0 | 0.33 | 0.43
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,25,Y,ph-gnd,SETTING_OR_DOMAIN,184,73,number:184,0 | 0.33 | 0.43
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,19,S,SETTING IMPEDANSI > CHAR > ph-gnd,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,20,T,SETTING IMPEDANSI > Z1 > ph-ph,SETTING_OR_DOMAIN,184,63,number:184,0 | 0.01 | 0.084
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,21,U,SETTING IMPEDANSI > Z1 > ph-gnd,SETTING_OR_DOMAIN,184,62,number:184,0 | 0.01 | 0.084
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,22,V,SETTING IMPEDANSI > Z2 > ph-ph,SETTING_OR_DOMAIN,184,70,number:184,0 | 0.126 | 0.18
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,23,W,SETTING IMPEDANSI > Z2 > ph-gnd,SETTING_OR_DOMAIN,184,70,number:184,0 | 0.126 | 0.18
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,24,X,SETTING IMPEDANSI > Z3 > ph-ph,SETTING_OR_DOMAIN,184,74,number:184,0 | 0.33 | 0.43
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,25,Y,SETTING IMPEDANSI > Z3 > ph-gnd,SETTING_OR_DOMAIN,184,73,number:184,0 | 0.33 | 0.43
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,26,Z,SETTING WAKTU > t1,SETTING_OR_DOMAIN,184,1,number:184,0
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,27,AA,t2,SETTING_OR_DOMAIN,184,3,number:184,0 | 0.4 | 0.8
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,28,AB,t3,SETTING_OR_DOMAIN,184,3,number:184,0 | 1.2 | 1.6
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,27,AA,SETTING WAKTU > t2,SETTING_OR_DOMAIN,184,3,number:184,0 | 0.4 | 0.8
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,28,AB,SETTING WAKTU > t3,SETTING_OR_DOMAIN,184,3,number:184,0 | 1.2 | 1.6
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,29,AC,DEF > Is,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,30,AD,t,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,31,AE,sudut,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,30,AD,DEF > t,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,31,AE,DEF > sudut,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,32,AF,SKEMA TP > AIDED DEF,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,33,AG,WAKTU KERJA,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,34,AH,(POTT/ PUTT/ Blocking),SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,35,AI,CURRENT REVERSAL,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,33,AG,SKEMA TP > WAKTU KERJA,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,34,AH,SKEMA TP > (POTT/ PUTT/ Blocking),SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,35,AI,SKEMA TP > CURRENT REVERSAL,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,36,AJ,SOTF > INIT FROM,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,37,AK,TOR > INIT FROM,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,38,AL,DIST > SET RELAY,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,39,AM,SETTING IMPEDANSI > CONFIG DIST,SETTING_OR_DOMAIN,89,8,text:89,DISABLED | Disable | Disabled
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,40,AN,Source : Form Implementasi Scanning > CHAR > ph-ph,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,41,AO,ph-gnd,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,42,AP,Z1 > ph-ph,SETTING_OR_DOMAIN,184,64,number:184,0 | 0.01 | 0.067
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,43,AQ,ph-gnd,SETTING_OR_DOMAIN,184,64,number:184,0 | 0.01 | 0.067
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,44,AR,Z2 > ph-ph,SETTING_OR_DOMAIN,184,71,number:184,0 | 0.121 | 0.18
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,45,AS,ph-gnd,SETTING_OR_DOMAIN,184,71,number:184,0 | 0.121 | 0.18
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,46,AT,Z3 > ph-ph,SETTING_OR_DOMAIN,184,74,number:184,0 | 0.202 | 0.33
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,47,AU,ph-gnd,SETTING_OR_DOMAIN,184,75,number:184,0 | 0.202 | 0.33
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,40,AN,SETTING IMPEDANSI > Source : Form Implementasi Scanning > CHAR > ph-ph,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,41,AO,SETTING IMPEDANSI > Source : Form Implementasi Scanning > CHAR > ph-gnd,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,42,AP,SETTING IMPEDANSI > Source : Form Implementasi Scanning > Z1 > ph-ph,SETTING_OR_DOMAIN,184,64,number:184,0 | 0.01 | 0.067
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,43,AQ,SETTING IMPEDANSI > Source : Form Implementasi Scanning > Z1 > ph-gnd,SETTING_OR_DOMAIN,184,64,number:184,0 | 0.01 | 0.067
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,44,AR,SETTING IMPEDANSI > Source : Form Implementasi Scanning > Z2 > ph-ph,SETTING_OR_DOMAIN,184,71,number:184,0 | 0.121 | 0.18
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,45,AS,SETTING IMPEDANSI > Source : Form Implementasi Scanning > Z2 > ph-gnd,SETTING_OR_DOMAIN,184,71,number:184,0 | 0.121 | 0.18
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,46,AT,SETTING IMPEDANSI > Source : Form Implementasi Scanning > Z3 > ph-ph,SETTING_OR_DOMAIN,184,74,number:184,0 | 0.202 | 0.33
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,47,AU,SETTING IMPEDANSI > Source : Form Implementasi Scanning > Z3 > ph-gnd,SETTING_OR_DOMAIN,184,75,number:184,0 | 0.202 | 0.33
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,48,AV,SETTING WAKTU > t1,SETTING_OR_DOMAIN,184,1,number:184,0
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,49,AW,t2,SETTING_OR_DOMAIN,184,4,number:184,0 | 0.3 | 0.4
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,50,AX,t3,SETTING_OR_DOMAIN,184,4,number:184,0 | 0.6 | 1.2
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,49,AW,SETTING WAKTU > t2,SETTING_OR_DOMAIN,184,4,number:184,0 | 0.3 | 0.4
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,50,AX,SETTING WAKTU > t3,SETTING_OR_DOMAIN,184,4,number:184,0 | 0.6 | 1.2
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,51,AY,DEF > Is,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,52,AZ,t,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,53,BA,sudut,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,52,AZ,DEF > t,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,53,BA,DEF > sudut,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,54,BB,SKEMA TP > AIDED DEF,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,55,BC,WAKTU KERJA,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,56,BD,(POTT/ PUTT/ Blocking),SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,57,BE,CURRENT REVERSAL,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,55,BC,SKEMA TP > WAKTU KERJA,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,56,BD,SKEMA TP > (POTT/ PUTT/ Blocking),SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,57,BE,SKEMA TP > CURRENT REVERSAL,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,58,BF,SOTF > INIT FROM,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,DIST,LCD+DIST,register,59,BG,TOR > INIT FROM,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,1,A,ID,SETTING_OR_DOMAIN,184,184,text:184,PHT.01 | PHT.02 | PHT.03
@@ -350,7 +354,7 @@ Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,5,E,BAY,IDENTITY,184
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,6,F,SIRKIT,IDENTITY,184,2,text:184,#1 | #2
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,7,G,RATIO CT - BPU,IDENTITY,180,16,text:180,1000/1 | 1000/5 | 1200/5
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,8,H,HELPER ASET > GI/GIS,HELPER,184,35,text:184,GI 150KV ANGKE | GI 150KV CENGKARENG | GI 150KV CENGKARENG BARU
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,9,I,BAY,IDENTITY,184,106,text:184,PHT 150kV ALAM SUTERA #1 | PHT 150kV ALAM SUTERA #2 | PHT 150kV ANCOL #1
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,9,I,HELPER ASET > BAY,HELPER,184,106,text:184,PHT 150kV ALAM SUTERA #1 | PHT 150kV ALAM SUTERA #2 | PHT 150kV ANCOL #1
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,10,J,MERK,IDENTITY,152,7,text:152,ABB | ALSTOM | AREVA
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,11,K,TYPE,IDENTITY,152,20,text:152,7SJ62 | 7SJ63 | 7SJ82
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,12,L,NO. SERI,IDENTITY,142,142,number:11;text:131,1VHR91312359 | 1VHR91312363 | 1VHR91327607
@@ -358,24 +362,24 @@ Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,13,M,JENIS RELE,IDEN
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,14,N,TH OPERASI,IDENTITY,122,14,number:122,2001.0 | 2010.0 | 2011.0
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,15,O,OCR > TAP SET,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,16,P,SETTING (TAP SETTING TERAKHIR) > In,SETTING_OR_DOMAIN,180,2,text:180,1 | 5
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,17,Q,Iset OC,SETTING_OR_DOMAIN,183,49,number:183,0 | 0.442 | 0.517
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,18,R,tms OC,SETTING_OR_DOMAIN,183,56,number:183,0 | 0.137 | 0.212
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,19,S,char OC,SETTING_OR_DOMAIN,184,1,text:184,SI
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,20,T,Iset GF,SETTING_OR_DOMAIN,183,45,number:183,0 | 0.074 | 0.086
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,21,U,tms GF,SETTING_OR_DOMAIN,183,60,number:183,0 | 0.371 | 0.469
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,22,V,char GF,SETTING_OR_DOMAIN,184,1,text:184,SI
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,23,W,PDF,PROVENANCE,126,79,text:126,107 GIS LONTAR BAY TANGERANG BARU 1-2_260612_155850.pdf | 12. P14D_OCR_Teluk Naga bay Sepatan #1 (1).pdf | 132. [signed] KTT ITS Bay Tangerang Baru.pdf
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,24,X,TGL,PROVENANCE,132,55,date:132,2017-11-23T00:00:00 | 2017-12-29T00:00:00 | 2018-07-12T00:00:00
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,17,Q,SETTING (TAP SETTING TERAKHIR) > Iset OC,SETTING_OR_DOMAIN,183,49,number:183,0 | 0.442 | 0.517
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,18,R,SETTING (TAP SETTING TERAKHIR) > tms OC,SETTING_OR_DOMAIN,183,56,number:183,0 | 0.137 | 0.212
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,19,S,SETTING (TAP SETTING TERAKHIR) > char OC,SETTING_OR_DOMAIN,184,1,text:184,SI
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,20,T,SETTING (TAP SETTING TERAKHIR) > Iset GF,SETTING_OR_DOMAIN,183,45,number:183,0 | 0.074 | 0.086
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,21,U,SETTING (TAP SETTING TERAKHIR) > tms GF,SETTING_OR_DOMAIN,183,60,number:183,0 | 0.371 | 0.469
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,22,V,SETTING (TAP SETTING TERAKHIR) > char GF,SETTING_OR_DOMAIN,184,1,text:184,SI
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,23,W,SETTING (TAP SETTING TERAKHIR) > PDF,PROVENANCE,126,79,text:126,107 GIS LONTAR BAY TANGERANG BARU 1-2_260612_155850.pdf | 12. P14D_OCR_Teluk Naga bay Sepatan #1 (1).pdf | 132. [signed] KTT ITS Bay Tangerang Baru.pdf
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,24,X,SETTING (TAP SETTING TERAKHIR) > TGL,PROVENANCE,132,55,date:132,2017-11-23T00:00:00 | 2017-12-29T00:00:00 | 2018-07-12T00:00:00
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,25,Y,OCR > SET RELAY,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,26,Z,SETTING (TERPASANG) > In,SETTING_OR_DOMAIN,180,2,text:180,1 | 5
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,27,AA,Iset OC,SETTING_OR_DOMAIN,183,50,number:183,0 | 0.44 | 0.53
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,28,AB,tms OC,SETTING_OR_DOMAIN,183,57,number:183,0 | 0.123 | 0.21
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,29,AC,char OC,SETTING_OR_DOMAIN,184,1,text:184,SI
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,30,AD,Iset GF,SETTING_OR_DOMAIN,183,47,number:183,0 | 0.07 | 0.074
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,31,AE,tms GF,SETTING_OR_DOMAIN,183,58,number:183,0 | 0.3 | 0.45
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,32,AF,char GF,SETTING_OR_DOMAIN,184,1,text:184,SI
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,33,AG,TGL,PROVENANCE,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,34,AH,FILE,PROVENANCE,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,27,AA,SETTING (TERPASANG) > Iset OC,SETTING_OR_DOMAIN,183,50,number:183,0 | 0.44 | 0.53
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,28,AB,SETTING (TERPASANG) > tms OC,SETTING_OR_DOMAIN,183,57,number:183,0 | 0.123 | 0.21
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,29,AC,SETTING (TERPASANG) > char OC,SETTING_OR_DOMAIN,184,1,text:184,SI
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,30,AD,SETTING (TERPASANG) > Iset GF,SETTING_OR_DOMAIN,183,47,number:183,0 | 0.07 | 0.074
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,31,AE,SETTING (TERPASANG) > tms GF,SETTING_OR_DOMAIN,183,58,number:183,0 | 0.3 | 0.45
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,32,AF,SETTING (TERPASANG) > char GF,SETTING_OR_DOMAIN,184,1,text:184,SI
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,33,AG,SETTING (TERPASANG) > TGL,PROVENANCE,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_PHT,OCR,register,34,AH,SETTING (TERPASANG) > FILE,PROVENANCE,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,1,A,ID,SETTING_OR_DOMAIN,184,184,text:184,PHT.01 | PHT.02 | PHT.03
 Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,2,B,NO,SETTING_OR_DOMAIN,184,184,number:184,1 | 10.0 | 100.0
 Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,3,C,ULTG,IDENTITY,184,3,text:184,ULTG ANGKE | ULTG CITRA RAYA | ULTG DURIKOSAMBI
@@ -384,7 +388,7 @@ Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,5,E,BAY,IDENTITY,184,106,t
 Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,6,F,SIRKIT,IDENTITY,184,2,text:184,#1 | #2
 Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,7,G,AR (EKSTERNAL/INTERNAL),SETTING_OR_DOMAIN,176,3,text:176,Eksternal | Internal | Tidak Aktif
 Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,8,H,HELPER ASET > GI/GIS,HELPER,184,35,text:184,GI 150KV ANGKE | GI 150KV CENGKARENG | GI 150KV CENGKARENG BARU
-Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,9,I,BAY,IDENTITY,184,106,text:184,PHT 150kV ALAM SUTERA #1 | PHT 150kV ALAM SUTERA #2 | PHT 150kV ANCOL #1
+Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,9,I,HELPER ASET > BAY,HELPER,184,106,text:184,PHT 150kV ALAM SUTERA #1 | PHT 150kV ALAM SUTERA #2 | PHT 150kV ANCOL #1
 Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,10,J,MERK,IDENTITY,46,7,text:46,Alsthom | Alstom | Areva
 Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,11,K,TYPE,IDENTITY,46,10,text:46,7SL87 | CZX-22 | KAVR 13
 Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,12,L,NO. SERIE,IDENTITY,16,16,text:16,197931U | 315994J | 315995J
@@ -392,14 +396,14 @@ Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,13,M,JENIS RELE,IDENTITY,4
 Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,14,N,TH OPERASI,IDENTITY,20,2,number:20,2001.0 | 2021.0
 Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,15,O,AR > TAP SET,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,16,P,SETTING > Pole,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,17,Q,Dead Time 1 Pole,SETTING_OR_DOMAIN,33,8,number:23;text:10,0.35 | 0.5 | 0.8
-Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,18,R,Dead Time 3 Pole,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,19,S,Reclaim Time,SETTING_OR_DOMAIN,33,3,number:23;text:10,10.0 | 40 s | 40.0
+Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,17,Q,SETTING > Dead Time 1 Pole,SETTING_OR_DOMAIN,33,8,number:23;text:10,0.35 | 0.5 | 0.8
+Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,18,R,SETTING > Dead Time 3 Pole,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,19,S,SETTING > Reclaim Time,SETTING_OR_DOMAIN,33,3,number:23;text:10,10.0 | 40 s | 40.0
 Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,20,T,AR > SET RELAY,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,21,U,SETTING > Pole,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,22,V,Dead Time 1 Pole,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,23,W,Dead Time 3 Pole,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,24,X,Reclaim Time,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,22,V,SETTING > Dead Time 1 Pole,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,23,W,SETTING > Dead Time 3 Pole,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,AR,AR,register,24,X,SETTING > Reclaim Time,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,HEL_PHT_SET,LCD+DIST,helper,1,A,ID > 1.0,SETTING_OR_DOMAIN,184,184,text:184,PHT.01 | PHT.02 | PHT.03
 Data Setting Penghantar UPT DKSBI.xlsx,HEL_PHT_SET,LCD+DIST,helper,2,B,SEGMEN A > 2.0,SETTING_OR_DOMAIN,184,31,text:184,ALAM SUTERA | ANGKE | CENGKARENG
 Data Setting Penghantar UPT DKSBI.xlsx,HEL_PHT_SET,LCD+DIST,helper,3,C,SEGMEN B > 3.0,SETTING_OR_DOMAIN,184,52,text:184,ALAM SUTERA | ANCOL | ANGKE
@@ -737,9 +741,9 @@ Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,6,F,SIRKIT,I
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,7,G,BUSPRO AKTIF?,SETTING_OR_DOMAIN,31,1,text:31,YA
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,8,H,RATIO CT,IDENTITY,31,4,text:31,2000/1 | 2000/5 | 4000/1
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,9,I,HELPER ASET > GI/GIS,HELPER,31,28,text:31,GI 150KV ANGKE | GI 150KV CENGKARENG | GI 150KV CENGKARENG BARU
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,10,J,BAY,IDENTITY,31,5,text:31,BUS SECTION #1 150kV | BUS SECTION #2 150kV | KOPEL BUS 150kV
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,11,K,CT > PRI,SETTING_OR_DOMAIN,31,2,text:31,2000 | 4000
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,12,L,SEC,SETTING_OR_DOMAIN,31,2,text:31,1 | 5
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,10,J,HELPER ASET > BAY,HELPER,31,5,text:31,BUS SECTION #1 150kV | BUS SECTION #2 150kV | KOPEL BUS 150kV
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,11,K,HELPER ASET > CT > PRI,HELPER,31,2,text:31,2000 | 4000
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,12,L,HELPER ASET > CT > SEC,HELPER,31,2,text:31,1 | 5
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,13,M,MERK,IDENTITY,31,7,text:31,ABB | ALSTOM | AREVA
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,14,N,TYPE,IDENTITY,31,13,text:31,7SJ63 | 7SJ82 | MICOM P141
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,15,O,NO. SERIE,IDENTITY,28,28,text:28,1VHR91344403 | 1VHR91359915 | 1VHR91392165
@@ -747,24 +751,24 @@ Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,16,P,JENIS R
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,17,Q,TH OPERASI,IDENTITY,27,7,number:27,2012.0 | 2016.0 | 2018.0
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,18,R,OCR > TAP SET,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,19,S,SETTING (TAP SETTING) > In,SETTING_OR_DOMAIN,31,2,number:31,1.0 | 5.0
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,20,T,Iset OC,SETTING_OR_DOMAIN,24,3,number:24,1.0 | 1.2 | 6.0
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,21,U,tms OC,SETTING_OR_DOMAIN,24,14,number:24,0.287 | 0.301 | 0.325
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,22,V,char OC,SETTING_OR_DOMAIN,31,1,text:31,SI
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,23,W,Iset GF,SETTING_OR_DOMAIN,24,5,number:5;text:19,0.2 | 0.4 | 1.0
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,24,X,tms GF,SETTING_OR_DOMAIN,24,5,number:5;text:19,0.43 | 0.662 | 0.682
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,25,Y,char GF,SETTING_OR_DOMAIN,31,2,text:31,SI | blok
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,26,Z,PDF,PROVENANCE,22,22,text:22,"154. Buspro, CBF dan OCR Kopel NEW Senayan II (1).pdf | 20171123_Tap Setting Kopel & Buspro GI Gajah Tunggal.pdf | 20190507_SUMMARECON_KOPEL.pdf"
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,27,AA,TGL,PROVENANCE,22,22,date:22,2016-01-22T00:00:00 | 2017-11-23T00:00:00 | 2019-03-01T00:00:00
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,20,T,SETTING (TAP SETTING) > Iset OC,SETTING_OR_DOMAIN,24,3,number:24,1.0 | 1.2 | 6.0
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,21,U,SETTING (TAP SETTING) > tms OC,SETTING_OR_DOMAIN,24,14,number:24,0.287 | 0.301 | 0.325
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,22,V,SETTING (TAP SETTING) > char OC,SETTING_OR_DOMAIN,31,1,text:31,SI
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,23,W,SETTING (TAP SETTING) > Iset GF,SETTING_OR_DOMAIN,24,5,number:5;text:19,0.2 | 0.4 | 1.0
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,24,X,SETTING (TAP SETTING) > tms GF,SETTING_OR_DOMAIN,24,5,number:5;text:19,0.43 | 0.662 | 0.682
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,25,Y,SETTING (TAP SETTING) > char GF,SETTING_OR_DOMAIN,31,2,text:31,SI | blok
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,26,Z,SETTING (TAP SETTING) > PDF,PROVENANCE,22,22,text:22,"154. Buspro, CBF dan OCR Kopel NEW Senayan II (1).pdf | 20171123_Tap Setting Kopel & Buspro GI Gajah Tunggal.pdf | 20190507_SUMMARECON_KOPEL.pdf"
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,27,AA,SETTING (TAP SETTING) > TGL,PROVENANCE,22,22,date:22,2016-01-22T00:00:00 | 2017-11-23T00:00:00 | 2019-03-01T00:00:00
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,28,AB,OCR > TAP SET,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,29,AC,SETTING (TERPASANG) > In,SETTING_OR_DOMAIN,31,2,text:31,1 | 5
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,30,AD,Iset OC,SETTING_OR_DOMAIN,31,4,number:31,0 | 1.2 | 5
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,31,AE,tms OC,SETTING_OR_DOMAIN,31,19,number:31,0 | 0.285 | 0.3
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,32,AF,char OC,SETTING_OR_DOMAIN,31,1,text:31,SI
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,33,AG,Iset GF,SETTING_OR_DOMAIN,31,3,number:5;text:26,0.2 | 0.4 | Disabled
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,34,AH,tms GF,SETTING_OR_DOMAIN,31,5,number:5;text:26,0.505 | 0.71 | 0.82
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,35,AI,char GF,SETTING_OR_DOMAIN,5,1,text:5,SI
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,36,AJ,TGL,PROVENANCE,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,37,AK,FILE,PROVENANCE,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,30,AD,SETTING (TERPASANG) > Iset OC,SETTING_OR_DOMAIN,31,4,number:31,0 | 1.2 | 5
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,31,AE,SETTING (TERPASANG) > tms OC,SETTING_OR_DOMAIN,31,19,number:31,0 | 0.285 | 0.3
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,32,AF,SETTING (TERPASANG) > char OC,SETTING_OR_DOMAIN,31,1,text:31,SI
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,33,AG,SETTING (TERPASANG) > Iset GF,SETTING_OR_DOMAIN,31,3,number:5;text:26,0.2 | 0.4 | Disabled
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,34,AH,SETTING (TERPASANG) > tms GF,SETTING_OR_DOMAIN,31,5,number:5;text:26,0.505 | 0.71 | 0.82
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,35,AI,SETTING (TERPASANG) > char GF,SETTING_OR_DOMAIN,5,1,text:5,SI
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,36,AJ,SETTING (TERPASANG) > TGL,PROVENANCE,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,OCR_KOPEL,OCR KOPEL,register,37,AK,SETTING (TERPASANG) > FILE,PROVENANCE,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,DV_HELPER_KPL,DV,helper,1,A,ID > 1.0,SETTING_OR_DOMAIN,31,31,text:31,KPL.01 | KPL.02 | KPL.03
 Data Setting Penghantar UPT DKSBI.xlsx,DV_HELPER_KPL,DV,helper,2,B,GI/GIS > 2.0,IDENTITY,31,28,text:31,GI 150KV ANGKE | GI 150KV CENGKARENG | GI 150KV CENGKARENG BARU
 Data Setting Penghantar UPT DKSBI.xlsx,DV_HELPER_KPL,DV,helper,3,C,BAY > 3.0,IDENTITY,31,5,text:31,BUS SECTION#1 150kV | BUS SECTION#2 150kV | KOPEL BUS 150kV
@@ -800,24 +804,24 @@ Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,12,L,JENIS RELE,
 Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,13,M,TH OPERASI,IDENTITY,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,14,N,SYNC > TAP SET,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,15,O,SETTING > DL LB,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,16,P,LL DB,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,17,Q,DL DB,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,18,R,Dead Voltage (DV),SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,19,S,Live Voltage (LV),SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,20,T,Vs,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,21,U,Voltage Diff (∆V),SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,22,V,Phase Diff (∆deg),SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,23,W,Freq Diff (∆f),SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,16,P,SETTING > LL DB,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,17,Q,SETTING > DL DB,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,18,R,SETTING > Dead Voltage (DV),SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,19,S,SETTING > Live Voltage (LV),SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,20,T,SETTING > Vs,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,21,U,SETTING > Voltage Diff (∆V),SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,22,V,SETTING > Phase Diff (∆deg),SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,23,W,SETTING > Freq Diff (∆f),SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,24,X,SYNC > SET RELAY,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,25,Y,SETTING > DL LB,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,26,Z,LL DB,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,27,AA,DL DB,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,28,AB,Dead Voltage (DV),SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,29,AC,Live Voltage (LV),SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,30,AD,Vs,SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,31,AE,Voltage Diff (∆V),SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,32,AF,Phase Diff (∆deg),SETTING_OR_DOMAIN,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,33,AG,Freq Diff (∆f),SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,26,Z,SETTING > LL DB,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,27,AA,SETTING > DL DB,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,28,AB,SETTING > Dead Voltage (DV),SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,29,AC,SETTING > Live Voltage (LV),SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,30,AD,SETTING > Vs,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,31,AE,SETTING > Voltage Diff (∆V),SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,32,AF,SETTING > Phase Diff (∆deg),SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHRO,Synchro,register,33,AG,SETTING > Freq Diff (∆f),SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,1,A,NO,SETTING_OR_DOMAIN,168,168,number:168,1.0 | 10.0 | 100.0
 Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,2,B,GI / GIS,IDENTITY,162,27,text:162,- GI 150kV SINDANG JAYA | - GIS 150kV JATAKE BARU | TRS-3413-004.004 - GISTET 500kV KEMBANGAN
 Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,3,C,BAY,IDENTITY,162,140,text:162,#N/A | TRS-3413-004.004-B0007 - PHT 500kV GANDUL #1 | TRS-3413-004.004-B0008 - PHT 500kV GANDUL #2
@@ -833,13 +837,13 @@ Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,12,L,NO. SERIE,ID
 Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,13,M,JENIS RELE,IDENTITY,74,2,text:74,Elektromekanik | Numerik
 Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,14,N,TH OPERASI,IDENTITY,24,4,number:24,2014.0 | 2019.0 | 2020.0
 Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,15,O,SETTING,SETTING_OR_DOMAIN,48,3,text:48,Aktif | DL LB | aktif
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,16,P,,UNLABELED,48,3,text:48,Aktif | LL DB | aktif
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,17,Q,,UNLABELED,38,4,text:38,Aktif | DL DB | aktif
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,18,R,,UNLABELED,37,14,date:1;number:4;text:32,11.5 | 2021-05-11T00:00:00 | 23.1
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,19,S,,UNLABELED,37,9,number:5;text:32,"51.97 | 52.0 | > 51,9"
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,20,T,,UNLABELED,38,13,number:31;text:7,"0.15 | 5,7 V | 5.0"
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,21,U,,UNLABELED,39,5,number:38;text:1,10.0 | 15.0 | 20.0
-Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,22,V,,UNLABELED,29,7,number:26;text:3,"0,1675 Hz | 0,17 Hz | 0.16"
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,16,P,SETTING,SETTING_OR_DOMAIN,48,3,text:48,Aktif | LL DB | aktif
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,17,Q,SETTING,SETTING_OR_DOMAIN,38,4,text:38,Aktif | DL DB | aktif
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,18,R,SETTING,SETTING_OR_DOMAIN,37,14,date:1;number:4;text:32,11.5 | 2021-05-11T00:00:00 | 23.1
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,19,S,SETTING,SETTING_OR_DOMAIN,37,9,number:5;text:32,"51.97 | 52.0 | > 51,9"
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,20,T,SETTING,SETTING_OR_DOMAIN,38,13,number:31;text:7,"0.15 | 5,7 V | 5.0"
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,21,U,SETTING,SETTING_OR_DOMAIN,39,5,number:38;text:1,10.0 | 15.0 | 20.0
+Data Setting Penghantar UPT DKSBI.xlsx,SYNCHROx,Synchro,helper,22,V,SETTING,SETTING_OR_DOMAIN,29,7,number:26;text:3,"0,1675 Hz | 0,17 Hz | 0.16"
 Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,1,A,ID,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,2,B,NO,SETTING_OR_DOMAIN,39,39,number:39,1 | 10 | 11
 Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,3,C,ULTG,IDENTITY,39,3,text:39,ULTG ANGKE | ULTG CITRA RAYA | ULTG DURIKOSAMBI
@@ -848,18 +852,18 @@ Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,5,E,MPU,SETTING_OR
 Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,6,F,kV,SETTING_OR_DOMAIN,39,2,number:39,150.0 | 500.0
 Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,7,G,RATIO CT,IDENTITY,12,5,text:12,2000 / 1 | 2000 / 5 | 3200 / 1
 Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,8,H,BUSPRO > MERK,IDENTITY,32,9,text:32,ABB | Alstom | Areva
-Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,9,I,TYPE,IDENTITY,32,12,text:32,7SS52 | 7SS85 | B90
-Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,10,J,No. SERI,IDENTITY,2,2,number:1;text:1,"20349801.0 | T1809122, T1809123, T1809121"
-Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,11,K,CENTRALIZED/DISTRIBUTED,SETTING_OR_DOMAIN,5,2,text:5,Centralized | Distributed
-Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,12,L,JENIS RELE,IDENTITY,32,2,text:32,Elektromekanik | Numerik
-Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,13,M,TH OPERASI,IDENTITY,31,17,number:31,1992.0 | 1994.0 | 1995.0
-Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,14,N,STATUS,PROVENANCE,31,3,text:31,Aktif | Belum Aktif | Tidak Aktif
-Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,15,O,KETERANGAN,PROVENANCE,29,2,text:29,HI Z | LO Z
-Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,16,P,Setting > I>1 (A),SETTING_OR_DOMAIN,3,2,number:2;text:1,0.03 | 400.0
-Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,17,Q,I>2 (A),SETTING_OR_DOMAIN,4,2,number:4,1.2 | 2400.0
-Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,18,R,slope k1,SETTING_OR_DOMAIN,3,2,number:3,0.1 | 0.15
-Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,19,S,slope k2,SETTING_OR_DOMAIN,3,2,number:3,0.53 | 0.65
-Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,20,T,KET,PROVENANCE,1,1,text:1,Buspro Goose
+Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,9,I,BUSPRO > TYPE,IDENTITY,32,12,text:32,7SS52 | 7SS85 | B90
+Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,10,J,BUSPRO > No. SERI,IDENTITY,2,2,number:1;text:1,"20349801.0 | T1809122, T1809123, T1809121"
+Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,11,K,BUSPRO > CENTRALIZED/DISTRIBUTED,SETTING_OR_DOMAIN,5,2,text:5,Centralized | Distributed
+Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,12,L,BUSPRO > JENIS RELE,IDENTITY,32,2,text:32,Elektromekanik | Numerik
+Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,13,M,BUSPRO > TH OPERASI,IDENTITY,31,17,number:31,1992.0 | 1994.0 | 1995.0
+Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,14,N,BUSPRO > STATUS,PROVENANCE,31,3,text:31,Aktif | Belum Aktif | Tidak Aktif
+Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,15,O,BUSPRO > KETERANGAN,PROVENANCE,29,2,text:29,HI Z | LO Z
+Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,16,P,BUSPRO > Setting > I>1 (A),SETTING_OR_DOMAIN,3,2,number:2;text:1,0.03 | 400.0
+Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,17,Q,BUSPRO > Setting > I>2 (A),SETTING_OR_DOMAIN,4,2,number:4,1.2 | 2400.0
+Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,18,R,BUSPRO > Setting > slope k1,SETTING_OR_DOMAIN,3,2,number:3,0.1 | 0.15
+Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,19,S,BUSPRO > Setting > slope k2,SETTING_OR_DOMAIN,3,2,number:3,0.53 | 0.65
+Data Setting Penghantar UPT DKSBI.xlsx,BUSPRO,BUSPRO,register,20,T,BUSPRO > KET,PROVENANCE,1,1,text:1,Buspro Goose
 Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,1,A,ID,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,2,B,NO,SETTING_OR_DOMAIN,10,10,number:10,1 | 10 | 2
 Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,3,C,GI / GIS,IDENTITY,10,8,text:10,TRS-3413-050.050 - GI 150kV TELUK NAGA | TRS-3413-054.054 - GI 150kV CILEDUG | TRS-3413-055.055 - GI 150kV JATAKE
@@ -872,45 +876,45 @@ Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,9,I,SIRKIT,I
 Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,10,J,kV,SETTING_OR_DOMAIN,10,1,text:10,150kV
 Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,11,K,MVAR,SETTING_OR_DOMAIN,9,2,number:9,25.0 | 50.0
 Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,12,L,OCR/GFR > RATIO CT,IDENTITY,9,5,text:9,200 / 1 | 300 / 1 | 300 / 5
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,13,M,MERK,IDENTITY,9,6,text:9,ABB | Alstom | Areva
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,14,N,Type,IDENTITY,9,8,text:9,7SJ63 | MiCom | MiCom P122
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,15,O,NO. SERIE,IDENTITY,8,8,number:3;text:5,201073.0 | 2505502.0 | 34421654/04/18
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,16,P,JENIS RELE,IDENTITY,9,1,text:9,Numerik
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,17,Q,TH OPERASI,IDENTITY,1,1,number:1,2020.0
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,18,R,SETTING > In,SETTING_OR_DOMAIN,9,2,number:9,1.0 | 5.0
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,19,S,Is OC,SETTING_OR_DOMAIN,9,5,number:9,0.29 | 0.58 | 0.77
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,20,T,tms,SETTING_OR_DOMAIN,9,6,number:7;text:2,0.85 | 0.9 | 100.0
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,21,U,I>>,SETTING_OR_DOMAIN,9,8,number:9,0.7 | 0.72 | 1.4
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,22,V,time,SETTING_OR_DOMAIN,9,2,number:9,0.2 | 0.21
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,23,W,Is GF,SETTING_OR_DOMAIN,8,3,number:4;text:4,0.08 | 0.1 | blok
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,24,X,tms,SETTING_OR_DOMAIN,8,5,number:4;text:4,0.1 | 1.2 | 1.26
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,25,Y,I>>,SETTING_OR_DOMAIN,8,2,text:8,0.55 | blok
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,26,Z,time,SETTING_OR_DOMAIN,8,2,text:8,0.1 | blok
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,27,AA,karakteristik,SETTING_OR_DOMAIN,9,2,text:9,DT | SI
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,13,M,OCR/GFR > MERK,IDENTITY,9,6,text:9,ABB | Alstom | Areva
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,14,N,OCR/GFR > Type,IDENTITY,9,8,text:9,7SJ63 | MiCom | MiCom P122
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,15,O,OCR/GFR > NO. SERIE,IDENTITY,8,8,number:3;text:5,201073.0 | 2505502.0 | 34421654/04/18
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,16,P,OCR/GFR > JENIS RELE,IDENTITY,9,1,text:9,Numerik
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,17,Q,OCR/GFR > TH OPERASI,IDENTITY,1,1,number:1,2020.0
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,18,R,OCR/GFR > SETTING > In,SETTING_OR_DOMAIN,9,2,number:9,1.0 | 5.0
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,19,S,OCR/GFR > SETTING > Is OC,SETTING_OR_DOMAIN,9,5,number:9,0.29 | 0.58 | 0.77
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,20,T,OCR/GFR > SETTING > tms,SETTING_OR_DOMAIN,9,6,number:7;text:2,0.85 | 0.9 | 100.0
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,21,U,OCR/GFR > SETTING > I>>,SETTING_OR_DOMAIN,9,8,number:9,0.7 | 0.72 | 1.4
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,22,V,OCR/GFR > SETTING > time,SETTING_OR_DOMAIN,9,2,number:9,0.2 | 0.21
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,23,W,OCR/GFR > SETTING > Is GF,SETTING_OR_DOMAIN,8,3,number:4;text:4,0.08 | 0.1 | blok
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,24,X,OCR/GFR > SETTING > tms,SETTING_OR_DOMAIN,8,5,number:4;text:4,0.1 | 1.2 | 1.26
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,25,Y,OCR/GFR > SETTING > I>>,SETTING_OR_DOMAIN,8,2,text:8,0.55 | blok
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,26,Z,OCR/GFR > SETTING > time,SETTING_OR_DOMAIN,8,2,text:8,0.1 | blok
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,27,AA,OCR/GFR > SETTING > karakteristik,SETTING_OR_DOMAIN,9,2,text:9,DT | SI
 Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,28,AB,UNBALANCE > RATIO CT,IDENTITY,1,1,text:1,200 / 5
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,29,AC,MERK,IDENTITY,10,6,text:10,ABB | Alstom | Areva
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,30,AD,TYPE,IDENTITY,10,8,text:10,7SR120 | MiCom P120 | MiCom P14N
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,31,AE,NO. SERIE,IDENTITY,7,7,number:1;text:6,33980381/02/17 | 344267/04/18 | 607785.0
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,32,AF,JENIS RELE,IDENTITY,8,1,text:8,Numerik
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,33,AG,TH OPERASI,IDENTITY,2,2,number:2,2018.0 | 2020.0
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,34,AH,SETTING > ALARM > Is,SETTING_OR_DOMAIN,1,1,number:1,0.2
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,35,AI,time,SETTING_OR_DOMAIN,1,1,number:1,10.0
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,36,AJ,TRIP > Is,SETTING_OR_DOMAIN,10,8,number:10,0.06 | 0.08 | 0.1
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,37,AK,time,SETTING_OR_DOMAIN,10,4,number:9;text:1,0.0 | 0.1 | 5.0
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,38,AL,I>>,SETTING_OR_DOMAIN,8,6,number:6;text:2,0.08 | 0.1 | 0.46
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,39,AM,time,SETTING_OR_DOMAIN,8,3,number:6;text:2,0.1 | 5.0 | blok
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,40,AN,karakteristik,SETTING_OR_DOMAIN,8,2,text:8,DT | SI
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,29,AC,UNBALANCE > MERK,IDENTITY,10,6,text:10,ABB | Alstom | Areva
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,30,AD,UNBALANCE > TYPE,IDENTITY,10,8,text:10,7SR120 | MiCom P120 | MiCom P14N
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,31,AE,UNBALANCE > NO. SERIE,IDENTITY,7,7,number:1;text:6,33980381/02/17 | 344267/04/18 | 607785.0
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,32,AF,UNBALANCE > JENIS RELE,IDENTITY,8,1,text:8,Numerik
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,33,AG,UNBALANCE > TH OPERASI,IDENTITY,2,2,number:2,2018.0 | 2020.0
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,34,AH,UNBALANCE > SETTING > ALARM > Is,SETTING_OR_DOMAIN,1,1,number:1,0.2
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,35,AI,UNBALANCE > SETTING > ALARM > time,SETTING_OR_DOMAIN,1,1,number:1,10.0
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,36,AJ,UNBALANCE > SETTING > TRIP > Is,SETTING_OR_DOMAIN,10,8,number:10,0.06 | 0.08 | 0.1
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,37,AK,UNBALANCE > SETTING > TRIP > time,SETTING_OR_DOMAIN,10,4,number:9;text:1,0.0 | 0.1 | 5.0
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,38,AL,UNBALANCE > SETTING > I>>,SETTING_OR_DOMAIN,8,6,number:6;text:2,0.08 | 0.1 | 0.46
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,39,AM,UNBALANCE > SETTING > time,SETTING_OR_DOMAIN,8,3,number:6;text:2,0.1 | 5.0 | blok
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,40,AN,UNBALANCE > SETTING > karakteristik,SETTING_OR_DOMAIN,8,2,text:8,DT | SI
 Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,41,AO,UVR/OVR > RATIO VT,SETTING_OR_DOMAIN,8,1,text:8,150kV / 100
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,42,AP,MERK,IDENTITY,8,5,text:8,ABB | Alstom | Areva
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,43,AQ,TYPE,IDENTITY,8,5,text:8,7SJ63 | MiCom P922 | MiCom P94V
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,44,AR,NO. SERIE,IDENTITY,7,7,number:3;text:4,201074.0 | 2505095.0 | 34423266/04/18
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,45,AS,JENIS RELE,IDENTITY,8,1,text:8,Numerik
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,46,AT,TH OPERASI,IDENTITY,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,47,AU,SETTING > U<,SETTING_OR_DOMAIN,7,6,number:6;text:1,105.0 | 51.9 | 51.96
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,48,AV,time (s),SETTING_OR_DOMAIN,7,3,number:6;text:1,100.0 | 5.0 | blok
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,49,AW,U>,SETTING_OR_DOMAIN,7,6,number:7,106.6 | 106.67 | 106.7
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,50,AX,time (s),SETTING_OR_DOMAIN,7,2,number:7,3.0 | 5.0
-Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,51,AY,karakteristik,SETTING_OR_DOMAIN,7,1,text:7,DT
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,42,AP,UVR/OVR > MERK,IDENTITY,8,5,text:8,ABB | Alstom | Areva
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,43,AQ,UVR/OVR > TYPE,IDENTITY,8,5,text:8,7SJ63 | MiCom P922 | MiCom P94V
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,44,AR,UVR/OVR > NO. SERIE,IDENTITY,7,7,number:3;text:4,201074.0 | 2505095.0 | 34423266/04/18
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,45,AS,UVR/OVR > JENIS RELE,IDENTITY,8,1,text:8,Numerik
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,46,AT,UVR/OVR > TH OPERASI,IDENTITY,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,47,AU,UVR/OVR > SETTING > U<,SETTING_OR_DOMAIN,7,6,number:6;text:1,105.0 | 51.9 | 51.96
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,48,AV,UVR/OVR > SETTING > time (s),SETTING_OR_DOMAIN,7,3,number:6;text:1,100.0 | 5.0 | blok
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,49,AW,UVR/OVR > SETTING > U>,SETTING_OR_DOMAIN,7,6,number:7,106.6 | 106.67 | 106.7
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,50,AX,UVR/OVR > SETTING > time (s),SETTING_OR_DOMAIN,7,2,number:7,3.0 | 5.0
+Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,51,AY,UVR/OVR > SETTING > karakteristik,SETTING_OR_DOMAIN,7,1,text:7,DT
 Data Setting Penghantar UPT DKSBI.xlsx,KAPASITOR,KAPASITOR,register,52,AZ,KET,PROVENANCE,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,1,A,NO,SETTING_OR_DOMAIN,395,377,number:395,1.0 | 10.0 | 100.0
 Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,2,B,GI / GIS,IDENTITY,392,40,text:392,#N/A | - GIS 150kV JATAKE BARU | TRS-3413-004.004 - GISTET 500kV KEMBANGAN
@@ -927,15 +931,15 @@ Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,12,L,PMT,SETTING_OR_DOMA
 Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,13,M,kV,SETTING_OR_DOMAIN,397,4,text:397,150/20kV | 150kV | 500/150kV
 Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,14,N,RATIO CT,IDENTITY,90,12,date:7;text:83,1000 / 1 | 1600 / 1 | 2000 / 1
 Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,15,O,CBF > MERK,IDENTITY,90,12,text:90,ABB | Alstom | Areva
-Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,16,P,Type,IDENTITY,89,15,text:89,7VK61 | 7VK87 | MCGG
-Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,17,Q,NO. SERIE,IDENTITY,79,77,number:24;text:55,1VHR91327611 | 1VHR91327614 | 1VHR91331923
-Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,18,R,JENIS RELE,IDENTITY,90,2,text:90,Elektromekanik | Numerik
-Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,19,S,TH OPERASI,IDENTITY,43,3,number:43,2018.0 | 2019.0 | 2021.0
-Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,20,T,SETTING > In,SETTING_OR_DOMAIN,90,2,number:90,1.0 | 5.0
-Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,21,U,Iset (mA),SETTING_OR_DOMAIN,91,9,number:81;text:10,"0,2 A | 0.1 | 0.5"
-Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,22,V,t1 (ms),SETTING_OR_DOMAIN,90,4,number:77;text:13,100.0 | 150.0 | 200.0
-Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,23,W,t2 (ms),SETTING_OR_DOMAIN,90,2,number:77;text:13,250.0 | instant
-Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,24,X,karakteristik,SETTING_OR_DOMAIN,56,2,text:56,DT | Definite
+Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,16,P,CBF > Type,IDENTITY,89,15,text:89,7VK61 | 7VK87 | MCGG
+Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,17,Q,CBF > NO. SERIE,IDENTITY,79,77,number:24;text:55,1VHR91327611 | 1VHR91327614 | 1VHR91331923
+Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,18,R,CBF > JENIS RELE,IDENTITY,90,2,text:90,Elektromekanik | Numerik
+Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,19,S,CBF > TH OPERASI,IDENTITY,43,3,number:43,2018.0 | 2019.0 | 2021.0
+Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,20,T,CBF > SETTING > In,SETTING_OR_DOMAIN,90,2,number:90,1.0 | 5.0
+Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,21,U,CBF > SETTING > Iset (mA),SETTING_OR_DOMAIN,91,9,number:81;text:10,"0,2 A | 0.1 | 0.5"
+Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,22,V,CBF > SETTING > t1 (ms),SETTING_OR_DOMAIN,90,4,number:77;text:13,100.0 | 150.0 | 200.0
+Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,23,W,CBF > SETTING > t2 (ms),SETTING_OR_DOMAIN,90,2,number:77;text:13,250.0 | instant
+Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,24,X,CBF > SETTING > karakteristik,SETTING_OR_DOMAIN,56,2,text:56,DT | Definite
 Data Setting Penghantar UPT DKSBI.xlsx,CBF,CBF,register,25,Y,KET,PROVENANCE,6,2,text:6,CBF 1 | CBF 2
 Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,1,A,NO,SETTING_OR_DOMAIN,44,44,number:44,1.0 | 10.0 | 11.0
 Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,2,B,GI / GIS,IDENTITY,28,3,text:28,TRS-3413-004.004 - GISTET 500kV KEMBANGAN | TRS-3413-008.008 - GITET 500kV BALARAJA | TRS-3413-194.194 - GISTET 500kV DURIKOSAMBI
@@ -949,28 +953,28 @@ Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,9,I,DIAMETER,SETTING_OR_
 Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,10,J,kV,SETTING_OR_DOMAIN,44,4,text:44,150 kV | 150kV | 500/150kV
 Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,11,K,RATIO CT,IDENTITY,24,4,text:24,1000 / 1 | 1600 / 1 | 2000 / 1
 Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,12,L,CCP 1 > MERK,IDENTITY,24,6,text:24,Alstom | Areva | GEC Alsthom
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,13,M,Type,IDENTITY,24,7,text:24,7UT61 | 7UT86 | MCAG
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,14,N,NO. SERIE,IDENTITY,22,20,text:22,10025273/08/07 | 10025274/08/07 | 10025276/08/07
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,15,O,JENIS RELE,IDENTITY,24,2,text:24,Elektromekanik | Numerik
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,16,P,TH OPERASI,IDENTITY,2,1,number:2,2019.0
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,17,Q,SETTING > In,SETTING_OR_DOMAIN,24,1,number:24,1.0
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,18,R,Iset (A),SETTING_OR_DOMAIN,15,3,number:15,0.2 | 0.3 | 0.7
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,19,S,Is1 (pu),SETTING_OR_DOMAIN,9,2,number:9,0.2 | 0.3
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,20,T,Is2 (pu),SETTING_OR_DOMAIN,7,2,number:7,2.0 | 8.0
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,21,U,time,SETTING_OR_DOMAIN,24,2,text:24,Instan | instant
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,22,V,karakteristik,SETTING_OR_DOMAIN,24,2,text:24,DT | SI
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,13,M,CCP 1 > Type,IDENTITY,24,7,text:24,7UT61 | 7UT86 | MCAG
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,14,N,CCP 1 > NO. SERIE,IDENTITY,22,20,text:22,10025273/08/07 | 10025274/08/07 | 10025276/08/07
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,15,O,CCP 1 > JENIS RELE,IDENTITY,24,2,text:24,Elektromekanik | Numerik
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,16,P,CCP 1 > TH OPERASI,IDENTITY,2,1,number:2,2019.0
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,17,Q,CCP 1 > SETTING > In,SETTING_OR_DOMAIN,24,1,number:24,1.0
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,18,R,CCP 1 > SETTING > Iset (A),SETTING_OR_DOMAIN,15,3,number:15,0.2 | 0.3 | 0.7
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,19,S,CCP 1 > SETTING > Is1 (pu),SETTING_OR_DOMAIN,9,2,number:9,0.2 | 0.3
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,20,T,CCP 1 > SETTING > Is2 (pu),SETTING_OR_DOMAIN,7,2,number:7,2.0 | 8.0
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,21,U,CCP 1 > SETTING > time,SETTING_OR_DOMAIN,24,2,text:24,Instan | instant
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,22,V,CCP 1 > SETTING > karakteristik,SETTING_OR_DOMAIN,24,2,text:24,DT | SI
 Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,23,W,RATIO CT,IDENTITY,16,2,text:16,1000 / 1 | 2000 / 1
 Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,24,X,CCP 2 > MERK,IDENTITY,16,5,text:16,Alstom | Areva | GEC Alsthom
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,25,Y,TYPE,IDENTITY,16,6,text:16,7UT61 | MCAG | MCAG 14
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,26,Z,NO. SERIE,IDENTITY,14,14,text:14,10025275/08/07 | 10025277/08/07 | 10025278/08/07
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,27,AA,JENIS RELE,IDENTITY,16,2,text:16,Elektromekanik | Numerik
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,28,AB,TH OPERASI,IDENTITY,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,29,AC,SETTING > In,SETTING_OR_DOMAIN,16,1,number:16,1.0
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,30,AD,Iset (A),SETTING_OR_DOMAIN,12,1,number:12,0.2
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,31,AE,Is1 (pu),SETTING_OR_DOMAIN,4,2,number:4,0.2 | 0.3
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,32,AF,Is2 (pu),SETTING_OR_DOMAIN,4,2,number:4,2.0 | 8.0
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,33,AG,time,SETTING_OR_DOMAIN,16,1,text:16,instant
-Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,34,AH,karakteristik,SETTING_OR_DOMAIN,16,2,text:16,DT | SI
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,25,Y,CCP 2 > TYPE,IDENTITY,16,6,text:16,7UT61 | MCAG | MCAG 14
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,26,Z,CCP 2 > NO. SERIE,IDENTITY,14,14,text:14,10025275/08/07 | 10025277/08/07 | 10025278/08/07
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,27,AA,CCP 2 > JENIS RELE,IDENTITY,16,2,text:16,Elektromekanik | Numerik
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,28,AB,CCP 2 > TH OPERASI,IDENTITY,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,29,AC,CCP 2 > SETTING > In,SETTING_OR_DOMAIN,16,1,number:16,1.0
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,30,AD,CCP 2 > SETTING > Iset (A),SETTING_OR_DOMAIN,12,1,number:12,0.2
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,31,AE,CCP 2 > SETTING > Is1 (pu),SETTING_OR_DOMAIN,4,2,number:4,0.2 | 0.3
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,32,AF,CCP 2 > SETTING > Is2 (pu),SETTING_OR_DOMAIN,4,2,number:4,2.0 | 8.0
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,33,AG,CCP 2 > SETTING > time,SETTING_OR_DOMAIN,16,1,text:16,instant
+Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,34,AH,CCP 2 > SETTING > karakteristik,SETTING_OR_DOMAIN,16,2,text:16,DT | SI
 Data Setting Penghantar UPT DKSBI.xlsx,CCP,CCP,register,35,AI,KET,PROVENANCE,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,1,A,NO,SETTING_OR_DOMAIN,42,42,number:42,1.0 | 10.0 | 11.0
 Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,2,B,GI / GIS,IDENTITY,42,3,text:42,TRS-3413-004.004 - GISTET 500kV KEMBANGAN | TRS-3413-008.008 - GITET 500kV BALARAJA | TRS-3413-194.194 - GISTET 500kV DURIKOSAMBI
@@ -988,14 +992,14 @@ Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,13,M,PMT,SETTING_OR_DOMA
 Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,14,N,kV,SETTING_OR_DOMAIN,42,2,text:42,500/150kV | 500kV
 Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,15,O,RATIO CT,IDENTITY,16,2,text:16,1000 / 1 | 2000 / 1
 Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,16,P,SZP > MERK,IDENTITY,16,2,text:16,Areva | Siemens
-Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,17,Q,Type,IDENTITY,16,2,text:16,7VK61 | MiCom P821
-Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,18,R,NO. SERIE,IDENTITY,16,16,number:12;text:4,32687102/10/13 | 32687103/10/13 | 3307171.0
-Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,19,S,JENIS RELE,IDENTITY,16,1,text:16,Numerik
-Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,20,T,TH OPERASI,IDENTITY,0,0,,
-Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,21,U,SETTING > In,SETTING_OR_DOMAIN,16,1,number:16,1.0
-Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,22,V,Iset (A),SETTING_OR_DOMAIN,16,1,number:16,0.2
-Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,23,W,time,SETTING_OR_DOMAIN,16,1,number:16,0.07
-Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,24,X,karakteristik,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,17,Q,SZP > Type,IDENTITY,16,2,text:16,7VK61 | MiCom P821
+Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,18,R,SZP > NO. SERIE,IDENTITY,16,16,number:12;text:4,32687102/10/13 | 32687103/10/13 | 3307171.0
+Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,19,S,SZP > JENIS RELE,IDENTITY,16,1,text:16,Numerik
+Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,20,T,SZP > TH OPERASI,IDENTITY,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,21,U,SZP > SETTING > In,SETTING_OR_DOMAIN,16,1,number:16,1.0
+Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,22,V,SZP > SETTING > Iset (A),SETTING_OR_DOMAIN,16,1,number:16,0.2
+Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,23,W,SZP > SETTING > time,SETTING_OR_DOMAIN,16,1,number:16,0.07
+Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,24,X,SZP > SETTING > karakteristik,SETTING_OR_DOMAIN,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,SZP,SZP,register,25,Y,KET,PROVENANCE,0,0,,
 Data Setting Penghantar UPT DKSBI.xlsx,CBF&CCP,CBF&CCP,summary,1,A,NO,SETTING_OR_DOMAIN,3,3,number:3,1.0 | 2.0 | 3.0
 Data Setting Penghantar UPT DKSBI.xlsx,CBF&CCP,CBF&CCP,summary,2,B,GI / GIS,IDENTITY,3,3,text:3,GIS Alam Sutera | GIS Lontar | GITET Balaraja
@@ -1003,11 +1007,12 @@ Data Setting Penghantar UPT DKSBI.xlsx,CBF&CCP,CBF&CCP,summary,3,C,BAY,IDENTITY,
 Data Setting Penghantar UPT DKSBI.xlsx,CBF&CCP,CBF&CCP,summary,4,D,RATIO (kV),SETTING_OR_DOMAIN,34,2,text:34,150000/100 | 500000/100
 Data Setting Penghantar UPT DKSBI.xlsx,CBF&CCP,CBF&CCP,summary,5,E,RATIO CT,IDENTITY,57,5,date:52;text:5,1000/1 | 2000-01-01T00:00:00 | 2000/1
 Data Setting Penghantar UPT DKSBI.xlsx,CBF&CCP,CBF&CCP,summary,6,F,CBF & CCP > MERK/TYPE,IDENTITY,57,11,text:57,AREVA / MCAG 34 | Alstom / MiCom P141 | Alstom / MiCom P643
-Data Setting Penghantar UPT DKSBI.xlsx,CBF&CCP,CBF&CCP,summary,7,G,NO SERI,IDENTITY,64,63,number:32;text:32,10025273/08/07 | 10025274/08/07 | 10025275/08/07
-Data Setting Penghantar UPT DKSBI.xlsx,CBF&CCP,CBF&CCP,summary,8,H,SETTING,SETTING_OR_DOMAIN,158,6,text:158,Id 1 | Id 2 | Is
-Data Setting Penghantar UPT DKSBI.xlsx,CBF&CCP,CBF&CCP,summary,9,I,,UNLABELED,156,1,text:156,:
-Data Setting Penghantar UPT DKSBI.xlsx,CBF&CCP,CBF&CCP,summary,10,J,,UNLABELED,159,11,number:11;text:148,0.0 | 0.07 | 0.1
-Data Setting Penghantar UPT DKSBI.xlsx,CBF&CCP,CBF&CCP,summary,12,L,KETERANGAN,PROVENANCE,73,15,text:73,CBF | CBF 7A5 | CBF 7A6
+Data Setting Penghantar UPT DKSBI.xlsx,CBF&CCP,CBF&CCP,summary,7,G,CBF & CCP > NO SERI,IDENTITY,64,63,number:32;text:32,10025273/08/07 | 10025274/08/07 | 10025275/08/07
+Data Setting Penghantar UPT DKSBI.xlsx,CBF&CCP,CBF&CCP,summary,8,H,CBF & CCP > SETTING,SETTING_OR_DOMAIN,158,6,text:158,Id 1 | Id 2 | Is
+Data Setting Penghantar UPT DKSBI.xlsx,CBF&CCP,CBF&CCP,summary,9,I,CBF & CCP > SETTING,SETTING_OR_DOMAIN,156,1,text:156,:
+Data Setting Penghantar UPT DKSBI.xlsx,CBF&CCP,CBF&CCP,summary,10,J,CBF & CCP > SETTING,SETTING_OR_DOMAIN,159,11,number:11;text:148,0.0 | 0.07 | 0.1
+Data Setting Penghantar UPT DKSBI.xlsx,CBF&CCP,CBF&CCP,summary,11,K,CBF & CCP > SETTING,SETTING_OR_DOMAIN,0,0,,
+Data Setting Penghantar UPT DKSBI.xlsx,CBF&CCP,CBF&CCP,summary,12,L,CBF & CCP > KETERANGAN,PROVENANCE,73,15,text:73,CBF | CBF 7A5 | CBF 7A6
 List Official Setting & Resetting UPT Durikosambi.xlsx,2019-2021,OFFICIAL_HISTORY,event_register,1,A,No,SETTING_OR_DOMAIN,122,122,number:122,1.0 | 10.0 | 100.0
 List Official Setting & Resetting UPT Durikosambi.xlsx,2019-2021,OFFICIAL_HISTORY,event_register,2,B,GI,SETTING_OR_DOMAIN,122,29,text:122,GI Angke | GI Cengkareng | GI Cengkareng Baru
 List Official Setting & Resetting UPT Durikosambi.xlsx,2019-2021,OFFICIAL_HISTORY,event_register,3,C,BAY,IDENTITY,122,65,text:122,"Alam Sutera 1 | Alam Sutera 1,2 | Alam Sutera 2"

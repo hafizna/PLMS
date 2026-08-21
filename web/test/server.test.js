@@ -32,16 +32,32 @@ before(async () => {
     VALUES ('LONTAR-DADAP', ?, '?5-1', ?, 'II', NULL, 0, 'UPT_MANUAL')
   `).run(ssA, ssB).lastInsertRowid;
   const relayId = db.prepare(`
-    INSERT INTO relay (ss_id, bay, line_id, function_type, coordination_class,
-                       manufacturer, model, status)
-    VALUES (?, 'I', ?, 'DIST', 'GRADED', 'Schweitzer', 'SEL-411L', 'ACTIVE')
+    INSERT INTO relay (ss_id, bay, line_id, manufacturer, model, status,
+                       identity_key, identity_confidence, identity_status)
+    VALUES (?, 'I', ?, 'Schweitzer', 'SEL-411L', 'ACTIVE',
+            'SERIAL|FIXTURE', 'HIGH', 'EXACT')
   `).run(ssA, lineId).lastInsertRowid;
+  const relayFunctionId = db.prepare(`
+    INSERT INTO relay_function
+      (relay_id, function_type, coordination_class, source_logical, status)
+    VALUES (?, 'DIST', 'GRADED', 'LCD+DIST', 'ACTIVE')
+  `).run(relayId).lastInsertRowid;
   db.prepare(`
     INSERT INTO relay_setting
-      (relay_id, parameter_name, parameter_value, unit, setting_group,
-       effective_date, source_doc, is_current)
-    VALUES (?, 'Z1', '10', 'ohm', 'A', '2026-08-21', 'fixture.pdf', 1)
-  `).run(relayId);
+      (relay_id, relay_function_id, parameter_name, parameter_value, unit,
+       setting_group, effective_date, source_doc, is_current, source_workbook,
+       source_sheet, source_row, source_column, source_header, source_hash, observed_at)
+    VALUES (?, ?, 'Z1', '10', 'ohm', 'SET_RELAY', '2026-08-21', 'fixture.pdf', 1,
+            'fixture.xlsx', 'DIST', 11, 'T', 'SETTING IMPEDANSI > Z1', 'abc', '2026-08-21')
+  `).run(relayId, relayFunctionId);
+  const eventId = db.prepare(`
+    INSERT INTO official_event
+      (gi, bay, protections, effective_date, status, source_workbook, source_sheet,
+       source_row, source_hash, observed_at)
+    VALUES ('LONTAR', 'DADAP #1', 'DISTANCE', '2026-08-20', 'True',
+            'official.xlsx', '2026', 5, 'def', '2026-08-21')
+  `).run().lastInsertRowid;
+  db.prepare(`INSERT INTO official_event_line VALUES (?, ?, 'EXACT')`).run(eventId, lineId);
   db.close();
 
   app = createApp(dbPath);
@@ -73,6 +89,9 @@ test('daftar + detail menampilkan provenance, warning, rele, dan setting', async
   assert.match(html, /SEL-411L/);
   assert.match(html, /Z1/);
   assert.match(html, /10 ohm/);
+  assert.match(html, /DIST!11:T/);
+  assert.match(html, /Riwayat official/);
+  assert.match(html, /DISTANCE/);
   assert.doesNotMatch(html, /Belum ada data setting/);
 });
 
