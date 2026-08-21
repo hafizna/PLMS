@@ -45,6 +45,7 @@ from distance_engine import (
     rfpe_z1_from_z2,
     zone2_delay,
 )
+from scanning_reference_loader import ScanningTimers, build_line_id_timer_map
 
 
 STATUS_COMPLETE = "complete"
@@ -175,11 +176,19 @@ class ZoneComputation:
 
 def compute_relay_function_zones(
     conn: sqlite3.Connection, relay_function_id: int,
+    scanning_timers: dict[int, ScanningTimers] | None = None,
 ) -> list[ZoneComputation]:
     """Hitung Z1/Z2/Z3 utk satu relay_function DIST. Mengembalikan list
     ZoneComputation (1 per zona) -- TIDAK menulis ke db, murni baca +
     hitung. Caller (belum ditulis -- bagian loader/CLI terpisah)
     bertanggung jawab INSERT ke calculation_context/calculation_branch.
+
+    scanning_timers: hasil build_line_id_timer_map() (scanning_reference_
+    loader.py), di-build SEKALI oleh caller lalu dipakai berulang --
+    JANGAN dibangun ulang di sini per pemanggilan (184 rele DIST x scan
+    penuh site pairs + CSV akan sangat lambat). None berarti caller
+    belum menyediakan sumber T3 sama sekali (mis. pemanggilan test
+    unit) -- fungsi tetap jalan normal, T3 genuinely tidak tersedia.
     """
     conn.row_factory = sqlite3.Row
     relay_row = conn.execute(
@@ -247,15 +256,19 @@ def compute_relay_function_zones(
     two_hop = build_two_hop_branches(conn, remote_ss_id, exclude_line_id=line_id, one_hop_branches=one_hop)
     # T3 TIDAK dihitung dari grading otomatis (dikonfirmasi Mathcad: 1.6s
     # itu konstanta tetap spesifik 1 kasus [LSI-Millenium], BUKAN rumus
-    # universal). Sumber T3 per-line yang benar ada di helper sheet
-    # "DISTANCE COORDINATION SCANNING" per GI/bay (362 link Google Sheets
-    # di MASTER_PHT kolom AF) -- sedang ditarik terpisah sbg data
-    # referensi (scanning_reference.csv), BELUM diintegrasikan ke
-    # loader ini. Sampai integrasi itu ada, delay_s=None dan status
-    # ambiguous_branch (bukan complete) -- reach (impedansi) tetap valid
-    # dihitung, cuma delay_s yang belum py dasar.
-    z3 = calculate_zone3(line_impedance, one_hop, two_hop, transformer_x, ratio, delay_s=None)
-    z3_status = STATUS_AMBIGUOUS_BRANCH
+    # universal -- data scraping scanning_reference.csv MEMBUKTIKAN T3
+    # genuinely bervariasi per line: 1.6s/1.2s/0.6s/0s). Sumber T3
+    # per-line yang benar ada di scanning_timers (dari
+    # build_line_id_timer_map(), lihat scanning_reference_loader.py) --
+    # cocokkan by protected line_id. Bila tidak ada entry utk line_id
+    # ini (~83% baris CSV berhasil dipetakan, sisanya genuine gap --
+    # lihat docstring scanning_reference_loader.py), delay_s tetap None
+    # dan status ambiguous_branch (bukan complete): reach (impedansi)
+    # tetap valid dihitung terlepas dari T3 diketahui atau tidak.
+    z3_timer = (scanning_timers or {}).get(line_id)
+    z3_delay = z3_timer.z3_time_s if z3_timer is not None else None
+    z3 = calculate_zone3(line_impedance, one_hop, two_hop, transformer_x, ratio, delay_s=z3_delay)
+    z3_status = STATUS_COMPLETE if z3_delay is not None else STATUS_AMBIGUOUS_BRANCH
     z3_trace = (
         [(b.line_id, b.line_id == z3.selected_branch_line_id and not z3.selected_is_two_hop, "") for b in one_hop]
         + [(b.second_hop_line_id, b.second_hop_line_id == z3.selected_branch_line_id and z3.selected_is_two_hop, "")

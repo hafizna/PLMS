@@ -9,7 +9,9 @@ from pathlib import Path
 
 import pytest
 
+import calculation_loader
 from calculation_loader import (
+    STATUS_AMBIGUOUS_BRANCH,
     STATUS_COMPLETE,
     STATUS_INCOMPLETE_EXTERNAL,
     STATUS_INCOMPLETE_TOPOLOGY,
@@ -21,6 +23,7 @@ from calculation_loader import (
     remote_endpoint,
     resolve_line_impedance,
 )
+from scanning_reference_loader import ScanningTimers
 
 ROOT = Path(__file__).resolve().parent
 
@@ -282,3 +285,61 @@ def test_compute_zones_missing_relay_function_returns_incomplete_topology(conn):
     results = compute_relay_function_zones(conn, relay_function_id=999999)
     assert all(r.status == STATUS_INCOMPLETE_TOPOLOGY for r in results)
     assert all(r.result is None for r in results)
+
+
+# ------------------------------------------ integrasi T3 (scanning_reference)
+# Z2/Z3 saat ini SELALU incomplete_topology krn data trafo (XT1) TIDAK
+# ADA sama sekali (keputusan pemilik data: jangan hitung tanpa cap).
+# Test di sini monkeypatch resolve_transformer_reactance() SUPAYA jalur
+# Z3 tereksekusi -- membuktikan wiring scanning_timers->delay_s benar,
+# TERPISAH dari keputusan "no XT1 = incomplete_topology" (yang sudah
+# diuji test_compute_zones_z2_z3_incomplete_topology_without_transformer_
+# data di atas, dan TIDAK diubah oleh integrasi T3 ini).
+
+def test_compute_zones_z3_uses_scanning_timer_when_transformer_data_available(conn, monkeypatch):
+    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda conn, ss_id: 5.85)
+
+    ss_a = _insert_site_ss(conn, "A")
+    ss_b = _insert_site_ss(conn, "B")
+    protected = _insert_line(conn, "A-B", ss_a, ss_b)
+    rf_id = _insert_dist_relay(conn, ss_a, protected)
+
+    scanning_timers = {protected: ScanningTimers(
+        file_id="fake", line_label="LINE 1", z1_time_s=0.0, z2_time_s=0.4, z3_time_s=1.6,
+    )}
+    results = compute_relay_function_zones(conn, rf_id, scanning_timers=scanning_timers)
+    z3 = next(r for r in results if r.zone == "Z3")
+    assert z3.status == STATUS_COMPLETE
+    assert z3.result.delay_s == 1.6
+
+
+def test_compute_zones_z3_stays_ambiguous_when_line_not_in_scanning_timers(conn, monkeypatch):
+    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda conn, ss_id: 5.85)
+
+    ss_a = _insert_site_ss(conn, "A")
+    ss_b = _insert_site_ss(conn, "B")
+    protected = _insert_line(conn, "A-B", ss_a, ss_b)
+    rf_id = _insert_dist_relay(conn, ss_a, protected)
+
+    # scanning_timers TIDAK py entry utk protected line_id ini -- reach
+    # tetap valid dihitung, T3 genuinely tidak tersedia (bukan ditebak).
+    results = compute_relay_function_zones(conn, rf_id, scanning_timers={})
+    z3 = next(r for r in results if r.zone == "Z3")
+    assert z3.status == STATUS_AMBIGUOUS_BRANCH
+    assert z3.result is not None  # reach tetap dihitung
+    assert z3.result.delay_s is None
+
+
+def test_compute_zones_z3_without_scanning_timers_argument_defaults_to_ambiguous(conn, monkeypatch):
+    # scanning_timers=None (default parameter) harus berperilaku sama
+    # persis dgn dict kosong -- tidak boleh crash krn None.
+    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda conn, ss_id: 5.85)
+    ss_a = _insert_site_ss(conn, "A")
+    ss_b = _insert_site_ss(conn, "B")
+    protected = _insert_line(conn, "A-B", ss_a, ss_b)
+    rf_id = _insert_dist_relay(conn, ss_a, protected)
+
+    results = compute_relay_function_zones(conn, rf_id)
+    z3 = next(r for r in results if r.zone == "Z3")
+    assert z3.status == STATUS_AMBIGUOUS_BRANCH
+    assert z3.result.delay_s is None
