@@ -23,6 +23,26 @@ import sys, os, csv, sqlite3, json, datetime, re
 
 from plms_etl import bay_to_gi_lawan, canon
 
+# Alias 'GI lawan' yang muncul di nama bay rele tapi tak exact-match nama
+# node DIgSILENT -- scoped ke resolve_lines() (pencocokan lawan penghantar),
+# BUKAN ditambahkan ke canon() global (yang juga dipakai alias 44 GI seed).
+#
+# Pola domain (dikonfirmasi pemilik data): GI lama kadang TETAP dipanggil
+# nama polos (tanpa 'LAMA') sementara GI baru/sisipan dapat suffix 'BARU'
+# atau 'II' -- lihat 17 pasangan serupa di DIgSILENT (KARET/KARET BARU,
+# GROGOL/GROGOL II, dst). 'MUARAKARANG LAMA' sendiri SUDAH match exact
+# (node DIgSILENT-nya memang 'M. KARANG LAMA', lewat canon()) -- kasus ini
+# beda: node DIgSILENT untuk Karet Lama itu 'KARET' polos, tanpa 'LAMA'.
+# Jangan generalisasi jadi 'strip semua kata LAMA' -- 'KARET BARU' adalah
+# node LAIN, bukan alias 'KARET'.
+OPPONENT_ALIAS = {
+    'KARET LAMA': 'KARET',
+}
+
+
+def resolve_opponent_name(name):
+    return OPPONENT_ALIAS.get(name, name) if name else name
+
 SEED_GI = [
     'ALAM SUTERA','ANGKE','BALARAJA','CENGKARENG','CENGKARENG BARU','CIKUPA',
     'CILEDUG','CITRA HABITAT','CURUG','DAAN MOGOT','DADAP','DURIKOSAMBI',
@@ -337,7 +357,7 @@ def resolve_lines(conn, ss_id, raw_bay, raw_circuit='', allow_multiple=False):
     if not lines:
         return [], 'NO_INCIDENT_LINE'
     bay = str(raw_bay or '')
-    target = bay_to_gi_lawan(bay)
+    target = resolve_opponent_name(bay_to_gi_lawan(bay))
     target_name = normalized_gi(target)[0] if target else None
     if target_name:
         lines = [row for row in lines if normalized_gi(row['other_site'])[0] == target_name]
