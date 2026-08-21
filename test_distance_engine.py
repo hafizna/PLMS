@@ -25,10 +25,15 @@ from distance_engine import (
     CtPtRatio,
     LineImpedance,
     RemoteBranch,
+    TwoHopBranch,
     Zone1Result,
     Zone2Result,
+    Zone3Result,
     calculate_zone1,
     calculate_zone2,
+    calculate_zone3,
+    load_impedance_forward,
+    rfpe_cascade,
     rfpe_z1_from_z2,
     zone2_delay,
 )
@@ -227,3 +232,140 @@ def test_zone2_picks_largest_candidate_among_multiple_branches_regardless_of_ord
     assert result_a.selected_branch_line_id == 2
     assert result_b.selected_branch_line_id == 2
     assert result_a.z_primary_ohm == result_b.z_primary_ohm
+
+
+# ------------------------------------------------------------------ Zone-3
+# Golden case Mathcad: 1-hop via ZL31 (=ZL11, sirkit paralel identik),
+# 2-hop via ZL21+0.8*ZL41 (=ZL11 jg, krn L1=L2=L3=L4). Test edge-case
+# terpisah (first_hop != second_hop) membuktikan TwoHopBranch memakai
+# KEDUA impedansi hop scr benar -- bukan cuma second_hop_impedance
+# (bug yang sempat ada & diperbaiki sebelum commit: rumus Mathcad
+# Z3mak2 = 0.8*(ZL11 + 0.8*(ZL_first_hop + 0.8*ZL_second_hop)*K) py
+# ZL_first_hop TANPA faktor 0.8 di posisi itu, ZL_second_hop DENGAN
+# faktor 0.8 -- keduanya WAJIB beda kontribusi ke hasil).
+
+@pytest.fixture(scope="module")
+def zone3() -> Zone3Result:
+    one_hop = [RemoteBranch(line_id=3, impedance=LSI_MILLENIUM_L1)]  # ZL31 = ZL11
+    two_hop = [TwoHopBranch(
+        first_hop_line_id=2, first_hop_impedance=LSI_MILLENIUM_L1,   # ZL21 = ZL11
+        second_hop_line_id=4, second_hop_impedance=LSI_MILLENIUM_L1,  # ZL41 = ZL11
+    )]
+    return calculate_zone3(LSI_MILLENIUM_L1, one_hop, two_hop, XT1_GI_MILLENIUM, LSI_MILLENIUM_RATIO, delay_s=1.6)
+
+
+def test_zone3_primary_impedance_matches_mathcad(zone3):
+    # Z3P -> 0.28728 + j5.85324 Ohm (primer); |Z3P| = 5.860285684
+    assert zone3.z_primary_ohm.real == pytest.approx(0.28728, rel=1e-4)
+    assert zone3.z_primary_ohm.imag == pytest.approx(5.85324, rel=1e-4)
+    assert abs(zone3.z_primary_ohm) == pytest.approx(5.860285684, rel=1e-4)
+
+
+def test_zone3_secondary_impedance_matches_mathcad(zone3):
+    # Z3S -> 0.38304 + j7.80432 Ohm (sekunder); |Z3S| = 7.813714245
+    assert zone3.z_secondary_ohm.real == pytest.approx(0.38304, rel=1e-4)
+    assert zone3.z_secondary_ohm.imag == pytest.approx(7.80432, rel=1e-4)
+    assert abs(zone3.z_secondary_ohm) == pytest.approx(7.813714245, rel=1e-4)
+
+
+def test_zone3_ground_fault_reach_matches_mathcad(zone3):
+    # Z30P -> 1.42128 + j10.07172 Ohm (primer)
+    assert zone3.z0_primary_ohm.real == pytest.approx(1.42128, rel=1e-4)
+    assert zone3.z0_primary_ohm.imag == pytest.approx(10.07172, rel=1e-4)
+
+
+def test_zone3_rfpp_matches_mathcad(zone3):
+    assert zone3.rfpp_primary_ohm == pytest.approx(12.291804, rel=1e-4)
+    assert zone3.rfpp_secondary_ohm == pytest.approx(16.389072, rel=1e-4)
+
+
+def test_zone3_reach_percent_matches_mathcad(zone3):
+    # Z3% := (|Z3P|/|ZL11|)*100 -> 220.238% (overreach besar krn
+    # mencakup 1-2 saluran remote, normal utk Zone-3 backup).
+    assert zone3.reach_percent == pytest.approx(220.238, rel=1e-3)
+
+
+def test_zone3_delay_is_fixed_not_computed():
+    # T3 = 1.6s -- konstanta TETAP dari Mathcad ("Setting waktu tunda
+    # untuk Zone-3 ditentukan 1.6 detik"), BUKAN hasil kalkulasi
+    # grading otomatis spt T2. Fungsi wajib menerima delay_s eksplisit
+    # dari pemanggil, tidak boleh py default hardcoded 1.6s universal
+    # (itu spesifik 1 kasus, bukan konstanta rumus).
+    one_hop = [RemoteBranch(line_id=3, impedance=LSI_MILLENIUM_L1)]
+    result = calculate_zone3(LSI_MILLENIUM_L1, one_hop, [], XT1_GI_MILLENIUM, LSI_MILLENIUM_RATIO, delay_s=1.6)
+    assert result.delay_s == 1.6
+    result2 = calculate_zone3(LSI_MILLENIUM_L1, one_hop, [], XT1_GI_MILLENIUM, LSI_MILLENIUM_RATIO, delay_s=2.0)
+    assert result2.delay_s == 2.0
+
+
+def test_zone3_two_hop_uses_first_hop_impedance_not_just_second_hop():
+    # Regresi kritis: Z3mak2 = 0.8*(ZL11 + 0.8*(ZL_first + 0.8*ZL_second)*K)
+    # -- ZL_first TANPA faktor 0.8 tambahan di posisi itu (cuma dijumlah
+    # langsung), ZL_second DENGAN faktor 0.8. Menukar first_hop_impedance
+    # dgn impedansi lain (second_hop tetap sama) HARUS mengubah hasil --
+    # kalau tidak berubah, berarti first_hop_impedance diam-diam
+    # diabaikan (bug yg sempat terjadi: TwoHopBranch awal cuma
+    # menyimpan second_hop_impedance).
+    big_line = LSI_MILLENIUM_L1
+    tiny_line = LineImpedance(r1_ohm=0.001, x1_ohm=0.001, r0_ohm=0.001, x0_ohm=0.001)
+    huge_xt1 = 1000.0  # trafo besar spy tdk ada cap yg menutupi efeknya
+
+    two_hop_big_first = [TwoHopBranch(
+        first_hop_line_id=2, first_hop_impedance=big_line,
+        second_hop_line_id=4, second_hop_impedance=tiny_line,
+    )]
+    two_hop_tiny_first = [TwoHopBranch(
+        first_hop_line_id=2, first_hop_impedance=tiny_line,
+        second_hop_line_id=4, second_hop_impedance=big_line,
+    )]
+    result_big_first = calculate_zone3(LSI_MILLENIUM_L1, [], two_hop_big_first, huge_xt1, LSI_MILLENIUM_RATIO, delay_s=1.6)
+    result_tiny_first = calculate_zone3(LSI_MILLENIUM_L1, [], two_hop_tiny_first, huge_xt1, LSI_MILLENIUM_RATIO, delay_s=1.6)
+    assert result_big_first.z_primary_ohm != result_tiny_first.z_primary_ohm
+
+
+def test_zone3_falls_back_to_transformer_cap_when_no_branches_at_all():
+    result = calculate_zone3(LSI_MILLENIUM_L1, [], [], XT1_GI_MILLENIUM, LSI_MILLENIUM_RATIO, delay_s=1.6)
+    assert result.capped_by_transformer is True
+    assert result.selected_branch_line_id is None
+    ztrf = 0.8 * (LSI_MILLENIUM_L1.z1 + complex(0, 0.8 * XT1_GI_MILLENIUM))
+    assert result.z_primary_ohm == pytest.approx(ztrf, rel=1e-9)
+
+
+def test_zone3_picks_two_hop_when_it_exceeds_one_hop_candidates():
+    # Kandidat 2-hop harus bisa MENANG dibanding 1-hop bila magnitudonya
+    # lebih besar -- traversal tidak boleh berhenti di 1-hop begitu ada
+    # kandidat (harus bandingkan semua, sesuai larangan next-line
+    # hardcoded).
+    small_branch = LineImpedance(r1_ohm=0.01, x1_ohm=0.05, r0_ohm=0.05, x0_ohm=0.2)
+    one_hop = [RemoteBranch(line_id=3, impedance=small_branch)]
+    two_hop = [TwoHopBranch(
+        first_hop_line_id=2, first_hop_impedance=LSI_MILLENIUM_L1,
+        second_hop_line_id=4, second_hop_impedance=LSI_MILLENIUM_L1,
+    )]
+    result = calculate_zone3(LSI_MILLENIUM_L1, one_hop, two_hop, XT1_GI_MILLENIUM, LSI_MILLENIUM_RATIO, delay_s=1.6)
+    assert result.selected_is_two_hop is True
+    assert result.selected_branch_line_id == 4
+
+
+# ------------------------------------------------------------ RFPE cascade
+
+def test_load_impedance_forward_matches_mathcad():
+    # Vn=150000V, CCC=2730A, pf=0.8, margin=0.95 -> RLdFw=32.623626374 Ohm
+    rldfw = load_impedance_forward(
+        nominal_voltage_v=150000, conductor_rated_current_a=2730,
+        load_power_factor=0.8, voltage_margin_fraction=0.95,
+    )
+    assert rldfw == pytest.approx(32.623626374, rel=1e-4)
+
+
+def test_rfpe_cascade_grades_top_down_from_load_impedance():
+    # RFPEZ3P := 0.9*RLdFw; RFPEZ2P := 0.7*RFPEZ3P; RFPEZ1P := 0.7*RFPEZ2P
+    # Referensi Mathcad: RLdFw=32.623626374 -> Z3=29.361264, Z2=20.55288462,
+    # Z1=14.38701923.
+    rldfw = 32.623626374
+    rfpe_z3p, rfpe_z2p, rfpe_z1p = rfpe_cascade(rldfw)
+    assert rfpe_z3p == pytest.approx(29.361264, rel=1e-4)
+    assert rfpe_z2p == pytest.approx(20.55288462, rel=1e-4)
+    assert rfpe_z1p == pytest.approx(14.38701923, rel=1e-4)
+    # Konsisten dgn rfpe_z1_from_z2() yg dipakai terpisah di modul Z1.
+    assert rfpe_z1p == pytest.approx(rfpe_z1_from_z2(rfpe_z2p), rel=1e-9)
