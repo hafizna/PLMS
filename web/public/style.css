@@ -46,3 +46,32 @@ td small, li small { color: var(--muted); }
 .source-upt_manual { color: #a60; font-weight: 600; }
 
 section { margin: 1.5rem 0; }
+
+.setting-group { margin: 1.25rem 0; }
+.setting-group h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  font-size: 1rem;
+}
+table.settings th, table.settings td { white-space: nowrap; }
+table.settings td { font-variant-numeric: tabular-nums; }
+table.settings th:first-child, table.settings td:first-child { white-space: normal; }
+
+/* coordination_class: GRADED masuk mesin koordinasi (butuh grading
+   hulu/hilir), UNIT/AUXILIARY tidak (zona tertutup / logika-waktu),
+   REVIEW belum diklasifikasi -- lihat PLMS_Rebuild_Prompt_v2.md */
+.class-tag {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.class-graded { background: #1a5fb433; color: #1a5fb4; }
+.class-unit { background: #61616133; color: #616161; }
+.class-auxiliary { background: #61616122; color: var(--muted); }
+.class-review { background: #c0392b33; color: #c0392b; }

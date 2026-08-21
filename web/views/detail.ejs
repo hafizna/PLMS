@@ -111,23 +111,42 @@
       <% if (currentSettings.length === 0) { %>
         <p class="empty">Belum ada setting yang dapat dikaitkan secara exact ke ruas ini; gap link tetap ada di review queue v2.</p>
       <% } else { %>
-        <div class="table-scroll"><table class="mini settings">
-          <thead><tr><th>GI / bay</th><th>Rele</th><th>Kelas</th><th>Grup</th><th>Parameter</th><th>Nilai</th><th>Berlaku</th><th>Provenance</th></tr></thead>
-          <tbody>
-          <% currentSettings.forEach(s => { %>
-            <tr>
-              <td><%= s.substation_name %><%= s.bay ? ' / ' + s.bay : '' %></td>
-              <td><%= s.function_type || '—' %> &middot; <%= [s.manufacturer, s.model].filter(Boolean).join(' ') || '—' %></td>
-              <td><%= s.coordination_class %></td>
-              <td><%= s.setting_group || '—' %></td>
-              <td><%= s.parameter_name || '—' %></td>
-              <td><%= s.parameter_value ?? '—' %><%= s.unit ? ' ' + s.unit : '' %></td>
-              <td><%= s.effective_date || '—' %></td>
-              <td><%= s.source_sheet %>!<%= s.source_row %>:<%= s.source_column %><br><small><%= s.source_header %><% if (s.source_doc) { %> &middot; <%= s.source_doc %><% } %></small></td>
-            </tr>
-          <% }) %>
-          </tbody>
-        </table></div>
+        <% currentSettings.forEach(group => { %>
+          <div class="setting-group">
+            <h3>
+              <%= group.functionType %>
+              <span class="class-tag class-<%= (group.coordinationClass || '').toLowerCase() %>"><%= group.coordinationClass || '—' %></span>
+            </h3>
+            <div class="table-scroll"><table class="mini settings">
+              <thead>
+                <tr>
+                  <th>GI / bay</th>
+                  <th>Merk / tipe</th>
+                  <th>Grup</th>
+                  <% group.columnLabels.forEach(label => { %><th><%= label %></th><% }) %>
+                  <th>Berlaku</th>
+                </tr>
+              </thead>
+              <tbody>
+              <% group.rows.forEach(row => { %>
+                <tr>
+                  <td><%= row.substation_name %><%= row.bay ? ' / ' + row.bay : '' %></td>
+                  <td><%= [row.manufacturer, row.model].filter(Boolean).join(' ') || '—' %></td>
+                  <td><%= row.setting_group || '—' %></td>
+                  <% group.columnLabels.forEach(label => {
+                       const cell = row.cellsByLabel[label];
+                  %>
+                    <td<% if (cell) { %> title="<%= cell.provenance %>"<% } %>>
+                      <%= cell ? (cell.value ?? '—') + (cell.unit ? ' ' + cell.unit : '') : '—' %>
+                    </td>
+                  <% }) %>
+                  <td><%= row.effective_date || '—' %></td>
+                </tr>
+              <% }) %>
+              </tbody>
+            </table></div>
+          </div>
+        <% }) %>
       <% } %>
     </section>
 

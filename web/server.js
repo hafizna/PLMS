@@ -22,6 +22,83 @@ const substationLabel = `
   CASE WHEN sub.voltage_kv IS NOT NULL THEN CAST(sub.voltage_kv AS INTEGER) || 'kV' ELSE 'kV tdk diketahui' END
   || ')'`;
 
+// Pivot setting: sumbernya key-value panjang (1 baris = 1 parameter),
+// tapi dibaca insinyur sbg tabel (1 baris = 1 rele, kolom = parameter) --
+// sama seperti spreadsheet Mathcad/scanning yang jadi acuan mereka.
+// parameter_name berpola path 'KATEGORI > ... > label' (1-4 level
+// tergantung fungsi rele) -- level pertama jadi header grup kolom,
+// sisanya digabung jadi label kolom (mis. 'Z1 ph-gnd', 't1'). Fungsi
+// murni (tanpa akses db) supaya bisa diuji langsung tanpa fixture DB.
+function pivotSettings(rows) {
+  const groups = new Map(); // key: relay_id|function_type|setting_group
+  for (const row of rows) {
+    const key = `${row.relay_id}|${row.function_type}|${row.setting_group}`;
+    if (!groups.has(key)) {
+      groups.set(key, {
+        relay_id: row.relay_id,
+        substation_name: row.substation_name,
+        bay: row.bay,
+        function_type: row.function_type,
+        coordination_class: row.coordination_class,
+        manufacturer: row.manufacturer,
+        model: row.model,
+        setting_group: row.setting_group,
+        effective_date: row.effective_date,
+        columns: [], // [{label, value, unit}] in encounter order
+      });
+    }
+    // Separator path adalah ' > ' (spasi di kedua sisi) -- BUKAN '>'
+    // polos, yang juga muncul sbg bagian label itu sendiri utk beberapa
+    // parameter arus-lebih (mis. 'I>1', 'I>2': ambang OCR tingkat 1/2,
+    // bukan path 2 level 'I' > '1').
+    const parts = (row.parameter_name || '').split(' > ').map(s => s.trim());
+    const category = parts.length > 1 ? parts[0] : null;
+    const label = parts.length > 1 ? parts.slice(1).join(' ') : parts[0] || row.parameter_name;
+    groups.get(key).columns.push({
+      category, label,
+      value: row.parameter_value,
+      unit: row.unit,
+      provenance: `${row.source_sheet || '?'}!${row.source_row ?? '?'}:${row.source_column || '?'}`,
+    });
+  }
+  return Array.from(groups.values());
+}
+
+// Kelompokkan baris ter-pivot per function_type, supaya tiap fungsi rele
+// (DIST, LCD, OCR_GFR, ...) dapat sub-tabel sendiri dgn skema kolom yang
+// konsisten -- menghindari satu tabel raksasa dgn banyak sel kosong dari
+// union semua kolom fungsi yang tidak nyambung.
+function groupSettingsByFunction(pivoted) {
+  const byFunction = new Map();
+  for (const group of pivoted) {
+    const key = group.function_type || '(tanpa fungsi)';
+    if (!byFunction.has(key)) byFunction.set(key, []);
+    byFunction.get(key).push(group);
+  }
+  // Kolom union dalam urutan encounter, per function_type -- baris yang
+  // tidak punya kolom tsb tampil '—' (bukan digeser/salah kolom).
+  const result = [];
+  for (const [functionType, groups] of byFunction) {
+    const columnLabels = [];
+    const seen = new Set();
+    for (const g of groups) {
+      for (const c of g.columns) {
+        if (!seen.has(c.label)) { seen.add(c.label); columnLabels.push(c.label); }
+      }
+    }
+    result.push({
+      functionType,
+      coordinationClass: groups[0].coordination_class,
+      columnLabels,
+      rows: groups.map(g => ({
+        ...g,
+        cellsByLabel: Object.fromEntries(g.columns.map(c => [c.label, c])),
+      })),
+    });
+  }
+  return result;
+}
+
 function createApp(dbPath = DEFAULT_DB_PATH) {
   const db = new Database(dbPath, { readonly: true, fileMustExist: true });
   const app = express();
@@ -106,7 +183,7 @@ function getRelays(ssId, lineId) {
   `).all(ssId, lineId);
 }
 
-function getCurrentSettings(lineId) {
+function getCurrentSettingsFlat(lineId) {
   return db.prepare(`
     SELECT rs.*, rf.function_type, rf.coordination_class, r.manufacturer, r.model,
       s.site_name AS substation_name, r.bay
@@ -118,6 +195,10 @@ function getCurrentSettings(lineId) {
     WHERE r.line_id = ? AND rs.is_current = 1
     ORDER BY s.site_name, rf.function_type, rs.setting_group, rs.parameter_name
   `).all(lineId);
+}
+
+function getCurrentSettings(lineId) {
+  return groupSettingsByFunction(pivotSettings(getCurrentSettingsFlat(lineId)));
 }
 
 function getOfficialHistory(lineId) {
@@ -183,4 +264,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { createApp };
+module.exports = { createApp, pivotSettings, groupSettingsByFunction };
