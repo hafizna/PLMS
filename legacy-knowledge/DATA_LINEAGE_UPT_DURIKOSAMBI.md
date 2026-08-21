@@ -45,11 +45,16 @@ Durikosambi.
 ## Semantik setting
 
 - **Tap Setting** adalah dokumen hasil perhitungan setting terakhir yang
-  terdokumentasi dari UPT atau UIT. Nilai ini menjadi engineering reference.
+  terdokumentasi. Setting awal/baseline diterbitkan oleh UIT sebagai issuer utama;
+  UPT berwenang memodifikasinya sesuai kebutuhan lapangan. Modifikasi UPT menjadi
+  engineering reference efektif bila provenance, alasan teknis, pelaksana, bukti,
+  dan waktu berlakunya terdokumentasi sesuai proses yang berlaku.
 - **Setting Relay** adalah nilai terakhir yang dimasukkan manual berdasarkan
   nilai yang terpasang pada relay. Bulk input per relay belum tersedia.
-- Perbedaan nilai dicatat sebagai **mismatch**. Governance perubahan setting
-  dibahas setelah fondasi data stabil.
+- Perbedaan numerik tetap dicatat sebagai **mismatch**, tetapi mismatch bukan
+  otomatis kesalahan atau perubahan tanpa otorisasi. Pada governance berikutnya,
+  klasifikasikan sebagai modifikasi lapangan UPT yang sah, perubahan belum
+  diterapkan, referensi yang belum direkonsiliasi, atau deviasi yang perlu ditinjau.
 - Nilai kosong selalu berarti **belum diinput**, bukan nol dan bukan default.
 
 Hasil comparison saat ini: 1.729 match, 1.176 mismatch, 62 nilai Setting Relay

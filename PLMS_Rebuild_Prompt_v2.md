@@ -418,10 +418,10 @@ alasan melakukan fuzzy merge.
 | **v3a** | Engine koordinasi distance + calculation context forward/reverse berbasis impedansi | Cocok dengan Mathcad untuk ≥10 kasus uji; graph putus tertandai eksplisit |
 | **v3b** | OCR/GFR grading dalam batas transmisi — penghantar 150 kV → incoming trafo | Rantai terbentuk; yang putus di bawah incoming tertandai `incomplete_external` |
 | **v4** | SLD sebagai validasi visual | Selisih DB vs gambar tertandai otomatis |
-| **v5** | Governance domain proteksi: case, revisi, approval, audit untuk setting | Hanya bila v1–v3 dipakai rutin; satu lifecycle setting teruji di scope PLMS tanpa integrasi enterprise |
+| **v5** | Governance domain proteksi: case, revisi, kewenangan/approval sesuai jenis perubahan, notifikasi, dan audit setting | Hanya bila v1–v3 dipakai rutin; satu lifecycle setting teruji di scope PLMS tanpa integrasi enterprise |
 | **v6** | Perluasan konteks governance v5: relasi rele ↔ Defence Scheme P2B | Prasyarat: mapping DS ≥80% terisi dan kepemilikan data disepakati; tidak membuat approval engine kedua |
 | **v7a** | Perluasan governance v5 lintas UPT–UIT–UIP2B/NMM: federated authority dan kontrak data | Matriks otoritas dan RACI disahkan; lifecycle/status v5 dipakai ulang; ID aset/topologi dapat dicrosswalk; waktu berlaku, bukti, serta skema change-event disepakati |
-| **v7b** | Implementasi closed-loop publishing di atas governance v5: kondisi as-built dan setting → model steward/NMM → DIgSILENT serta consumer lain | Pilot perubahan nyata melewati propose–validate–approve–publish–reconcile dalam workflow yang sama tanpa entry ulang; versi, diff, rollback, dan SLA teruji |
+| **v7b** | Implementasi closed-loop publishing di atas governance v5: kondisi as-built dan setting → model steward/NMM → DIgSILENT serta consumer lain | Pilot perubahan nyata melewati issue/apply–record–notify/coordinate–publish–reconcile sesuai jenis kewenangannya tanpa entry ulang; versi, diff, rollback, dan SLA teruji |
 | **v8** | Validasi model otomatis dan perluasan enterprise | Hanya setelah antarmuka NMM terbukti; drift lapangan–model terdeteksi dan ditindaklanjuti terukur |
 
 **Aturan tangga:** jangan naik sebelum tahap sebelumnya benar-benar **dipakai**, bukan sekadar selesai dikoding. Gerbang v1 → v2 sudah terpenuhi melalui pemakaian langsung; syarat pemakaian rutin tetap berlaku sebelum governance v5. Repo lama gagal karena melompat ke v5. Setiap versi mewarisi lifecycle, identitas, provenance, dan audit versi sebelumnya; dilarang membuat jalur approval paralel per integrasi.
@@ -444,8 +444,9 @@ scope tersendiri dengan acceptance target baru.
 
 ## Arah v7 — perluasan governance v5, bukan governance baru
 
-V5 membangun primitives satu kali: `case`, revision, status transition, approval,
-evidence, dan immutable audit. V6 dan v7 **memperluas aktor, objek, serta handoff**
+V5 membangun primitives satu kali: `case`, revision, status transition, authority,
+approval bila dipersyaratkan, notification, evidence, dan immutable audit. V6 dan
+v7 **memperluas aktor, objek, serta handoff**
 di atas primitives yang sama. Tidak ada `NMM approval`, `DS approval`, atau workflow
 lain yang berdiri paralel. Bila sistem eksternal memiliki approval resminya sendiri,
 PLMS menyimpan reference dan status sinkronisasinya, bukan menduplikasi keputusan.
@@ -469,8 +470,9 @@ baseline model yang telah dipublikasikan, bukan tempat setiap unit menulis langs
 | Domain data | Otoritas yang diusulkan | Peran PLMS |
 |---|---|---|
 | Kondisi fisik/as-built: konduktor, bay, CT/PT, IED, serial, firmware, hasil commissioning | UPT/ULTG sebagai penghasil dan pemilik bukti lapangan; validasi induk sesuai kewenangan | Register bukti, histori, dan delta |
-| Tap setting/perhitungan yang disetujui | UIT/induk fungsi proteksi | Simpan paket perhitungan, approval, versi, dan waktu berlaku |
-| Setting terpasang/as-left | UPT/ULTG | Rekam pembacaan aktual dan bandingkan dengan tap setting yang disetujui |
+| Setting awal/baseline dan perhitungan pertama | UIT/induk fungsi proteksi sebagai issuer utama | Simpan paket perhitungan, penerbit, versi, dan waktu berlaku |
+| Modifikasi setting karena kebutuhan lapangan | UPT/ULTG berwenang mengubah sesuai kebutuhan lapangan dan batas SOP yang berlaku | Rekam alasan teknis, pelaksana, bukti, waktu efektif, serta status notifikasi/rekonsiliasi; jangan otomatis klasifikasikan sebagai deviasi |
+| Setting terpasang/as-left | UPT/ULTG | Rekam pembacaan aktual dan bandingkan dengan setting efektif terakhir, sambil tetap menampilkan baseline UIT |
 | Koordinasi lintas batas, kriteria operasi, Defence Scheme, dan dampak ke sistem | UIP2B/P2B | Menyediakan konteks serta status persetujuan; bukan menggantikannya |
 | Baseline model jaringan operasional dan publikasi ke consumer | Model steward/NMM — **belum boleh diasumsikan; konfirmasi v7a** | Ajukan delta dan rekonsiliasi hasil publish |
 | Model studi DIgSILENT | Turunan berversi dari baseline yang disahkan, ditambah study case | Tautkan setiap hasil/setting ke `model_version` |
@@ -480,26 +482,34 @@ satu nilai efektif yang dapat ditemukan untuk setiap atribut, tetapi pembuat,
 validator, dan pemberi persetujuan dapat berbeda. Setiap nilai wajib memiliki
 `source`, `owner`, `status`, `recorded_at`, `valid_from`, `valid_to`, bukti, dan
 riwayat koreksi. Data rencana tidak boleh menimpa kondisi aktual; minimal pisahkan
-state `planned`, `approved_for_commissioning`, `as_built`, `operational`, dan
-`superseded`.
+state `planned`, `issued_initial`, `modified_in_field`, `effective`, `as_built`,
+`operational`, dan `superseded`. Status otorisasi perubahan dan status sinkronisasi
+ke UIT/NMM adalah dua hal berbeda; setting dapat sah berlaku di lapangan tetapi
+belum direkonsiliasi ke consumer data.
 
 ### Closed loop perubahan yang dituju
 
 ```text
 perencanaan/desain
-  → model dan tap setting usulan
-  → validasi/approval UIT serta koordinasi UIP2B bila berdampak sistem
+  → model dan perhitungan setting usulan
+  → UIT menerbitkan setting awal/baseline
   → commissioning dan pencatatan as-left oleh UPT
-  → pemeriksaan deviasi approved vs installed
+  → bila diperlukan di lapangan, UPT memodifikasi setting sesuai kewenangannya
+  → catat alasan, bukti, pelaksana, dan waktu efektif perubahan UPT
+  → notifikasi/rekonsiliasi ke UIT dan koordinasi UIP2B bila dipersyaratkan/berdampak sistem
+  → pemeriksaan baseline UIT vs setting efektif vs nilai installed/as-left
   → publish baseline model oleh model steward/NMM
   → ekspor berversi ke DIgSILENT/EMS/consumer
   → rekonsiliasi dan penutupan change-event
 ```
 
-Unit tidak menulis langsung ke production model. Unit mengirim change-event dan
-bukti; validator memeriksa domainnya; model steward mempublikasikan baseline baru.
-Perubahan darurat boleh masuk sebagai `provisional`, tetapi tetap membutuhkan
-rekonsiliasi dan approval retrospektif. Target waktunya ditetapkan sebagai SLA
+Kewenangan UPT memodifikasi setting pada perangkat **tidak sama** dengan kewenangan
+menulis langsung ke production network model. UPT dapat menerapkan perubahan setting
+sesuai kebutuhan lapangan, lalu mengirim change-event dan bukti agar setting efektif,
+dokumen UIT, serta model consumer tetap terekonsiliasi. Approval retrospektif tidak
+boleh diwajibkan oleh aplikasi kecuali SOP memang mewajibkannya; yang selalu wajib
+adalah provenance, waktu efektif, dan status notifikasi/rekonsiliasi. Model steward
+tetap mempublikasikan baseline model baru. Target waktunya ditetapkan sebagai SLA
 organisasi pada v7a, bukan di-hardcode oleh aplikasi.
 
 ### Landasan arah — bukan pengganti SOP internal
@@ -525,8 +535,9 @@ Sebelum membuat connector atau menambah tabel integrasi, jawab dan dokumentasika
    perubahan, atau kombinasi? Siapa owner dan model steward-nya?
 2. Siapa pemegang master DIgSILENT sekarang, bagaimana cadence pembaruannya, dan
    model mana yang dipakai untuk perencanaan, operasi, serta kajian setting?
-3. Apa rantai formal tap setting dari UPT/ULTG, UIT, sampai UIP2B/P2B; kasus mana
-   yang wajib koordinasi sistem dan mana yang cukup disetujui induk?
+3. Bagaimana alur UIT menerbitkan setting awal, sejauh apa batas kewenangan UPT
+   memodifikasi setting, dan perubahan mana yang wajib dinotifikasikan,
+   direkonsiliasi, atau dikoordinasikan kembali dengan UIT/UIP2B/P2B?
 4. Dokumen/event apa yang memicu perubahan: energize, commissioning, uprating,
    reconductoring, penggantian CT/PT/IED, revisi setting, atau koreksi data?
 5. Interface yang tersedia apa: API, event, export file, IEC CIM, atau proses
