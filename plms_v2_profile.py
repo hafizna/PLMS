@@ -363,6 +363,34 @@ def protection_tokens(raw: str) -> list[str]:
     return [token.strip() for token in re.split(r"\s*[,;/&+]\s*", norm(raw)) if token.strip()]
 
 
+# Sheet CBF/SZP/CCP mencatat bay CBF sbg nama PENGHANTAR yang dilindungi
+# (mis. 'PHT 500KV LENGKONG', 'IBT'), sementara CBF&CCP mencatat POSISI
+# FISIK breaker-nya ('CUT-OFF 1 DIAMETER 4', 'PMT 5B2') -- dua konvensi
+# label utk breaker/IED yang SAMA, bukan konflik data. Diverifikasi 30/40
+# kasus IDENTITY_METADATA_CONFLICT awal persis pola ini (serial cocok
+# 1:1, source sheet selalu subset {CBF,SZP,CCP,CBF&CCP}) -- lihat commit
+# message. Field lain (manufacturer/model/gi/serial_no) TETAP dibanding
+# spt biasa; hanya 'bay' yang dikecualikan, dan HANYA kalau field lain
+# tidak py konflik sendiri (mis. 1 kasus py manufacturer+model beda
+# beneran, ALSTOM/P821 vs AREVA/P841 -- itu tetap harus masuk review).
+_DIAMETER_LABEL_SHEETS = {"CBF", "SZP", "CCP", "CBF&CCP"}
+
+
+def _bay_conflict_is_diameter_labeling(group: list[dict[str, Any]]) -> bool:
+    sheets = {row["source_sheet"] for row in group}
+    return bool(sheets) and sheets <= _DIAMETER_LABEL_SHEETS and "CBF&CCP" in sheets
+
+
+# Sheet CBF&CCP kadang mencantumkan brand-family Siemens ('SIPROTEC') di
+# depan nomor model (mis. 'SIPROTEC 7VK61'), sheet CBF/SZP/CCP hanya
+# nomor model polos ('7VK61') -- model FISIK sama, cuma penulisan beda.
+_MODEL_BRAND_PREFIX = re.compile(r"^SIPROTEC\s+", re.I)
+
+
+def _norm_model_for_compare(value: str) -> str:
+    return _MODEL_BRAND_PREFIX.sub("", norm(value))
+
+
 def overlap_rows(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
     groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in candidates:
@@ -375,7 +403,16 @@ def overlap_rows(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
             continue
         conflicts = []
         for field in ("gi", "bay", "manufacturer", "model", "serial_no"):
-            values = sorted({norm(row.get(field)) for row in group if meaningful(row.get(field))})
+            if field == "bay":
+                raw_values = {row.get(field) for row in group if meaningful(row.get(field))}
+                values = sorted({norm(v) for v in raw_values})
+                if len(values) > 1 and _bay_conflict_is_diameter_labeling(group):
+                    continue
+            elif field == "model":
+                values = sorted({_norm_model_for_compare(row.get(field)) for row in group
+                                  if meaningful(row.get(field))})
+            else:
+                values = sorted({norm(row.get(field)) for row in group if meaningful(row.get(field))})
             if len(values) > 1:
                 conflicts.append(f'{field}={" <> ".join(values)}')
         output.append({

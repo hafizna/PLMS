@@ -10,6 +10,7 @@ from plms_v2_profile import (
     UPT_SHEETS,
     identity_for,
     norm_serial,
+    overlap_rows,
     profile,
     protection_tokens,
 )
@@ -56,6 +57,67 @@ def test_missing_serial_uses_exact_non_fuzzy_fallback():
 
 def test_official_protection_tokenization_is_transparent():
     assert protection_tokens("DIFF, REF / OCR & SBEF") == ["DIFF", "REF", "OCR", "SBEF"]
+
+
+# ---------------------------------------------------------- overlap_rows
+# Sheet CBF/SZP/CCP mencatat bay CBF sbg nama penghantar yang dilindungi
+# ('PHT 500KV LENGKONG'), sheet CBF&CCP mencatat posisi fisik breaker
+# ('CUT-OFF 1 DIAMETER 4', 'PMT 5B2') -- konvensi label beda utk breaker
+# fisik yang SAMA, bukan konflik data. Terbukti thd workbook nyata: 30/40
+# IDENTITY_METADATA_CONFLICT awal persis pola ini (serial cocok 1:1).
+# CBF&CCP jg kadang menulis brand-family Siemens ('SIPROTEC 7VK61')
+# sementara sheet lain cuma nomor model ('7VK61') -- model fisik sama.
+
+def _candidate(sheet, slot, ftype, gi, bay, mfr, model, serial):
+    return dict(identity_key=f"SERIAL|{serial}", identity_confidence="HIGH",
+                source_sheet=sheet, device_slot=slot, source_row=1, function_type=ftype,
+                gi=gi, bay=bay, manufacturer=mfr, model=model, serial_no=serial)
+
+
+def test_overlap_rows_bay_diameter_labeling_is_not_a_conflict():
+    group = [
+        _candidate("CBF", "CBF", "CBF", "GITET 500KV BALARAJA", "PHT 500KV LENGKONG", "NR", "RCS-921", "X1"),
+        _candidate("CBF&CCP", "CBF_1", "CBF", "GITET 500KV Balaraja", "CUT-OFF 1 DIAMETER 3", "NR", "RCS-921", "X1"),
+    ]
+    [row] = overlap_rows(group)
+    assert row["metadata_conflict"] == "NO"
+    assert row["review_action"] == "LINK_EXACT"
+
+
+def test_overlap_rows_siprotec_model_prefix_is_not_a_conflict():
+    group = [
+        _candidate("CBF", "CBF", "CBF", "GITET 500KV BALARAJA", "IBT", "Siemens", "7VK61", "X2"),
+        _candidate("CBF&CCP", "CBF_1", "CBF", "GITET 500KV Balaraja", "Diameter 5", "Siemens", "Siprotec 7VK61", "X2"),
+    ]
+    [row] = overlap_rows(group)
+    assert row["metadata_conflict"] == "NO"
+
+
+def test_overlap_rows_genuine_manufacturer_model_conflict_still_flagged():
+    # Serial sama tapi manufacturer DAN model beneran beda (ALSTOM/P821 vs
+    # AREVA/P841) -- bukan sekadar label bay, harus tetap masuk review,
+    # tidak boleh ikut lolos hanya krn salah satu sheetnya CBF&CCP.
+    group = [
+        _candidate("SZP", "SZP", "SZP", "GITET 500KV BALARAJA", "IBT", "Areva", "MiCom P821", "X3"),
+        _candidate("CBF&CCP", "CBF_1", "CBF", "GITET 500KV Balaraja", "Diameter 6", "Alstom", "MiCom P841", "X3"),
+    ]
+    [row] = overlap_rows(group)
+    assert row["metadata_conflict"] == "YES"
+    assert "manufacturer=ALSTOM <> AREVA" in row["conflict_detail"]
+    assert "model=MICOM P821 <> MICOM P841" in row["conflict_detail"]
+
+
+def test_overlap_rows_bay_conflict_outside_diameter_sheets_still_flagged():
+    # Dua bay beda GI sama sekali (CIKUPA vs MAXIMANGANDO), sumbernya
+    # DIST/AR (bukan CBF&CCP) -- pola diameter-labeling TIDAK berlaku di
+    # sini, harus tetap masuk review (kemungkinan typo/copy-paste sumber).
+    group = [
+        _candidate("DIST", "DIST", "DIST", "GI 150kV JATAKE", "PHT 150KV CIKUPA#1", "Alstom", "MICOM P442", "X4"),
+        _candidate("AR", "AR", "AR", "GI 150kV JATAKE", "PHT 150KV MAXIMANGANDO#1", "Alstom", "MiCom P442", "X4"),
+    ]
+    [row] = overlap_rows(group)
+    assert row["metadata_conflict"] == "YES"
+    assert "bay=" in row["conflict_detail"]
 
 
 @pytest.fixture(scope="module")
