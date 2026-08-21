@@ -575,6 +575,54 @@ Semua bahan perhitungan setting ternyata sudah tersedia di sheet `DB`:
 
 Yang belum ada hanya logika perhitungannya sendiri — dan itu ada di Mathcad milikmu. Sheet `CALCULATION` di file DIgSILENT bahkan sudah memuat konfigurasi cabang L1–L4 untuk model infeed Z3. Pada v3a konfigurasi itu menjadi golden test untuk traversal seluruh cabang remote-bus, reach Z3, dan arah reverse; jangan menyederhanakannya menjadi satu next-line hardcoded.
 
+### Update implementasi v3a (22 Agustus 2026) — 1 baris tabel di atas ternyata tidak lengkap
+
+Rumus Z1/Z2/Z3 + RFPP/RFPE sudah diimplementasikan (`distance_engine.py`)
+dan diverifikasi persis terhadap file Mathcad nyata (kasus LINE 150kV
+LSI–Millenium). Traversal graph 1-hop/2-hop dari topologi `line`
+(`calculation_loader.py`) sudah jalan terhadap seluruh 184 rele DIST, dan
+T1/T2/T3 per-line berhasil ditarik dari 88 helper sheet "DISTANCE
+COORDINATION SCANNING" (`scanning_reference_loader.py`, 51 line
+terpetakan) — membuktikan T3 **genuinely bervariasi** per line (1.6s,
+1.2s, 0.6s, 0s), bukan konstanta universal seperti kesan awal dari 1
+kasus Mathcad.
+
+**BLOCKER nyata, bukan cuma "belum sempat dikerjakan":** baris "Topologi
+cabang untuk infeed" di atas ada, tapi Zone-2/Zone-3 juga butuh **data
+trafo di remote bus** (MVA, impedansi %, atau langsung reaktansi XT1)
+untuk menghitung batas cap reach ("Dipilih Zone 2/3 terbesar tetapi
+tidak lebih besar dari zone trafo") — dan data itu **tidak ada di mana
+pun** yang sudah ditelusuri:
+
+- **DIgSILENT**: 0 `function_type` trafo, tidak ada tabel/sheet
+  impedansi trafo di `plms.db` maupun sumber CSV-nya.
+- **Dokumen setting UPT**: sheet CBF&CCP mencatat bay/serial rele
+  proteksi IBT (Inter Bus Transformer), bukan nilai kelistrikan
+  trafonya sendiri.
+- **Helper sheet scanning**: berisi hasil scanning distance (Z1/Z2/Z3 +
+  waktu), bukan parameter trafo.
+- **File Mathcad**: XT1 cuma dihitung untuk **1 GI** (Millenium, dari
+  IBT 500/150kV 500MVA 13%) — dan bahkan itu dipakai keliru sebagai cap
+  untuk 3 arah trafo berbeda (GI Pati/Kmjng/Millenium, dikonfirmasi
+  pemilik data sebagai sisa template lama, bukan desain).
+
+Akibatnya: Zone-2/Zone-3 untuk **seluruh** rele DIST saat ini berstatus
+`incomplete_topology` (bukan bug — keputusan eksplisit: tanpa cap
+trafo, reach bisa overreach salah, jadi jangan dihitung sama sekali
+daripada menghasilkan angka yang keliru diam-diam). Zone-1 tidak
+terpengaruh (97/184 rele `complete`, sisanya `incomplete_topology`
+krn `line_electrical` tidak tersedia untuk penghantar `UPT_MANUAL`).
+
+**Fitur Zone-2/Zone-3 tidak bisa dilanjutkan tanpa sumber data trafo
+baru** — baik itu dokumen terpisah (nameplate trafo per GI, hasil studi
+hubung singkat), akses ke sistem lain yang menyimpannya (mis. NMM/PST,
+lihat gerbang discovery v7a), atau input manual dari pemilik data per
+GI. Infrastrukturnya (`resolve_transformer_reactance()` di
+`calculation_loader.py`) sudah disediakan sebagai **satu titik
+sambung** — begitu sumbernya ada, Zone-2/Zone-3 otomatis mulai
+menghasilkan nilai `complete` tanpa perlu mengubah logika traversal
+atau rumus apa pun.
+
 ## Modul dari repo lama yang layak diselamatkan
 
 Hanya modul perhitungan murni, disalin sebagai fungsi lepas tanpa dependensinya:
