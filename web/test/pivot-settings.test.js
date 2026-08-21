@@ -56,10 +56,14 @@ test('pivotSettings: parameter_name 1-level (tanpa " > ") tetap jadi kolom', () 
 });
 
 test('pivotSettings: label parameter yang mengandung ">" literal (bukan separator path) tetap utuh', () => {
-  // 'I>1'/'I>2' adalah label ambang OCR (over-current threshold tingkat
-  // 1/2) -- BUKAN path 2 level 'I' > '1'. Separator path sebenarnya
-  // selalu ' > ' (dgn spasi); regresi: split naif pada '>' polos akan
-  // memotong label ini jadi 2 kolom yang salah ('I', '1').
+  // '>' berulang di proteksi arus-lebih adalah notasi baku vendor rele
+  // numerik utk tingkat stage: I> = low-set (IDMT/definite-time, py
+  // time-delay grading), I>> = high-set (biasanya instantaneous, tanpa
+  // grading krn di luar zona overlap). 'I>1'/'I>2' pola penomoran lain
+  // (OCR standar tingkat 1/2, masing2 py time-delay sendiri --
+  // dikonfirmasi pemilik data). BUKAN path 2 level 'I' > '1'/'2'.
+  // Separator path sebenarnya selalu ' > ' (dgn spasi); regresi: split
+  // naif pada '>' polos akan memotong label ini jadi kolom yang salah.
   const rows = [
     row({ parameter_name: 'I>1', parameter_value: '5' }),
     row({ parameter_name: 'I>2', parameter_value: '10' }),

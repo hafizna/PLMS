@@ -48,9 +48,15 @@ function pivotSettings(rows) {
       });
     }
     // Separator path adalah ' > ' (spasi di kedua sisi) -- BUKAN '>'
-    // polos, yang juga muncul sbg bagian label itu sendiri utk beberapa
-    // parameter arus-lebih (mis. 'I>1', 'I>2': ambang OCR tingkat 1/2,
-    // bukan path 2 level 'I' > '1').
+    // polos, yang di proteksi arus-lebih adalah notasi baku vendor rele
+    // numerik utk TINGKAT stage (jumlah '>' = makin cepat/tinggi
+    // ambangnya): I> = low-set (IDMT/definite-time, py time-delay utk
+    // grading hulu/hilir), I>> = high-set (biasanya instantaneous, ~30ms,
+    // tanpa time-delay krn sudah di luar zona overlap grading), I>>> =
+    // tingkat tertinggi. Dataset ini juga py penomoran gaya lain (I>1,
+    // I>2 = OCR standar tingkat 1/2, masing2 py time-delay sendiri --
+    // dikonfirmasi pemilik data). Split naif pada '>' polos akan memotong
+    // label2 ini jadi kolom yang salah ('I', '1') -- lihat test unit.
     const parts = (row.parameter_name || '').split(' > ').map(s => s.trim());
     const category = parts.length > 1 ? parts[0] : null;
     const label = parts.length > 1 ? parts.slice(1).join(' ') : parts[0] || row.parameter_name;
