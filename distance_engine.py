@@ -394,7 +394,13 @@ class Zone3Result:
     rfpp_primary_ohm: float
     rfpp_secondary_ohm: float
     reach_percent: float
-    delay_s: float
+    # None bila T3 belum py sumber definitif (dikonfirmasi Mathcad: T3
+    # konstanta tetap spesifik 1 kasus, BUKAN hasil grading otomatis --
+    # engine ini tidak menebak T3 universal). Reach (impedansi) TETAP
+    # valid dihitung terlepas dari delay_s diketahui atau tidak --
+    # caller yang memutuskan status calculation_context (mis.
+    # ambiguous_branch) berdasarkan None-nya field ini.
+    delay_s: float | None
     # Transparansi keputusan traversal: line_id hop terakhir yang
     # dipilih (None bila dibatasi cap trafo), dan apakah traversal
     # sampai ke 2-hop atau berhenti di 1-hop.
@@ -411,7 +417,7 @@ def calculate_zone3(
     two_hop_branches: list[TwoHopBranch],
     transformer_reactance_x_ohm: float,
     ratio: CtPtRatio,
-    delay_s: float,
+    delay_s: float | None,
     infeed_factor: float = 1.0,
 ) -> Zone3Result:
     """Hitung reach Zone-3 forward dgn traversal 1-hop DAN 2-hop dari
@@ -426,8 +432,11 @@ def calculate_zone3(
     delay_s: T3 TIDAK dihitung dari grading otomatis -- dikonfirmasi
     Mathcad sumber: "Setting waktu tunda untuk Zone-3 ditentukan 1.6
     detik" (konstanta tetap, bukan hasil kalkulasi). Fungsi ini TIDAK
-    mengasumsikan 1.6s sbg default universal (itu spesifik 1 kasus),
-    jadi delay_s WAJIB disuplai eksplisit oleh pemanggil.
+    mengasumsikan 1.6s sbg default universal (itu spesifik 1 kasus) --
+    pemanggil WAJIB menyuplai eksplisit nilai per-line yang benar bila
+    tersedia (mis. dari helper sheet scanning per line), atau None bila
+    belum ada sumber definitif. Reach (impedansi) tetap valid dihitung
+    baik delay_s diisi maupun None.
     """
     zl11 = line.z1
     zl10 = line.z0
