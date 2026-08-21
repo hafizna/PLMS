@@ -275,13 +275,45 @@ def circuit_numbers(value):
     return set(re.findall(r'(?<!\d)([12])(?!\d)', raw))
 
 
-def line_circuit(row):
+def line_circuit(row, sibling_names=None):
+    """Nomor sirkit dari circuit_no (belum pernah diisi loader manapun --
+    kolom disiapkan skema, tapi selalu NULL) atau fallback ke akhiran nama.
+
+    Fallback dulu HANYA menangkap akhiran didahului separator eksplisit
+    ('-', '#', spasi) -- gagal utk nama tanpa separator ('CITRA-TRKSA1'),
+    yang menyebabkan resolve_lines() tak bisa mempersempit sirkit lewat
+    raw_circuit meski datanya ada (AMBIGUOUS_LINE utk 12 rele, mis.
+    CITRA HABITAT<->TIGARAKSA #1 vs #2).
+
+    Perluasan ini menangkap akhiran TANPA separator juga ('TRKSA1' -> '1'),
+    tapi HANYA kalau sibling_names (nama line lain yg bersaing sbg
+    kandidat pada resolve yang sama) memuat base name yang sama dgn
+    akhiran sirkit lain -- itu bukti pasangan sirkit nyata (mis.
+    'CITRA-TRKSA1' & 'CITRA-TRKSA 2' sama-sama ada). Tanpa bukti pasangan,
+    digit akhir bisa jadi bagian nama substation itu sendiri (mis.
+    'ASAHI-ASAHI2', endpoint 'ASAHIMAS 2') -- TIDAK dianggap sirkit."""
     if row['circuit_no']:
         numbers = circuit_numbers(row['circuit_no'])
         if numbers:
             return next(iter(numbers))
-    match = re.search(r'(?:-|#|\s)([12])\s*$', row['line_name'] or '')
-    return match.group(1) if match else None
+    name = row['line_name'] or ''
+    match = re.search(r'(?:-|#|\s)([12])\s*$', name)
+    if match:
+        return match.group(1)
+    match = re.search(r'([12])\s*$', name.strip())
+    if not match:
+        return None
+    if sibling_names:
+        base = name.strip()[:match.start(1)].rstrip('-# ').strip()
+        other_digit = '2' if match.group(1) == '1' else '1'
+        has_pair = any(
+            other.strip()[:len(base)].rstrip('-# ').strip() == base
+            and other.strip() != name.strip()
+            for other in sibling_names
+        )
+        if has_pair:
+            return match.group(1)
+    return None
 
 
 def incident_lines(conn, ss_id):
@@ -320,7 +352,9 @@ def resolve_lines(conn, ss_id, raw_bay, raw_circuit='', allow_multiple=False):
             return [], 'OPPONENT_UNRESOLVED'
     wanted_circuits = circuit_numbers(raw_circuit) or circuit_numbers(bay)
     if wanted_circuits:
-        with_circuit = [row for row in lines if line_circuit(row) in wanted_circuits]
+        sibling_names = [row['line_name'] for row in lines]
+        with_circuit = [row for row in lines
+                         if line_circuit(row, sibling_names) in wanted_circuits]
         if with_circuit:
             lines = with_circuit
     is_cable = bool(re.search(r'\b(?:UGC|SKTT|CABLE|KABEL)\b', bay, re.I))
