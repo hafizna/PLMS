@@ -238,19 +238,19 @@ def test_v2_settings_and_official_history_are_loaded_with_provenance(rebuilt):
         assert conn.execute('SELECT count(*) FROM official_event_line').fetchone()[0] > 100
         assert conn.execute("SELECT count(*) FROM relay_source WHERE source_sheet='FR_OCR'").fetchone()[0] == 11
         assert conn.execute("SELECT count(*) FROM relay_setting WHERE source_sheet='FR_OCR'").fetchone()[0] == 66
-        # 65->13, 142->38: load.MANUAL_SUBSTATIONS menambah node 500kV
-        # sintetis (GITET BALARAJA, GITET MUARAKARANG) -- raw_gi sheet
-        # CBF&CCP sering polos ('GITET Balaraja', tanpa '500KV' eksplisit
-        # dalam teks; info voltage sebenarnya ada di kolom RATIO (kV)
-        # terpisah yg tidak diekstrak plms_v2_etl.py ke row['gi']).
-        # resolve_ss() sekarang py 2 opsi voltage (150/500) utk nama yg
-        # sama -> AMBIGUOUS_VOLTAGE, row TIDAK masuk relay_source (hanya
-        # v2_data_review) alih-alih dulu diam-diam nyasar ke node 150kV
-        # yang salah. Ini peningkatan akurasi, bukan regresi -- perbaikan
-        # lanjutan (plms_v2_etl.py membaca kolom RATIO (kV)) akan
-        # mengembalikan rele ini dgn ss_id yang benar.
-        assert conn.execute("SELECT count(*) FROM relay_source WHERE source_sheet='CBF&CCP'").fetchone()[0] == 13
-        assert conn.execute("SELECT count(*) FROM relay_setting WHERE source_sheet='CBF&CCP'").fetchone()[0] == 38
+        # 13->65, 38->142: perbaikan lanjutan terealisasi. plms_v2_etl.py
+        # sekarang membaca kolom RATIO (kV) sheet CBF&CCP (berisi rasio CT
+        # spt '500000/100', primary/1000 cocok dgn level tegangan transmisi
+        # yg terpasang) via ratio_kv_hint()/insert_voltage_hint(), menyisip
+        # hint '500KV' ke raw_gi ('GITET Balaraja' -> 'GITET 500KV Balaraja')
+        # sebelum resolve_ss(). Sebelumnya raw_gi polos tanpa voltage bikin
+        # resolve_ss() py 2 opsi (150/500kV) utk nama yg sama -> semua row
+        # CBF&CCP GITET BALARAJA nyangkut AMBIGUOUS_VOLTAGE. Sekarang 52
+        # rele tsb resolve tepat ke node 500kV yg benar (diverifikasi query
+        # manual: 0 AMBIGUOUS_VOLTAGE tersisa dari logical_source='CBF&CCP',
+        # sisa 26 semuanya dari OFFICIAL_HISTORY, di luar scope fix ini).
+        assert conn.execute("SELECT count(*) FROM relay_source WHERE source_sheet='CBF&CCP'").fetchone()[0] == 65
+        assert conn.execute("SELECT count(*) FROM relay_setting WHERE source_sheet='CBF&CCP'").fetchone()[0] == 142
         assert conn.execute("SELECT count(*) FROM v2_data_review WHERE review_type='SPECIAL_LAYOUT_PARSER'").fetchone()[0] == 0
         assert conn.execute('''
             SELECT count(*) FROM relay_setting

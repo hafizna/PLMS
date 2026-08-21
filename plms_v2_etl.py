@@ -126,6 +126,58 @@ def split_make_model(value: Any) -> tuple[str, str]:
     return (parts[0], parts[1] if len(parts) > 1 else "")
 
 
+# Level tegangan transmisi yang valid di scope ini (lihat VOLTAGE_SUFFIX
+# di plms_etl.py). Dipakai utk memvalidasi tebakan dari rasio CT --
+# supaya tidak asal terima angka yg tidak masuk akal sbg voltage.
+_KNOWN_TRANSMISSION_KV = {70, 150, 500}
+
+
+def ratio_kv_hint(value: Any) -> str:
+    """Dari string rasio CT (mis. '500000/100') di sheet CBF&CCP kolom
+    'RATIO (kV)', tebak level tegangan sbg suffix teks (mis. '500KV') utk
+    disisipkan ke 'gi' -- disambiguasi resolve_ss() (load.py) yang
+    butuh voltage eksplisit saat 1 nama GI py >1 opsi level tegangan
+    (mis. 'GITET Balaraja' 150kV vs 500kV).
+
+    PENTING: kolom ini secara harfiah 'RATIO (kV)' tapi isinya rasio CT
+    primary/secondary (Ampere), BUKAN kV langsung -- dikonfirmasi
+    pemilik data: rating CT primary diskalakan mengikuti level tegangan
+    pemasangan (sirkuit 500kV pakai CT primary lebih besar), jadi
+    dipakai sbg SINYAL, bukan definisi voltage yg eksak. Hanya diterima
+    kalau primary/1000 persis cocok salah satu level transmisi yang
+    dikenal (70/150/500) -- kalau tidak cocok, kembalikan '' (tidak
+    menebak) drpd menyisipkan angka yang salah."""
+    raw = clean(value)
+    match = re.match(r"^(\d+)\s*/\s*\d+", raw)
+    if not match:
+        return ""
+    primary = int(match.group(1))
+    if primary % 1000 != 0:
+        return ""
+    kv = primary // 1000
+    return f"{kv}KV" if kv in _KNOWN_TRANSMISSION_KV else ""
+
+
+_GI_PREFIX_WORD = re.compile(r"^(GISTET|GITET|GIS|GI)\b", re.IGNORECASE)
+
+
+def insert_voltage_hint(gi: str, voltage_hint: str) -> str:
+    """Sisipkan hint voltage (mis. '500KV') tepat setelah prefix
+    GI/GIS/GITET/GISTET, meniru pola raw_gi asli di sheet lain ('GITET
+    500KV BALARAJA') -- BUKAN di akhir string, krn normalized_gi()
+    (load.py) mendeteksi voltage dari pola '<prefix> <NNN>KV <nama>'.
+    Kalau gi tidak diawali prefix yang dikenal, kembalikan gi apa adanya
+    (tidak menebak posisi sisipan)."""
+    if not voltage_hint:
+        return gi
+    match = _GI_PREFIX_WORD.match(gi)
+    if not match:
+        return gi
+    prefix = match.group(1)
+    rest = gi[match.end():].strip()
+    return f"{prefix} {voltage_hint} {rest}".strip()
+
+
 def special_candidates(source_dir: Path, observed_at: str) -> list[dict[str, Any]]:
     path = source_dir / UPT_WORKBOOK
     source_hash = sha256(path)
@@ -151,11 +203,14 @@ def special_candidates(source_dir: Path, observed_at: str) -> list[dict[str, Any
 
     grouped = workbook["CBF&CCP"]
     current_gi = current_bay = current_make_model = current_serial = ""
+    current_ratio_kv = ""
     for row in range(8, grouped.max_row + 1):
         if meaningful(grouped.cell(row, 2).value):
             current_gi = clean(grouped.cell(row, 2).value)
         if meaningful(grouped.cell(row, 3).value):
             current_bay = clean(grouped.cell(row, 3).value)
+        if meaningful(grouped.cell(row, 4).value):
+            current_ratio_kv = ratio_kv_hint(grouped.cell(row, 4).value)
         if meaningful(grouped.cell(row, 6).value):
             current_make_model = clean(grouped.cell(row, 6).value)
         if meaningful(grouped.cell(row, 7).value):
@@ -168,11 +223,26 @@ def special_candidates(source_dir: Path, observed_at: str) -> list[dict[str, Any
             continue
         make, model = split_make_model(current_make_model)
         slot = re.sub(r"\s+", "_", label)
+        # gi tanpa embel-embel voltage (mis. 'GITET Balaraja') ambigu di
+        # resolve_ss() krn ada opsi 150kV DAN 500kV utk nama serupa (lihat
+        # load.py RAW_GI_OVERRIDE/MANUAL_SUBSTATIONS -- kasus yang sama
+        # persis menimpa raw_gi eksplisit 'GITET 500KV BALARAJA' di sheet
+        # lain). Kolom 'RATIO (kV)' di sheet ini sbnrnya rasio CT (mis.
+        # '500000/100'), BUKAN kV langsung -- tapi primary rating CT
+        # diskalakan mengikuti level tegangan pemasangan (dikonfirmasi
+        # pemilik data), jadi dipakai sbg sinyal voltage tambahan pada gi.
+        #
+        # Hint HARUS disisipkan setelah prefix GI/GIS/GITET/GISTET, bukan
+        # di akhir string -- normalized_gi() (load.py) cuma mendeteksi
+        # voltage dari pola '<PREFIX> <NNN>KV <nama>' (spt raw_gi asli di
+        # sheet lain, mis. 'GITET 500KV BALARAJA'), bukan '<nama> <NNN>KV'
+        # di akhir (itu malah ikut jadi bagian nama & gagal match).
+        gi_with_hint = insert_voltage_hint(current_gi, current_ratio_kv)
         output.append(make_candidate(
             sheet="CBF&CCP", row=row, slot=slot, logical_source="CBF&CCP",
             function_type=function_type, coordination_class="AUXILIARY",
             source_hash=source_hash, observed_at=observed_at,
-            gi=current_gi, bay=current_bay, manufacturer=make, model=model,
+            gi=gi_with_hint, bay=current_bay, manufacturer=make, model=model,
             serial_no=current_serial, relay_role=slot,
         ))
     return output
