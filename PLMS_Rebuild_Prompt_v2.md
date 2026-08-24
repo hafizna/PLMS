@@ -445,16 +445,20 @@ labeling`/`_norm_model_for_compare`).
 | v1 | Selesai, dipakai | Dipakai langsung oleh pemilik data; gerbang v1→v2 terpenuhi |
 | v2 | Selesai secara teknis | Seluruh kategori review queue diperiksa satu per satu: 736 LOW_IDENTITY_CONFIDENCE (gap dokumen permanen), 183 OFFICIAL_EVENT_LINK, 5 IDENTITY_METADATA_CONFLICT (turun dari 40), 0 COORDINATION_CLASS_REVIEW, 0 LINE_LINK, 2 IDENTITY_SUBSTATION_CONFLICT + 1 CURRENT_SETTING_CONFLICT (pending verifikasi manual ke UPT). **Gerbang v2→v3 (dipakai rutin) belum diputuskan** |
 | v3a | Sebagian, terhalang data | Zone-1 jalan (97/184 rele DIST `complete`, sisanya krn `line_electrical` tidak tersedia). Zone-2/Zone-3: rumus dan traversal graph (1-hop/2-hop) selesai dan teruji, T1/T2/T3 per-line berhasil ditarik dari 88 helper sheet scanning (51 line terpetakan, membuktikan T3 **genuinely bervariasi** 1.6s/1.2s/0.6s/0s — bukan konstanta seperti kesan dari 1 kasus Mathcad) — **tapi seluruh 184 rele tetap `incomplete_topology` karena data trafo remote tidak tersedia di sumber mana pun** (lihat gate di bawah) |
-| v3b–v8 | Belum mulai | Menunggu gate v3a (data trafo) dan/atau gate pemakaian rutin v1–v3 |
+| v3b | Blocked sebelum coding dimulai | Skema `protection_chain` sudah ada di `plms.db` (0 baris). Riset (24 Agustus 2026) mengonfirmasi grading OCR/GFR itu axis **vertikal per-GI** (feeder 150kV → incoming trafo → busbar/HV), bukan horizontal antar-GI lewat penghantar — tapi **data setting OCR/GFR di bay trafo tidak ada di sumber mana pun**: 0 relay dgn `bay ∈ {TRF, IBT, IBT (FUTURE)}` berstatus `function_type = OCR_GFR` di `plms.db` (semua yg ada di bay itu adalah CBF/CCP/SZP, `AUXILIARY`); kategori "OCR 20 kV" ada scr konsep di sheet rekap UPT tapi selnya 0 (rekap kosong, bukan data individual); form `FR_OCR` sudah py kolom terstruktur (`TRAFO/IBT`, `CT Ratio HV/LV/SBEF`) tapi baru 11 baris terisi dan kolom itu kosong semua (form baru, timestamp Des 2025, belum sampai kasus trafo diisi UPT) — lihat gate di bawah |
+| v3c–v8 | Belum mulai | Menunggu gate v3a/v3b (data trafo) dan/atau gate pemakaian rutin v1–v3 |
 
-**Gerbang data trafo (blocker v3a, kemungkinan juga v3b):** reach Zone-2/
-Zone-3 butuh reaktansi trafo di remote bus sebagai batas atas cap, dan data
-itu tidak ditemukan di sumber mana pun yang sudah ditelusuri — rincian
-lengkap ada di "Update implementasi v3a" pada bagian *Kenapa v3 bisa lebih
-cepat dari perkiraan* di bawah. Fitur Zone-2/Zone-3 tidak bisa dilanjutkan
-tanpa sumber data trafo baru; kemungkinan besar baru terjawab lewat matriks
-otoritas v7a. v3b (grading OCR/GFR sampai incoming trafo) kemungkinan besar
-kena blocker yang sama — belum dikonfirmasi sampai v3b benar-benar mulai.
+**Gerbang data trafo (blocker v3a DAN v3b, dikonfirmasi 24 Agustus 2026):**
+reach Zone-2/Zone-3 (v3a) butuh reaktansi trafo di remote bus sebagai batas
+atas cap; grading OCR/GFR (v3b) butuh setting OCR/GFR terpasang di bay
+incoming trafo untuk jadi titik puncak rantai vertikal. Keduanya sama-sama
+tidak ditemukan di sumber mana pun yang sudah ditelusuri — rincian lengkap
+v3a ada di "Update implementasi v3a", rincian v3b ada di "Update implementasi
+v3b" (keduanya di bawah, pada bagian *Kenapa v3 bisa lebih cepat dari
+perkiraan*). Fitur Zone-2/Zone-3 dan protection_chain grading v3b tidak bisa
+dilanjutkan tanpa sumber data trafo baru; kemungkinan besar baru terjawab
+lewat matriks otoritas v7a, atau setelah form `FR_OCR` (kolom `TRAFO/IBT`
+sudah terstruktur, tinggal nunggu UPT mengisi kasus trafo) mulai terisi.
 
 ### Scope tetap berjenjang
 
@@ -641,6 +645,70 @@ GI. Infrastrukturnya (`resolve_transformer_reactance()` di
 sambung** — begitu sumbernya ada, Zone-2/Zone-3 otomatis mulai
 menghasilkan nilai `complete` tanpa perlu mengubah logika traversal
 atau rumus apa pun.
+
+### Update implementasi v3b (24 Agustus 2026) — dicoba, blocked sebelum coding dimulai
+
+Skema `protection_chain` (`chain_id`, `chain_type` OCR_GRADING/GFR_GRADING,
+`relay_function_id`, `upstream_relay_function_id`, `level_order`,
+`voltage_kv`, `chain_status`) sudah ada di `plms.db` sejak skema v3
+disiapkan, 0 baris terisi. Sebelum menulis loader, ditelusuri dulu arah
+grading yang benar dan sumber datanya.
+
+**Klarifikasi arah grading (penting, sempat salah asumsi):** upaya pertama
+mengasumsikan grading horizontal antar-GI (pairing rele di kedua ujung 1
+penghantar, mengikuti pola traversal `line` v3a). Ini **salah** — komentar
+skema asli sudah eksplisit menyebut `protection_chain` sebagai "rantai
+grading vertikal ... menembus level tegangan di dalam satu GI, bukan
+antar-GI", dan ini konsisten dengan teori proteksi: DIFF/LCD (unit
+protection, zona tertutup by CT) sudah meng-cover proteksi primer
+penghantar itu sendiri di kedua ujungnya, jadi OCR/GFR horizontal antar-GI
+cuma backup tambahan bila DIFF/DIST gagal — **bukan** mekanisme utama
+grading OCR/GFR. Mekanisme utamanya adalah axis **vertikal**: rele feeder
+150kV digrading terhadap rele di bay incoming trafo (backup through-fault,
+karena trafo mensuplai arus fault ke gangguan busbar/feeder 150kV lain),
+yang pada gilirannya digrading terhadap sisi HV/20kV. Dikonfirmasi bersama
+pemilik data sebelum lanjut.
+
+**Blocker nyata:** setelah arah benar dikonfirmasi, data setting OCR/GFR di
+bay incoming trafo (LV-side IBT, sisi 150kV atau 20kV) **tidak ditemukan di
+sumber mana pun**:
+
+- **`plms.db`**: 0 relay dengan `bay ∈ {TRF, IBT, IBT (FUTURE)}` berstatus
+  `function_type = OCR_GFR`. Seluruh 138 relay di bay TRF/IBT yang sudah
+  ter-ETL adalah `CBF`/`CCP`/`SZP` (`AUXILIARY`) — proteksi breaker-failure
+  dan logic scheme, bukan grading arus-waktu.
+- **Sheet rekap UPT** (`Rekap`, `Rekap1` di `Data Setting Penghantar UPT
+  DKSBI.xlsx`): kategori "OCR 20 kV" ADA secara eksplisit di struktur rekap
+  ("RELE BACKUP PROT" → Main Prot/Backup → OCR PHT/OCR 150 kV/OCR 20 kV) —
+  ini mengonfirmasi axis vertikal memang konsep yang dipakai UPT sendiri —
+  tapi seluruh sel di bawah kategori itu bernilai 0. Ini rekap/pivot count,
+  bukan tabel setting individual per rele.
+- **Sheet `FR_OCR`** (wide-form, 143 kolom, form Google Forms): sudah py
+  kolom terstruktur persis untuk kasus ini (`TRAFO/IBT`, `CT Ratio HV/LV/
+  SBEF - Primary/Secondary`, `Merk/Tipe Relay - OCR/GFR HV`) — desainnya
+  benar. Tapi baru 11 baris terisi (timestamp mulai 22 Desember 2025) dan
+  kolom `TRAFO/IBT` kosong di semua 11 baris itu — form-nya ada, isinya
+  belum sampai ke kasus trafo.
+- **`CBF&CCP`** (sheet lama, bukan `FR_OCR`): 0 baris bay TRAFO/TRF/IBT sama
+  sekali — sheet ini murni breaker-diameter switchyard, bukan trafo.
+
+Satu golden-case ditemukan (`Cek TRAFO`/`PROSES TRAFO` di workbook DIgSILENT
+crosscheck): kalkulator manual satu-contoh (GI Teluk Naga, TRF 2, 60MVA/12%/
+150:20kV, "*ketik bebas") yang menghitung setting DIFF/REF/OCR/GFR/SBEF HV
+dan LV dari parameter trafo — berguna sebagai referensi rumus/validasi nanti,
+tapi bukan tabel data trafo per-GI (hanya 1 blok input, tidak berulang).
+Golden-case OCR/GFR line-to-line (bukan trafo) juga ditemukan di sheet `Cek
+OCRGFR` — real, terhubung ke Surat 0177/TRS.00.01/350000/2020 (anomali 3I0
+Priok-Bekasi-Cawang) — disimpan untuk validasi bagian grading yang datanya
+memang tersedia nanti.
+
+**v3b tidak bisa dilanjutkan sampai UPT mengisi setting OCR/GFR bay trafo**
+— entah lewat `FR_OCR` (form sudah siap, tinggal nunggu pengisian), dokumen
+terpisah, atau akses sistem lain (sama gerbang v7a dengan v3a). Skema
+`protection_chain` dibiarkan kosong sebagai hook siap-isi; belum ada loader
+Python ditulis untuk v3b (beda dari v3a yang infrastrukturnya sudah jalan
+walau hasilnya `incomplete_topology`) — menulis loader tanpa data untuk
+divalidasi berisiko salah arah lagi tanpa cara mengetahuinya.
 
 ## Modul dari repo lama yang layak diselamatkan
 
