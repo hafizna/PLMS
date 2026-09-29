@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PLMS | Daftar GI</title><link rel="stylesheet" href="/public/review.css"></head>
+<body><aside><a class="brand" href="/">PLMS<span>Engineering workspace</span></a><nav><a class="active" href="/gi">Daftar GI</a><a href="/corridor">Workspace koridor</a><a href="/">Inventaris penghantar</a><a href="/review">Review distance</a><a href="/sld-audit">Audit relasi SLD</a></nav><small>UPT Durikosambi</small></aside>
+<main><p class="eyebrow">MULAI DARI SLD</p><h1>Daftar Gardu Induk</h1>
+<p>Alur: pilih GI &rarr; lihat SLD asli &rarr; buka setting terpasang per bay. Sama seperti cara insinyur membaca workbook sumber.</p>
+<section><div class="scroll"><table><thead><tr><th>GI</th></tr></thead><tbody>
+<% sites.forEach(s => { %><tr><td><a href="/gi/<%= encodeURIComponent(s.site_name) %>"><%= s.site_name %></a></td></tr><% }) %>
+</tbody></table></div></section>
+</main></body></html>

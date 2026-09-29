@@ -2,18 +2,16 @@
 <html lang="id">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>PLMS — Penghantar in-scope</title>
-  <link rel="stylesheet" href="/public/style.css">
+  <link rel="stylesheet" href="/public/review.css">
 </head>
-<body>
-  <header>
-    <h1>PLMS — Penghantar in-scope</h1>
-    <p class="sub">UPT Durikosambi &middot; <%= lines.length %> penghantar (+1 hop, termasuk boundary)</p>
-    <p><a href="/sld-audit">Audit relasi SLD Jakban untuk Z2/Z3</a></p>
-  </header>
-
+<body><aside><a class="brand" href="/">PLMS<span>Engineering workspace</span></a><nav><a href="/gi">Daftar GI</a><a href="/corridor">Workspace koridor</a><a class="active" href="/">Inventaris penghantar</a><a href="/review">Review distance</a><a href="/sld-audit">Audit relasi SLD</a></nav><small>UPT Durikosambi</small></aside>
   <main>
-    <p><a href="/review">Buka workspace review distance &rarr;</a></p>
+    <p class="eyebrow">SEMUA PENGHANTAR</p>
+    <h1>Penghantar in-scope</h1>
+    <p class="sub">UPT Durikosambi &middot; <%= lines.length %> penghantar (+1 hop, termasuk boundary)</p>
+    <p><a href="/gi">Mulai dari SLD per GI &rarr;</a> &middot; <a href="/review">Buka workspace review distance &rarr;</a> &middot; <a href="/sld-audit">Audit relasi SLD Jakban untuk Z2/Z3 &rarr;</a></p>
     <div class="toolbar">
       <input type="search" id="q" class="search-box" placeholder="Cari nama penghantar atau GI…" autocomplete="off">
       <select id="f-kv" class="filter-select">

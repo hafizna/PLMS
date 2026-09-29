@@ -182,8 +182,10 @@ function createApp(dbPath = DEFAULT_DB_PATH, auditPath = process.env.PLMS_SLD_AU
   app.set('views', path.join(__dirname, 'views'));
   app.use('/public', express.static(path.join(__dirname, 'public')));
   app.locals.db = db;
+  app.use('/sld-files', express.static(path.join(__dirname, '..', 'SLD Durikosambi', 'ULTG DURIKOSAMBI')));
   require('./review')(app, db, dbPath);
   require('./corridor')(app, db, dbPath);
+  require('./gi')(app, db, dbPath, { pivotSettings, groupSettingsByFunction, describeIdentity });
 
 function listInScopeLines() {
   return db.prepare(`

@@ -13,9 +13,9 @@ module.exports = (app, db, dbPath) => {
       JOIN site b ON b.site_id=t.site_id
       LEFT JOIN calculation_context c ON c.relay_function_id=f.relay_function_id AND c.direction='FORWARD'
       WHERE f.function_type='DIST' AND s.voltage_kv=150 AND t.voltage_kv=150
-      AND ((a.site_name='DURIKOSAMBI' AND b.site_name='GROGOL BARU')
-      OR (a.site_name='GROGOL BARU' AND b.site_name IN ('DURIKOSAMBI','GROGOL'))
-      OR (a.site_name='GROGOL' AND b.site_name='GROGOL BARU'))
+      AND ((a.site_name='DURIKOSAMBI' AND b.site_name='GROGOL II')
+      OR (a.site_name='GROGOL II' AND b.site_name IN ('DURIKOSAMBI','GROGOL'))
+      OR (a.site_name='GROGOL' AND b.site_name='GROGOL II'))
       ORDER BY origin,remote,r.bay,c.zone`).all();
     return data.map(r => {
       const sources = db.prepare(`SELECT * FROM relay_setting WHERE relay_function_id=? AND is_current=1

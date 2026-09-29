@@ -6,7 +6,7 @@ test('corridor persists review history, escapes notes, and rejects stale snapsho
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'plms-corridor-'));
  const file=path.join(dir,'test.db');const seed=new Database(file);
  seed.exec(fs.readFileSync(path.join(__dirname,'../../schema.sql'),'utf8'));
- seed.exec(`INSERT INTO site(site_id,site_name) VALUES(1,'DURIKOSAMBI'),(2,'GROGOL BARU');
+ seed.exec(`INSERT INTO site(site_id,site_name) VALUES(1,'DURIKOSAMBI'),(2,'GROGOL II');
  INSERT INTO substation(ss_id,site_id,voltage_kv) VALUES(1,1,150),(2,2,150);
  INSERT INTO line(line_id,line_name,ss_from,ss_to,source) VALUES(1,'PILOT',1,2,'DIGSILENT');
  INSERT INTO relay(relay_id,ss_id,line_id,bay,identity_key,identity_confidence,identity_status) VALUES(1,1,1,'PHT GROGOL BARU#2','test','HIGH','EXACT');

@@ -1,3 +1,55 @@
 *{box-sizing:border-box}body{margin:0;background:#f3f5f7;color:#182f40;font:14px/1.6 system-ui,sans-serif}aside{position:fixed;width:232px;inset:0 auto 0 0;background:#132d3d;color:#cedbe2;padding:30px 22px;display:flex;flex-direction:column;gap:40px}a{color:#007a77;text-decoration:none}a:hover{text-decoration:underline}.brand{font-size:28px;color:white;font-weight:750}.brand span{display:block;font-size:12px;font-weight:400;color:#9db4c2}nav{display:grid;gap:12px}nav a{color:#cbdbe5;padding:10px;border-radius:7px}nav .active{background:#225064;color:white}aside small{margin-top:auto}main{margin-left:232px;padding:36px 40px;max-width:1600px}h1{font-size:29px;letter-spacing:-.6px;margin:5px 0}h2{font-size:18px;margin:0 0 12px}p{margin:8px 0 18px}.eyebrow{font-size:11px;letter-spacing:1.8px;color:#007a77;font-weight:700}.steps{display:flex;list-style:none;padding:0;gap:16px;flex-wrap:wrap;color:#526776;margin:26px 0}.steps li{border-top:3px solid #2b8c89;padding-top:8px;flex:1;min-width:150px}section,.filters{background:white;border:1px solid #dce4e9;border-radius:10px;padding:24px;margin-bottom:20px}.filters{display:flex;flex-wrap:wrap;gap:12px;align-items:end}label{display:grid;font-size:12px;gap:5px;max-width:100%}select{max-width:520px;width:100%;padding:10px;border:1px solid #bdcbd5;border-radius:5px;background:white;color:#182f40}button{padding:11px 18px;border:0;border-radius:5px;background:#007c78;color:white;cursor:pointer}.heading{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}.badge{display:inline-block;background:#fff3d7;color:#765c22;padding:4px 9px;border-radius:5px;font-size:12px}small{display:block;color:#617687;font-size:12px}.network{display:flex;align-items:center;gap:20px;margin:25px 0}.network>div:not(.edge){padding:16px;border:1px solid #b7ced8;border-radius:8px;min-width:180px;background:#f4faf9}.network strong{display:block;font-size:20px}.edge{flex:1;text-align:center;font-size:12px}.edge hr{border:0;border-top:2px solid #3b8584}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.metrics strong{display:block}.muted{color:#637584;font-size:12px}.scroll{overflow:auto}table{border-collapse:collapse;width:100%;text-align:left}th,td{padding:12px;border-bottom:1px solid #e4eaee;vertical-align:top}thead{background:#f2f6f8;font-size:12px}td{font-variant-numeric:tabular-nums}.source-table{max-height:360px}details{border-top:1px solid #e1e6eb;padding:12px 0}summary{cursor:pointer;font-weight:600}li p{overflow-wrap:anywhere}a:focus-visible,button:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #d79425;outline-offset:3px}@media(max-width:950px){aside{position:static;width:auto;padding:16px;gap:10px}aside small{display:none}nav{display:flex;flex-wrap:wrap}main{margin:0;padding:20px}.metrics{grid-template-columns:1fr}.network{flex-wrap:wrap}.network .edge{min-width:100px}h1{font-size:24px}}
 
 textarea,input[type=search]{padding:10px;border:1px solid #bdcbd5;border-radius:5px;font:inherit;max-width:100%;width:100%}details:target{background:#f0f8f7}details form{display:grid;gap:12px;margin:16px 0;max-width:700px}
+
+/* Kelas tambahan dari style.css (index/detail/sld-audit/not-found) --
+   disatukan ke 1 tema (keluhan 2026-09-30: tema Inventaris Penghantar vs
+   halaman lain beda jauh, "bener2 ga inline"). Markup & JS di view lama
+   TIDAK diubah, cuma stylesheet-nya dialihkan -- classlist di bawah ini
+   dipertahankan persis nama aslinya. */
+.breadcrumb{margin-bottom:8px}
+.sub{color:#617687;margin-top:0}
+.empty{color:#617687;font-style:italic}
+.warn{background:#fff3d7;color:#765c22;padding:6px 10px;border-radius:5px;font-size:13px}
+.warn-inline{background:#fff3d7;color:#765c22;padding:2px 6px;border-radius:4px;font-size:12px;margin-left:8px}
+.source-digsilent{color:#0a8a6a;font-weight:600}
+.source-upt_manual{color:#a3660a;font-weight:600}
+.table-scroll{overflow-x:auto}
+table.mini{width:auto;min-width:300px}
+table.mini th{width:10rem}
+table.settings{min-width:1050px}
+table.settings th,table.settings td{white-space:nowrap}
+table.settings th:first-child,table.settings td:first-child{white-space:normal}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+@media(max-width:950px){.two-col{grid-template-columns:1fr}}
+.endpoint{border:1px solid #dce4e9;border-radius:8px;padding:16px}
+.endpoint h2{margin-top:0}
+.ss-name{font-size:1.1rem;font-weight:600}
+.setting-group{margin:20px 0}
+.setting-group h3{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:15px}
+.class-tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em;text-transform:uppercase}
+.class-graded{background:#1a5fb433;color:#1a5fb4}
+.class-unit{background:#61616133;color:#616161}
+.class-auxiliary{background:#61616122;color:#617687}
+.class-review{background:#c0392b33;color:#c0392b}
+.identity-tag{border-bottom:1px dotted #617687;cursor:help}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:12px}
+.search-box{flex:1 1 16rem;min-width:12rem}
+.filter-select{width:auto;min-width:140px}
+.filter-check{display:flex;align-items:center;gap:6px;font-size:13px;color:#617687;white-space:nowrap}
+.result-count{margin-left:auto;font-size:13px;color:#617687;white-space:nowrap}
+.view-toggle{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.view-btn{padding:6px 14px;border:1px solid #bdcbd5;border-radius:999px;background:transparent;color:#617687;font-size:13px;cursor:pointer}
+.view-btn.is-active{background:#007c7833;color:#007c78;border-color:#007c78;font-weight:600}
+.outline-controls{display:flex;gap:6px;margin-left:8px}
+.outline-btn{padding:5px 10px;border:1px solid #bdcbd5;border-radius:4px;background:transparent;color:#617687;font-size:12px;cursor:pointer}
+.outline-btn:hover{color:#182f40;border-color:#617687}
+.gi-group{border:1px solid #dce4e9;border-radius:8px;margin-bottom:8px;background:white}
+.gi-group summary{display:flex;align-items:baseline;gap:10px;padding:10px 14px;cursor:pointer;list-style:none;font-weight:600}
+.gi-group summary::-webkit-details-marker{display:none}
+.gi-group summary::before{content:'▸';color:#617687;font-size:11px;transition:transform .15s ease}
+.gi-group[open] summary::before{transform:rotate(90deg)}
+.gi-name{font-size:15px}
+.gi-count{font-size:12px;font-weight:400;color:#617687}
+.gi-group-table{margin:0}
+.gi-group .table-scroll{padding:0 14px 10px}

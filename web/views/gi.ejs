@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PLMS | GI <%= site.site_name %></title><link rel="stylesheet" href="/public/review.css"></head>
+<body><aside><a class="brand" href="/">PLMS<span>Engineering workspace</span></a><nav><a href="/gi">Daftar GI</a><a href="/corridor">Workspace koridor</a><a href="/">Inventaris penghantar</a><a href="/review">Review distance</a><a href="/sld-audit">Audit relasi SLD</a></nav><small>UPT Durikosambi</small></aside>
+<main><p class="eyebrow">GARDU INDUK</p><h1><%= site.site_name %></h1>
+<p><%= substations.map(s => (s.name_digsilent || s.voltage_kv + 'kV') + ' &middot; ' + (s.voltage_kv ?? '?') + ' kV').join(', ') %></p>
+
+<section><h2>1. Single Line Diagram</h2>
+<% if (!slds.length) { %>
+  <p>SLD belum terhubung untuk GI ini &mdash; belum ada pemetaan folder sumber yang diverifikasi (lihat <code>web/sld-index.js</code>). Jangan tebak dari nama; tambahkan pemetaan setelah dicek manual.</p>
+<% } else { %>
+  <% slds.forEach(sld => { %>
+    <p><strong><%= sld.folder %></strong> &middot; <%= sld.file %> &middot; <a href="<%= sld.url %>" target="_blank" rel="noopener">Buka di tab baru &rarr;</a></p>
+    <iframe src="<%= sld.url %>" style="width:100%;height:70vh;border:1px solid #dce4e9;border-radius:8px" title="SLD <%= site.site_name %> &mdash; <%= sld.file %>"></iframe>
+  <% }) %>
+<% } %>
+</section>
+
+<section><h2>2. Bay &amp; setting terpasang</h2>
+<p>Dikelompokkan per bay, lintas level tegangan &mdash; seperti daftar bay di SLD/workbook sumber. Bay dengan 1 penghantar dapat dibuka ke detail ruas lengkap (kedua ujung, riwayat, tetangga).</p>
+<% if (!bays.length) { %><p>Belum ada rele tercatat untuk GI ini.</p><% } %>
+<% bays.forEach(b => { %>
+  <details>
+    <summary><%= b.bay %> &middot; <%= b.voltageKv ?? '?' %> kV &middot; <%= b.settings.map(g => g.functionType).join(', ') || 'tanpa setting' %> <% if (b.lineId) { %>&middot; <a href="/line/<%= b.lineId %>">buka detail ruas &rarr;</a><% } %></summary>
+    <% if (!b.settings.length) { %>
+      <p class="muted">Belum ada setting terkini tercatat untuk bay ini.</p>
+    <% } %>
+    <% b.settings.forEach(group => { %>
+      <h3><%= group.functionType %> <span class="badge"><%= group.coordinationClass || '—' %></span></h3>
+      <div class="scroll"><table><thead><tr>
+        <th>Merk / tipe</th><th>Grup</th>
+        <% group.columnLabels.forEach(label => { %><th><%= label %></th><% }) %>
+        <th>Berlaku</th>
+      </tr></thead><tbody>
+      <% group.rows.forEach(row => { %>
+        <tr>
+          <td><%= [row.manufacturer, row.model].filter(Boolean).join(' ') || '—' %> <small title="<%= row.identity.tooltip %>"><%= row.identity.label %></small></td>
+          <td><%= row.setting_group || '—' %></td>
+          <% group.columnLabels.forEach(label => { const cell = row.cellsByLabel[label]; %>
+            <td<% if (cell) { %> title="<%= cell.provenance %>"<% } %>><%= cell ? (cell.value ?? '—') + (cell.unit ? ' ' + cell.unit : '') : '—' %></td>
+          <% }) %>
+          <td><%= row.effective_date || '—' %></td>
+        </tr>
+      <% }) %>
+      </tbody></table></div>
+    <% }) %>
+  </details>
+<% }) %>
+</section>
+
+<section><h2>3. Riwayat resmi (official setting/resetting)</h2>
+<p>Level GI, bukan per bay &mdash; teks bay di sumber ("Budi Kemuliaan 1,2") belum dicocokkan ke bay kita ("PHT 150kV BUDI KEMULIAAN#1"), itu pekerjaan terpisah. Kolom "Setting resmi" berisi rujukan ke dokumen PDF asli di luar sistem ini.</p>
+<% if (!officialEvents.length) { %>
+  <p class="muted">Tidak ada riwayat resmi tercatat untuk GI ini (atau nama GI di sumber belum cocok dengan site_name &mdash; lihat <code>giNameKey()</code> di <code>web/gi.js</code>).</p>
+<% } else { %>
+  <div class="scroll"><table><thead><tr><th>Tanggal</th><th>Bay</th><th>Proteksi</th><th>Pemohon</th><th>Keterangan</th><th>Status</th><th>Setting resmi</th></tr></thead><tbody>
+  <% officialEvents.forEach(e => { %>
+    <tr>
+      <td><%= e.effective_date ? new Date(e.effective_date).toLocaleDateString('id-ID') : '—' %></td>
+      <td><%= e.bay || '—' %></td>
+      <td><%= e.protections || '—' %></td>
+      <td><%= e.requester || '—' %></td>
+      <td><%= e.note || '—' %></td>
+      <td><span class="badge"><%= e.status || '—' %></span></td>
+      <td><%= e.official_setting || '—' %></td>
+    </tr>
+  <% }) %>
+  </tbody></table></div>
+<% } %>
+</section>
+</main></body></html>

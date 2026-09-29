@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PLMS | Review distance</title><link rel="stylesheet" href="/public/review.css"></head>
-<body><aside><a class="brand" href="/">PLMS<span>Engineering workspace</span></a><nav><a href="/corridor">Workspace koridor</a><a href="/">Inventaris penghantar</a><a class="active" href="/review">Review distance</a><a href="/sld-audit">Audit relasi SLD</a></nav><small>UPT Durikosambi<br>Database: <%= database %></small></aside>
+<body><aside><a class="brand" href="/">PLMS<span>Engineering workspace</span></a><nav><a href="/gi">Daftar GI</a><a href="/corridor">Workspace koridor</a><a href="/">Inventaris penghantar</a><a class="active" href="/review">Review distance</a><a href="/sld-audit">Audit relasi SLD</a></nav><small>UPT Durikosambi<br>Database: <%= database %></small></aside>
 <main><header><p class="eyebrow">PROTEKSI PENGHANTAR / DISTANCE</p><h1>Review setting, dari bukti ke keputusan.</h1><p>Periksa konteks dan input sebelum membandingkan hasil. Status perhitungan bukan persetujuan setting.</p></header>
 <ol class="steps"><li>01 &middot; Pilih bay & arah</li><li>02 &middot; Periksa sumber</li><li>03 &middot; Tinjau perhitungan</li><li>04 &middot; Tutup gap & verifikasi</li></ol>
 <form method="get" class="filters"><label>GI asal<select name="gi"><option value="">Semua GI</option><% gis.forEach(g=> { %><option <%= gi===g?'selected':'' %>><%= g %></option><% }) %></select></label><button type="submit">Pilih GI</button>

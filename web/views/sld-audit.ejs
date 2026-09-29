@@ -4,15 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PLMS — Relasi SLD untuk Z2/Z3</title>
-  <link rel="stylesheet" href="/public/style.css">
+  <link rel="stylesheet" href="/public/review.css">
 </head>
-<body>
-  <header>
+<body><aside><a class="brand" href="/">PLMS<span>Engineering workspace</span></a><nav><a href="/gi">Daftar GI</a><a href="/corridor">Workspace koridor</a><a href="/">Inventaris penghantar</a><a href="/review">Review distance</a><a class="active" href="/sld-audit">Audit relasi SLD</a></nav><small>UPT Durikosambi</small></aside>
+  <main>
     <p class="breadcrumb"><a href="/">&larr; Daftar penghantar</a></p>
     <h1>Relasi SLD untuk Z2/Z3</h1>
     <p class="sub">Cabang dari sudut pandang rele pada GI asal. Kandidat SLD memerlukan review sebelum menjadi input perhitungan reach.</p>
-  </header>
-  <main>
   <% if (message) { %>
     <p class="warn"><%= message %></p>
   <% } else { %>
