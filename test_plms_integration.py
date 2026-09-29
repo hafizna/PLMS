@@ -71,9 +71,9 @@ def test_database_integrity_and_current_scope_baseline(rebuilt):
         assert conn.execute('PRAGMA foreign_key_check').fetchall() == []
 
         # Workbook saat ini: 113 seed / 148 +1-hop dari DIgSILENT setelah
-        # KOSAMBI BARU dikeluarkan eksplisit. 38 penghantar manual UPT
+        # KOSAMBI BARU dikeluarkan eksplisit. 36 penghantar manual UPT
         # (lihat MANUAL_LINES di load.py utk rincian per pasangan) membuat
-        # daftar UI menjadi 186. (185->186: MUARAKARANG BARU GIS-PANTAI
+        # daftar UI menjadi 184 setelah rekonsiliasi Grogol. (185->186: MUARAKARANG BARU GIS-PANTAI
         # INDAH KAPUK -- silent misresolve fix, lihat komentar MANUAL_LINES.)
         digs_seed = conn.execute('''
             SELECT count(*) FROM line l
@@ -96,7 +96,7 @@ def test_database_integrity_and_current_scope_baseline(rebuilt):
         ''').fetchone()[0]
         assert digs_seed == 113
         assert digs_hop1 == 148
-        assert ui_total == 186
+        assert ui_total == 184  # two duplicate Grogol manual edges removed
 
 
 def test_all_44_seed_gi_are_represented(rebuilt):
@@ -119,6 +119,7 @@ def test_all_44_seed_gi_are_represented(rebuilt):
             row[0] for row in conn.execute('SELECT alias_text FROM ss_alias')
             if row[0] not in synthetic_500kv
         }
+        represented |= {row[0] for row in conn.execute("SELECT t.site_name FROM substation s JOIN site t USING(site_id) WHERE s.name_digsilent='GROGOL II' AND s.voltage_kv=150")}
         represented |= {
             row[0] for row in conn.execute('''
                 SELECT site.site_name
@@ -133,11 +134,11 @@ def test_all_44_seed_gi_are_represented(rebuilt):
         # (hilang huruf 'E'), terhubung dua-arah terverifikasi ke
         # CILEDUG dan SUMMARECON. Bukan gap topologi, jadi topology_source
         # sekarang 'DIGSILENT' bukan NULL.
-        # 12 + 3 node 500kV sintetis (GITET BALARAJA, GITET MUARAKARANG,
-        # TANJUNG PRIOK 500KV -- lihat load.MANUAL_SUBSTATIONS) = 15.
+        # 12 -> 11: placeholder GROGOL BARU digabung ke GROGOL II 150 kV.
+        # Node sintetis MANUAL_SUBSTATIONS tetap dihitung terpisah.
         assert conn.execute('''
             SELECT count(*) FROM substation WHERE topology_source IS NULL
-        ''').fetchone()[0] == 12 + len(load.MANUAL_SUBSTATIONS)
+        ''').fetchone()[0] == 11 + len(load.MANUAL_SUBSTATIONS)
 
 
 def test_voltage_and_line_metadata_are_not_defaulted(rebuilt):
@@ -224,13 +225,13 @@ def test_loader_is_idempotent(rebuilt, tmp_path):
     for _ in range(2):
         load.main(str(etl_out), str(ROOT / 'alias_review.csv'), str(db_path))
     with connect(db_path) as conn:
-        # 1183 DIgSILENT + 38 manual, lihat MANUAL_LINES di load.py.
+        # 1183 DIgSILENT + 36 manual, lihat MANUAL_LINES di load.py.
         # 37->38: tambah 'MUARAKARANG BARU GIS-PANTAI INDAH KAPUK' --
         # penghantar nyata yg sempat tertukar diam2 dgn line M.Karang
         # Baru-PIK yg sudah ada (line_link_status 'EXACT' scr teknis
         # tapi ke line yg salah, tidak masuk review queue). Lihat
         # _muarakarang_baru_opponent() di load.py.
-        assert conn.execute('SELECT count(*) FROM line').fetchone()[0] == 1221
+        assert conn.execute('SELECT count(*) FROM line').fetchone()[0] == 1219
         assert conn.execute('PRAGMA foreign_key_check').fetchall() == []
 
 
@@ -281,3 +282,34 @@ def test_v2_current_setting_is_unique_per_function_parameter(rebuilt):
             FROM relay_setting rs JOIN relay r USING (relay_id)
             WHERE rs.is_current = 1 AND r.line_id IS NOT NULL
         ''').fetchone()[0] >= 50
+
+
+def test_grogol_reconciliation_preserves_circuits_and_all_relay_functions(rebuilt):
+    _, db_path = rebuilt
+    with connect(db_path) as conn:
+        nodes = conn.execute("SELECT s.* FROM substation s JOIN site t USING(site_id) WHERE t.site_name='GROGOL BARU'").fetchall()
+        assert len(nodes) == 1
+        node = nodes[0]
+        assert node['name_digsilent'] == 'GROGOL II'
+        assert node['voltage_kv'] == 150
+        assert conn.execute("SELECT count(*) FROM line WHERE line_name IN ('DURIKOSAMBI-GROGOL BARU','GROGOL BARU-GROGOL')").fetchone()[0] == 0
+        lines = conn.execute("SELECT l.* FROM line l JOIN substation s ON s.ss_id=CASE WHEN l.ss_from=? THEN l.ss_to ELSE l.ss_from END JOIN site t USING(site_id) WHERE (l.ss_from=? OR l.ss_to=?) AND t.site_name IN ('DURIKOSAMBI','GROGOL')", (node['ss_id'],)*3).fetchall()
+        assert len(lines) == 4
+        assert sorted(load.line_circuit(dict(r)) for r in lines) == ['1', '1', '2', '2']
+        relays = conn.execute("SELECT r.* FROM relay r WHERE r.ss_id=?", (node['ss_id'],)).fetchall()
+        assert len(relays) > 8  # includes non-DIST devices, not just the manual eight-row patch
+        assert conn.execute("SELECT count(*) FROM relay r JOIN line l USING(line_id) WHERE r.ss_id=? AND r.ss_id NOT IN (l.ss_from,l.ss_to)", (node['ss_id'],)).fetchone()[0] == 0
+        dist = conn.execute("SELECT r.*,l.line_name,l.circuit_no FROM relay r JOIN relay_function f USING(relay_id) JOIN line l USING(line_id) WHERE f.function_type='DIST' AND l.line_id IN (%s)" % ','.join(str(r['line_id']) for r in lines)).fetchall()
+        assert len(dist) == 8
+        for row in dist:
+            assert load.line_circuit(dict(row)) == row['bay'][-1]
+
+
+def test_pilot_t3_is_scoped_to_approved_directions_and_circuit_two(rebuilt):
+    from calculation_loader import resolve_pilot_t3
+    _, db_path = rebuilt
+    with connect(db_path) as conn:
+        resolved = [(r[0], resolve_pilot_t3(conn,r[0])) for r in conn.execute("SELECT relay_function_id FROM relay_function WHERE function_type='DIST'")]
+        assert sum(value is not None for _,value in resolved) == 3
+        assert all(value == 1.6 for _,value in resolved if value is not None)
+        assert resolve_pilot_t3(conn,999999) is None

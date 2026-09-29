@@ -5,8 +5,10 @@ calculation_context() thd SELURUH rele DIST di database, dan menulis
 hasilnya ke calculation_context/calculation_branch.
 
 TERPISAH dari load.py (bukan bagian pipeline v0-v2 utama) -- v3a masih
-fase awal: Z2/Z3 genuinely SELALU incomplete_topology krn data trafo
-tidak ada (lihat calculation_loader.py). Menyatukan ke load.py sekarang
+fase awal: Z2/Z3 tetap incomplete_topology utk hampir semua GI krn data
+trafo tidak ada, kecuali whitelist eksplisit ss_id yang nameplate MVA-nya
+sudah dibaca dari SLD (status complete_assumed_transformer, lihat
+calculation_loader.py). Menyatukan ke load.py sekarang
 akan memperlambat/mengacaukan rebuild pipeline yang sudah stabil utk
 sesuatu yang belum banyak menghasilkan nilai. Jalankan manual:
 
@@ -26,6 +28,7 @@ from pathlib import Path
 from calculation_loader import (
     STATUS_AMBIGUOUS_BRANCH,
     STATUS_COMPLETE,
+    STATUS_COMPLETE_ASSUMED_TRANSFORMER,
     STATUS_INCOMPLETE_EXTERNAL,
     STATUS_INCOMPLETE_TOPOLOGY,
     compute_relay_function_zones,
@@ -68,13 +71,16 @@ def run(db_path: str) -> None:
         counts = status_counts[zone]
         parts = ", ".join(
             f"{status}={counts.get(status, 0)}"
-            for status in (STATUS_COMPLETE, STATUS_INCOMPLETE_TOPOLOGY, STATUS_INCOMPLETE_EXTERNAL, STATUS_AMBIGUOUS_BRANCH)
+            for status in ("complete_assumed_inputs", STATUS_COMPLETE, STATUS_COMPLETE_ASSUMED_TRANSFORMER, STATUS_INCOMPLETE_TOPOLOGY, STATUS_INCOMPLETE_EXTERNAL, STATUS_AMBIGUOUS_BRANCH)
         )
         print(f"{zone}: {parts}")
     print()
-    print("Z2/Z3 incomplete_topology masif diharapkan saat ini -- data trafo")
-    print("(XT1, dibutuhkan cap reach) tidak tersedia di plms.db sama sekali.")
-    print("Lihat calculation_loader.py: resolve_transformer_reactance().")
+    print("Z2/Z3 incomplete_topology masih diharapkan utk sebagian besar GI --")
+    print("data trafo (XT1) tidak tersedia di plms.db kecuali whitelist eksplisit")
+    print("(lihat calculation_loader.py: _ASSUMED_TRANSFORMER_NAMEPLATE). GI di")
+    print("whitelist itu tercatat status complete_assumed_transformer, BUKAN")
+    print("complete -- reach-nya bertumpu pada asumsi 12,5% x MVA nameplate,")
+    print("bukan Z% trafo terukur.")
 
 
 if __name__ == "__main__":

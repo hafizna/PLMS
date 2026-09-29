@@ -13,13 +13,17 @@ line asal/remote bus -- jangan siklus).
 Data trafo (XT1/reaktansi remote) TIDAK ADA di plms.db sama sekali
 (dikonfirmasi: tidak ada function_type trafo, tidak ada tabel
 transformer, cuma ada di 1 file Mathcad utk 1 kasus GI Millenium).
-Keputusan pemilik data: kalau XT1 tidak tersedia, JANGAN hitung Z2/Z3
-tanpa cap (bisa overreach salah) -- tandai status incomplete_topology
-persis di titik itu, sesuai prinsip "jangan mengestimasi line/impedansi
-yang hilang" di prompt v2. resolve_transformer_reactance() SELALU
-mengembalikan None saat ini -- disediakan sbg hook satu titik utk nanti
-kalau sumber data trafo tersedia (lihat AskUserQuestion di sesi ini:
-user blm py sumber, ini murni placeholder eksplisit, BUKAN estimasi).
+Keputusan pemilik data (semula): kalau XT1 tidak tersedia, JANGAN hitung
+Z2/Z3 tanpa cap (bisa overreach salah) -- tandai status
+incomplete_topology persis di titik itu, sesuai prinsip "jangan
+mengestimasi line/impedansi yang hilang" di prompt v2.
+
+Revisi 2026-09-29: asumsi template workbook 12,5% dipakai hanya untuk
+identitas GI dan tegangan yang nameplate per unitnya sudah ditelusuri ke
+SLD. XT1 = 0,125 x V_ref^2 / MVA_unit, R diabaikan sesuai workbook.
+Ini bukan impedansi terukur atau standar universal PLN. Resolver membaca
+identitas dari database, bukan mengandalkan nomor ss_id snapshot.
+Caller menandai hasil STATUS_COMPLETE_ASSUMED_TRANSFORMER.
 
 Fungsi build_*()/compute_relay_function_zones() murni baca (read-only).
 persist_calculation_context() (di bawah) yang menulis ke
@@ -55,8 +59,44 @@ STATUS_COMPLETE = "complete"
 STATUS_INCOMPLETE_TOPOLOGY = "incomplete_topology"
 STATUS_INCOMPLETE_EXTERNAL = "incomplete_external"
 STATUS_AMBIGUOUS_BRANCH = "ambiguous_branch"
+# Reach dihitung sukses, TAPI salah satu input (XT1) berasal dari asumsi
+# 12,5% x MVA nameplate (bukan Z% terukur) -- lihat resolve_transformer_
+# reactance(). Dipisah dari STATUS_COMPLETE supaya tidak tercampur diam-
+# diam dgn hasil yang seluruh inputnya data terukur/DIgSILENT.
+STATUS_COMPLETE_ASSUMED_TRANSFORMER = "complete_assumed_transformer"
 
 SAFETY_CAP_HOPS = 3
+
+# Asumsi template workbook DIgSILENT, ditemukan identik di 7
+# sheet lintas 2 kelas tegangan/ukuran trafo (500MVA@500kV & 60MVA@150kV)
+# (lihat docs/VALIDASI_GANDUL_KEMBANGAN_DURIKOSAMBI.md addendum):
+# XT1 = Z_PERCENT x V_ref^2 / MVA_nameplate, resistansi trafo diabaikan
+# (XT1 murni reaktansi imajiner di sumber juga).
+ASSUMED_TRANSFORMER_Z_PERCENT = 0.125
+
+# Reviewed identity + voltage, never snapshot-specific SQLite IDs.
+# MVA is per unit; this is a workbook assumption, not measured impedance.
+_GRLBR_SOURCE = (
+    "SLD GRLBR Ver 8 2022, 2x60MVA 150/22kV, hash "
+    "a20c0d9172bf9185230096f2c07751690ea6cb982a3fa266e1e293fde633bf88"
+)
+_ASSUMED_TRANSFORMER_NAMEPLATE: dict[tuple[str, float], tuple[float, float, str]] = {
+    ("GROGOL BARU", 150.0): (60.0, 150.0, _GRLBR_SOURCE),  # GROGOL BARU (data manual)
+    ("GROGOL II", 150.0): (60.0, 150.0, _GRLBR_SOURCE),  # GROGOL II (DIgSILENT) = GROGOL BARU, substation fisik sama
+    ("GROGOL", 150.0): (60.0, 150.0,
+          "SLD GRGOL Ver 8 2022, 3x60MVA 150/20-22kV, hash "
+          "077aa70682f8308302b8415e7ace7bd55caf5e3396f2ed25d632a5ac7c91f287"),  # GROGOL, substation lain
+}
+
+
+@dataclass(frozen=True)
+class TransformerReactance:
+    """Hasil resolve_transformer_reactance(). assumed=True berarti x_ohm
+    dari asumsi 12,5% x MVA nameplate (ASSUMED_TRANSFORMER_Z_PERCENT),
+    BUKAN Z% terukur -- caller wajib mempropagasi ini ke status zona."""
+    x_ohm: float
+    assumed: bool
+    note: str
 
 
 def resolve_line_impedance(conn: sqlite3.Connection, line_id: int) -> LineImpedance | None:
@@ -77,14 +117,50 @@ def resolve_line_impedance(conn: sqlite3.Connection, line_id: int) -> LineImpeda
     )
 
 
-def resolve_transformer_reactance(conn: sqlite3.Connection, ss_id: int) -> float | None:
-    """SELALU None saat ini -- TIDAK ADA sumber data trafo (MVA/impedansi
-    %) di plms.db (dikonfirmasi: 0 function_type trafo, 0 tabel
-    transformer). Hook satu titik: begitu sumber data trafo tersedia
-    (mis. ETL baru dari dokumen terpisah), ganti isi fungsi ini saja --
-    seluruh pemanggil (build_calculation_context) otomatis ikut
-    terupdate tanpa perlu disentuh.
+def resolve_transformer_reactance(conn: sqlite3.Connection, ss_id: int) -> TransformerReactance | None:
+    """Resolve reviewed GI identity and voltage to a traced workbook assumption.
+
+    Missing, ambiguous, or unreviewed identities return None. Nameplate MVA
+    is per unit, not summed bank capacity; impedance is not measured.
     """
+    row = conn.execute(
+        "SELECT t.site_name,s.voltage_kv FROM substation s JOIN site t USING(site_id) WHERE s.ss_id=?",
+        (ss_id,),
+    ).fetchone()
+    if row is None:
+        return None
+    identity = (row[0].strip().upper(), row[1])
+    matches = conn.execute(
+        "SELECT count(*) FROM substation s JOIN site t USING(site_id) "
+        "WHERE upper(trim(t.site_name))=? AND s.voltage_kv=?", identity,
+    ).fetchone()[0]
+    if matches != 1:
+        return None
+    entry = _ASSUMED_TRANSFORMER_NAMEPLATE.get(identity)
+    if entry is None:
+        return None
+    mva, v_ref_kv, source = entry
+    x_ohm = ASSUMED_TRANSFORMER_Z_PERCENT * (v_ref_kv ** 2) / mva
+    return TransformerReactance(
+        x_ohm=x_ohm, assumed=True,
+        note=f"XT1 asumsi workbook {ASSUMED_TRANSFORMER_Z_PERCENT * 100:g}%, {mva:g}MVA/unit "
+             f"@ {v_ref_kv:g}kV = {x_ohm:.3f} ohm ({source})",
+    )
+
+
+def resolve_pilot_t3(conn, relay_function_id):
+    """Owner judgement 2026-09-30; only reviewed 150 kV circuit-2 directions.
+    Pending individual maintenance reports. Never override a sourced timer.
+    """
+    row = conn.execute("""SELECT a.site_name,b.site_name,r.bay,s.voltage_kv,t.voltage_kv
+        FROM relay_function f JOIN relay r USING(relay_id)
+        JOIN substation s ON s.ss_id=r.ss_id JOIN site a ON a.site_id=s.site_id
+        JOIN line l ON l.line_id=r.line_id
+        JOIN substation t ON t.ss_id=CASE WHEN l.ss_from=r.ss_id THEN l.ss_to WHEN l.ss_to=r.ss_id THEN l.ss_from END
+        JOIN site b ON b.site_id=t.site_id WHERE f.relay_function_id=? AND f.function_type='DIST'""", (relay_function_id,)).fetchone()
+    allowed = {('DURIKOSAMBI','GROGOL BARU'),('GROGOL BARU','GROGOL'),('GROGOL','GROGOL BARU')}
+    if row and tuple(row[:2]) in allowed and row[3] == row[4] == 150 and re.search(r'#2\s*$', row[2] or ''):
+        return 1.6
     return None
 
 
@@ -274,19 +350,23 @@ def compute_relay_function_zones(
         results.append(ZoneComputation(zone="Z3", status=STATUS_INCOMPLETE_EXTERNAL, result=None, branch_trace=[]))
         return results
 
-    transformer_x = resolve_transformer_reactance(conn, remote_ss_id)
+    transformer = resolve_transformer_reactance(conn, remote_ss_id)
+    transformer_x = transformer.x_ohm if transformer is not None else None
+    transformer_note = transformer.note if transformer is not None and transformer.assumed else ""
     paths = topology_branch_paths(conn, remote_ss_id, line_id)
     paths_z2 = [p for p in paths if len(p["path"]) == 1]
     one_hop = build_remote_branches(conn, remote_ss_id, exclude_line_id=line_id)
 
     if transformer_x is None or any(p["gaps"] for p in paths_z2):
-        # Keputusan pemilik data: tanpa XT1, JANGAN hitung Z2/Z3 tanpa
-        # cap -- bisa overreach salah. Tandai gap eksplisit.
+        # Keputusan pemilik data: tanpa XT1 (terukur ATAU asumsi
+        # tertelusur), JANGAN hitung Z2/Z3 tanpa cap -- bisa overreach
+        # salah. Tandai gap eksplisit.
         note = "XT1 (reaktansi trafo remote) tidak tersedia di plms.db" if transformer_x is None else "cabang remote belum lengkap"
         results.append(ZoneComputation(zone="Z2", status=STATUS_INCOMPLETE_TOPOLOGY, result=None, branch_trace=_path_trace(paths_z2, note)))
         results.append(ZoneComputation(zone="Z3", status=STATUS_INCOMPLETE_TOPOLOGY, result=None, branch_trace=_path_trace(paths, note)))
         return results
 
+    z2_status = STATUS_COMPLETE_ASSUMED_TRANSFORMER if transformer.assumed else STATUS_COMPLETE
     z2 = calculate_zone2(line_impedance, one_hop, transformer_x, ratio)
     # Ambang T2: dari cabang yang DIPILIH sbg reach (konsisten Mathcad,
     # yg pakai X cabang tetangga yg sama dgn yg membentuk Z2mak menang).
@@ -298,8 +378,8 @@ def compute_relay_function_zones(
     )
     z2_delay = zone2_delay(z2.z_primary_ohm, line_impedance.z1, selected_x1sg)
     z2 = replace(z2, delay_s=z2_delay)
-    z2_trace = _path_trace(paths_z2, selected_id=z2.selected_branch_line_id)
-    results.append(ZoneComputation(zone="Z2", status=STATUS_COMPLETE, result=z2, branch_trace=z2_trace))
+    z2_trace = _path_trace(paths_z2, extra_note=transformer_note, selected_id=z2.selected_branch_line_id)
+    results.append(ZoneComputation(zone="Z2", status=z2_status, result=z2, branch_trace=z2_trace))
 
     if any(p["gaps"] for p in paths):
         results.append(ZoneComputation(zone="Z3", status=STATUS_INCOMPLETE_TOPOLOGY, result=None,
@@ -320,9 +400,20 @@ def compute_relay_function_zones(
     # tetap valid dihitung terlepas dari T3 diketahui atau tidak.
     z3_timer = (scanning_timers or {}).get(line_id)
     z3_delay = z3_timer.z3_time_s if z3_timer is not None else None
+    assumed_t3 = False
+    if z3_delay is None:
+        z3_delay = resolve_pilot_t3(conn, relay_function_id)
+        assumed_t3 = z3_delay is not None
+    if assumed_t3:
+        transformer_note += "; T3 ASUMSI 1.6 s: expert judgement pemilik data 2026-09-30, sirkit 2 pilot; menunggu laporan pengujian individu"
     z3 = calculate_zone3(line_impedance, one_hop, two_hop, transformer_x, ratio, delay_s=z3_delay)
-    z3_status = STATUS_COMPLETE if z3_delay is not None else STATUS_AMBIGUOUS_BRANCH
-    z3_trace = _path_trace(paths, selected_id=z3.selected_branch_line_id, selected_two_hop=z3.selected_is_two_hop)
+    if z3_delay is None:
+        z3_status = STATUS_AMBIGUOUS_BRANCH  # T3 genuinely tidak tersedia, prioritas di atas assumed-XT1
+    else:
+        z3_status = STATUS_COMPLETE_ASSUMED_TRANSFORMER if transformer.assumed else STATUS_COMPLETE
+    if assumed_t3:
+        z3_status = "complete_assumed_inputs"
+    z3_trace = _path_trace(paths, extra_note=transformer_note, selected_id=z3.selected_branch_line_id, selected_two_hop=z3.selected_is_two_hop)
     results.append(ZoneComputation(zone="Z3", status=z3_status, result=z3, branch_trace=z3_trace))
 
     return results

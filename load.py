@@ -321,10 +321,6 @@ MANUAL_LINES = [
     # EKSTENSI/cabang baru -- TIDAK ada line langsung A<->B di DIgSILENT
     # utk disisipi; GI baru menghubungkan node yg sebelumnya tak terhubung
     # langsung.
-    dict(line_name='DURIKOSAMBI-GROGOL BARU', ss_from_name='DURIKOSAMBI', ss_to_name='GROGOL BARU',
-         voltage_kv=150.0, source='UPT_MANUAL'),
-    dict(line_name='GROGOL BARU-GROGOL', ss_from_name='GROGOL BARU', ss_to_name='GROGOL',
-         voltage_kv=150.0, source='UPT_MANUAL'),
     dict(line_name='CENGKARENG BARU-ITS', ss_from_name='CENGKARENG BARU', ss_to_name='ITS',
          voltage_kv=150.0, source='UPT_MANUAL'),
     dict(line_name='ITS-TANGERANG BARU', ss_from_name='ITS', ss_to_name='TANGERANG BARU',
@@ -563,6 +559,21 @@ def load_substations(conn, rows):
     NEW BALARAJA7, ~200m dari GI 150kV New Balaraja), jadi HARUS dapat
     site_id sendiri, bukan ikut digabung.
     """
+    # Owner-confirmed 2026-09-29: GROGOL II is GROGOL BARU at 150 kV.
+    # Collapse the source placeholder before assigning IDs; retain DIgSILENT name.
+    rows = [dict(r) for r in rows]
+    anchors = [r for r in rows if r['name_digsilent'] == 'GROGOL II'
+               and to_float(r['voltage_kv']) == 150.0]
+    if len(anchors) == 1:
+        anchor = anchors[0]
+        placeholders = [r for r in rows if not r['name_digsilent']
+                        and r['site_name'] == 'GROGOL BARU'
+                        and to_float(r['voltage_kv']) in (None, 150.0)]
+        anchor['site_name'] = 'GROGOL BARU'
+        if placeholders:
+            anchor['in_scope'] = 'True'
+            anchor['hop_distance'] = '0'
+        rows = [r for r in rows if r not in placeholders]
     key_to_ssid = {}
     site_by_name = {}
     for r in rows:
@@ -587,6 +598,8 @@ def load_substations(conn, rows):
              to_bool(r.get('in_scope', r.get('in_seed'))), to_int(r['hop_distance']),
              (r['topology_source'] or '').strip() or None))
         key_to_ssid[key] = cur.lastrowid
+        if name_dig == 'GROGOL II' and to_float(r['voltage_kv']) == 150.0:
+            key_to_ssid['GROGOL BARU'] = cur.lastrowid
     return key_to_ssid
 
 
@@ -811,6 +824,9 @@ def line_circuit(row, sibling_names=None):
         if numbers:
             return next(iter(numbers))
     name = row['line_name'] or ''
+    roman = re.search(r'(?:-|#|\s)(II|I)\s*$', name.upper())
+    if roman:
+        return {'I': '1', 'II': '2'}[roman.group(1)]
     match = re.search(r'(?:-|#|\s)([12])\s*$', name)
     if match:
         return match.group(1)

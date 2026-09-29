@@ -13,8 +13,10 @@ import calculation_loader
 from calculation_loader import (
     STATUS_AMBIGUOUS_BRANCH,
     STATUS_COMPLETE,
+    STATUS_COMPLETE_ASSUMED_TRANSFORMER,
     STATUS_INCOMPLETE_EXTERNAL,
     STATUS_INCOMPLETE_TOPOLOGY,
+    TransformerReactance,
     _parse_ratio_pair,
     _resolve_ct_pt_ratio,
     build_remote_branches,
@@ -298,7 +300,7 @@ def test_compute_zones_missing_relay_function_returns_incomplete_topology(conn):
 # data di atas, dan TIDAK diubah oleh integrasi T3 ini).
 
 def test_compute_zones_z3_uses_scanning_timer_when_transformer_data_available(conn, monkeypatch):
-    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda conn, ss_id: 5.85)
+    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda conn, ss_id: TransformerReactance(x_ohm=5.85, assumed=False, note=""))
 
     ss_a = _insert_site_ss(conn, "A")
     ss_b = _insert_site_ss(conn, "B")
@@ -315,7 +317,7 @@ def test_compute_zones_z3_uses_scanning_timer_when_transformer_data_available(co
 
 
 def test_compute_zones_z3_stays_ambiguous_when_line_not_in_scanning_timers(conn, monkeypatch):
-    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda conn, ss_id: 5.85)
+    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda conn, ss_id: TransformerReactance(x_ohm=5.85, assumed=False, note=""))
 
     ss_a = _insert_site_ss(conn, "A")
     ss_b = _insert_site_ss(conn, "B")
@@ -334,7 +336,7 @@ def test_compute_zones_z3_stays_ambiguous_when_line_not_in_scanning_timers(conn,
 def test_compute_zones_z3_without_scanning_timers_argument_defaults_to_ambiguous(conn, monkeypatch):
     # scanning_timers=None (default parameter) harus berperilaku sama
     # persis dgn dict kosong -- tidak boleh crash krn None.
-    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda conn, ss_id: 5.85)
+    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda conn, ss_id: TransformerReactance(x_ohm=5.85, assumed=False, note=""))
     ss_a = _insert_site_ss(conn, "A")
     ss_b = _insert_site_ss(conn, "B")
     protected = _insert_line(conn, "A-B", ss_a, ss_b)
@@ -344,6 +346,71 @@ def test_compute_zones_z3_without_scanning_timers_argument_defaults_to_ambiguous
     z3 = next(r for r in results if r.zone == "Z3")
     assert z3.status == STATUS_AMBIGUOUS_BRANCH
     assert z3.result.delay_s is None
+
+
+# --------------------------------- XT1 asumsi 12,5% x MVA nameplate (whitelist)
+# Revisi 2026-09-29: reach Z2/Z3 boleh dihitung dari XT1 asumsi utk ss_id
+# whitelist, TAPI status HARUS beda dari data terukur -- lihat
+# docs/VALIDASI_GANDUL_KEMBANGAN_DURIKOSAMBI.md addendum.
+
+def test_compute_zones_marks_assumed_status_when_transformer_reactance_is_assumed(conn, monkeypatch):
+    monkeypatch.setattr(
+        calculation_loader, "resolve_transformer_reactance",
+        lambda conn, ss_id: TransformerReactance(x_ohm=5.85, assumed=True, note="test-assumed-note"),
+    )
+    ss_a = _insert_site_ss(conn, "A")
+    ss_b = _insert_site_ss(conn, "B")
+    ss_c = _insert_site_ss(conn, "C")
+    protected = _insert_line(conn, "A-B", ss_a, ss_b)
+    _insert_line(conn, "B-C", ss_b, ss_c)  # cabang forward, supaya branch_trace tidak kosong
+    rf_id = _insert_dist_relay(conn, ss_a, protected)
+
+    scanning_timers = {protected: ScanningTimers(
+        file_id="fake", line_label="LINE 1", z1_time_s=0.0, z2_time_s=0.4, z3_time_s=1.6,
+    )}
+    results = {r.zone: r for r in compute_relay_function_zones(conn, rf_id, scanning_timers=scanning_timers)}
+
+    assert results["Z1"].status == STATUS_COMPLETE  # Z1 tidak pernah butuh XT1
+    assert results["Z2"].status == STATUS_COMPLETE_ASSUMED_TRANSFORMER
+    assert results["Z2"].result is not None
+    assert any("test-assumed-note" in t[2] for t in results["Z2"].branch_trace)
+    assert results["Z3"].status == STATUS_COMPLETE_ASSUMED_TRANSFORMER
+    assert results["Z3"].result.delay_s == 1.6
+
+
+def test_compute_zones_missing_t3_timer_stays_ambiguous_even_when_transformer_assumed(conn, monkeypatch):
+    # T3 genuinely tidak tersedia HARUS tetap ambiguous_branch walau XT1
+    # tersedia (assumed atau tidak) -- dua gap yang berbeda, jangan
+    # tertutupi satu sama lain.
+    monkeypatch.setattr(
+        calculation_loader, "resolve_transformer_reactance",
+        lambda conn, ss_id: TransformerReactance(x_ohm=5.85, assumed=True, note="test-assumed-note"),
+    )
+    ss_a = _insert_site_ss(conn, "A")
+    ss_b = _insert_site_ss(conn, "B")
+    protected = _insert_line(conn, "A-B", ss_a, ss_b)
+    rf_id = _insert_dist_relay(conn, ss_a, protected)
+
+    results = {r.zone: r for r in compute_relay_function_zones(conn, rf_id, scanning_timers={})}
+    assert results["Z2"].status == STATUS_COMPLETE_ASSUMED_TRANSFORMER
+    assert results["Z3"].status == STATUS_AMBIGUOUS_BRANCH
+    assert results["Z3"].result is not None
+    assert results["Z3"].result.delay_s is None
+
+
+def test_transformer_assumptions_follow_identity_and_voltage_not_ids(conn):
+    conn.execute("INSERT INTO site(site_id,site_name) VALUES (194,'UNRELATED')")
+    conn.execute("INSERT INTO substation(ss_id,site_id,voltage_kv) VALUES (194,194,150)")
+    assert calculation_loader.resolve_transformer_reactance(conn, 194) is None
+    for name in ('GROGOL BARU', 'GROGOL II', 'GROGOL'):
+        sid = _insert_site_ss(conn, name)
+        result = calculation_loader.resolve_transformer_reactance(conn, sid)
+        assert result.assumed and result.x_ohm == pytest.approx(46.875)
+    wrong = _insert_site_ss(conn, 'GROGOL', 500)
+    assert calculation_loader.resolve_transformer_reactance(conn, wrong) is None
+    duplicate = _insert_site_ss(conn, 'GROGOL', 150)
+    assert calculation_loader.resolve_transformer_reactance(conn, duplicate) is None
+    assert calculation_loader.resolve_transformer_reactance(conn, 999999) is None
 
 
 # ------------------------------------------------------ persist_calculation_context
@@ -364,7 +431,7 @@ def test_z3_trace_keeps_two_hops_when_first_impedance_and_transformer_are_missin
 
 
 def test_missing_remote_impedance_blocks_reach_even_when_xt1_available(conn, monkeypatch):
-    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda *args: 5.85)
+    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda *args: TransformerReactance(x_ohm=5.85, assumed=False, note=""))
     a, b, c = [_insert_site_ss(conn, name) for name in "ABC"]
     protected = _insert_line(conn, "A-B", a, b)
     missing = _insert_line(conn, "B-C", b, c)
@@ -376,7 +443,7 @@ def test_missing_remote_impedance_blocks_reach_even_when_xt1_available(conn, mon
 
 
 def test_two_hop_gap_blocks_only_z3(conn, monkeypatch):
-    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda *args: 5.85)
+    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda *args: TransformerReactance(x_ohm=5.85, assumed=False, note=""))
     a, b, c, d = [_insert_site_ss(conn, name) for name in "ABCD"]
     protected = _insert_line(conn, "A-B", a, b)
     _insert_line(conn, "B-C", b, c)
@@ -430,7 +497,7 @@ def test_persist_writes_one_row_per_zone_with_expected_fields(conn):
 
 
 def test_persist_writes_branch_trace_with_selection_flag(conn, monkeypatch):
-    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda conn, ss_id: 5.85)
+    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda conn, ss_id: TransformerReactance(x_ohm=5.85, assumed=False, note=""))
 
     ss_a = _insert_site_ss(conn, "A")
     ss_b = _insert_site_ss(conn, "B")

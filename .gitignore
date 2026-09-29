@@ -14,3 +14,6 @@ tmp/pdfs/
 
 # Evidence engineering lokal berukuran besar; scan read-only, tidak disimpan Git.
 SLD Durikosambi/ULTG DURIKOSAMBI/GISTET MUARAKARANG/
+
+# Local database backups (may contain operational data).
+*.db.bak-*

@@ -3,6 +3,8 @@
 Daftar penghantar in-scope → detail (dua ujung, bay, rele, setting,
 parameter kelistrikan, tetangga satu hop). Baca-saja, tanpa autentikasi.
 
+Status cakupan, gap, dan arah UI berikutnya ada di [README utama](../README.md).
+
 ## Jalankan
 
 Jalankan dari root repo. Pipeline memakai tiga workbook yang sudah ada di
@@ -11,16 +13,20 @@ repo dan tabel alias yang sudah dikurasi:
 ```bash
 python plms_etl.py . etl_out
 python plms_v2_etl.py . v2b_out
-python load.py etl_out alias_review.csv plms.db v2b_out
+python load.py etl_out alias_review.csv plms-review.db v2b_out
 ```
 
 Loader membangun file sementara, menjalankan integrity/FK check, lalu mengganti
-`plms.db` secara atomik. Database lama tidak hilang bila rebuild gagal.
+file target secara atomik. Database lama tidak hilang bila rebuild gagal.
+Gunakan database uji untuk menjaga POC lokal pada `plms.db`; rebuild yang
+berhasil mengganti seluruh isi target, bukan memigrasikan data khususnya.
 
 Lalu jalankan web:
 
 ```bash
 cd web
+# PowerShell: arahkan UI ke database uji
+$env:PLMS_DB = (Resolve-Path ..\plms-review.db).Path
 npm ci
 npm start
 ```

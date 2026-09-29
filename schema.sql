@@ -281,7 +281,7 @@ CREATE TABLE calculation_context (
     line_id            INTEGER NOT NULL REFERENCES line(line_id),  -- protected line
     zone                TEXT NOT NULL,       -- 'Z1' | 'Z2' | 'Z3' | 'REVERSE' | ...
     direction           TEXT NOT NULL,       -- 'FORWARD' | 'REVERSE'
-    status              TEXT NOT NULL,       -- complete | incomplete_topology | incomplete_external | ambiguous_branch
+    status              TEXT NOT NULL,       -- complete | complete_assumed_transformer | incomplete_topology | incomplete_external | ambiguous_branch
     cumulative_r_ohm    REAL,     -- impedansi kumulatif R sepanjang path yang DIPAKAI (bukan semua cabang dicoba) -- alias reach_primary_r_ohm
     cumulative_x_ohm    REAL,     -- alias reach_primary_x_ohm
     reach_secondary_r_ohm REAL,   -- reach phase-phase sisi sekunder (relay), Zone1/2/3Result.z_secondary_ohm.real

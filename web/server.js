@@ -182,6 +182,8 @@ function createApp(dbPath = DEFAULT_DB_PATH, auditPath = process.env.PLMS_SLD_AU
   app.set('views', path.join(__dirname, 'views'));
   app.use('/public', express.static(path.join(__dirname, 'public')));
   app.locals.db = db;
+  require('./review')(app, db, dbPath);
+  require('./corridor')(app, db, dbPath);
 
 function listInScopeLines() {
   return db.prepare(`

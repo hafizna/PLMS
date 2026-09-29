@@ -127,3 +127,28 @@ test('daftar: mode kelompok per GI merender kedua GI ujung sbg grup terpisah', a
   assert.match(html, /data-gi="dadap"/);
   assert.match(html, /<span class="gi-count">1 penghantar<\/span>/g);
 });
+
+
+test('review keeps missing calculations distinct from settings and escapes query input', async () => {
+  const response = await fetch(`${baseUrl}/review`);
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /Review setting/);
+  assert.match(html, /SEL-411L/);
+  assert.match(html, /Belum dihitung/);
+  assert.match(html, /Belum diverifikasi engineer/);
+  assert.match(html, /DIST!T11/);
+  const empty = await fetch(`${baseUrl}/review?gi=${encodeURIComponent('<script>bad()</script>')}`);
+  const body = await empty.text();
+  assert.match(body, /Belum ada fungsi distance/);
+  assert.doesNotMatch(body, /<script>bad/);
+});
+
+
+test('corridor has a review workflow and rejects unauthorized writes', async () => {
+  const page=await fetch(`${baseUrl}/corridor`);
+  assert.equal(page.status,200);
+  assert.match(await page.text(), /Perbandingan seluruh koridor/);
+  const denied=await fetch(`${baseUrl}/corridor/review`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'note=test&state=Ditinjau'});
+  assert.equal(denied.status,403);
+});
