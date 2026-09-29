@@ -241,3 +241,83 @@ ke `<database>.reviews.db`. Snapshot input/hasil disimpan agar perubahan
 menandai review sebagai perlu ditinjau ulang. File ini perlu ikut backup;
 jangan dihapus saat rebuild. Belum ada autentikasi/multiuser, pengesahan
 formal, atau pengiriman setting ke perangkat. Status Ditinjau bukan approval.
+
+## Workspace per-GI (SLD dulu, baru setting) - 30 September 2026
+
+`/gi` dan `/gi/:siteName` menggantikan alur "pilih dari dropdown relay_function"
+dengan alur yang meniru cara insinyur bekerja dengan workbook sumber: buka GI,
+lihat SLD aslinya, telusuri bay, baca setting terpasang.
+
+1. **SLD asli** — PDF sumber di-serve langsung dari folder `SLD Durikosambi/`
+   (bukan digambar ulang). Peta folder->`site_name` di `web/sld-index.js`
+   hanya berisi 17 GI yang sudah diverifikasi manual satu-satu; GI yang
+   namanya ambigu di sumber (mis. "GI Muarakarang" tanpa qualifier BARU/LAMA)
+   sengaja ditandai "belum terhubung", bukan ditebak.
+2. **Bay & setting terpasang** — dikelompokkan per bay lintas level tegangan,
+   collapsed by default dengan ringkasan function_type di summary line (semula
+   auto-expand semua, tidak terpakai untuk GI dengan >20 bay).
+3. **Riwayat resmi** — `official_event`/`official_event_line` (292 baris,
+   sumber `List Official Setting & Resetting UPT Durikosambi.xlsx`) sudah
+   ada di skema sejak awal tapi belum pernah ditampilkan; sekarang muncul
+   per GI via `giNameKey()`. Sengaja level GI saja — teks bay di sumber
+   ("Budi Kemuliaan 1,2") belum dalam format yang sama dengan `relay.bay`
+   ("PHT 150kV BUDI KEMULIAAN#1"), jadi pencocokan per-bay ditunda, bukan
+   ditebak paksa.
+
+Tema `index`/`detail`/`not-found`/`sld-audit` disatukan ke `review.css` yang
+sama dengan halaman baru (`/gi`, `/review`, `/corridor`) — sebelumnya app ini
+punya dua tema berbeda tanpa alasan produk, cuma karena ditambahkan di waktu
+berbeda. Markup dan JS di halaman lama tidak diubah, hanya shell dan
+stylesheet-nya. `web/corridor.js` juga diperbaiki: query-nya masih memfilter
+`site_name='GROGOL BARU'` yang sudah pensiun sejak migrasi identitas GROGOL
+II, sehingga halaman itu diam-diam menampilkan 0 baris sebelum diperbaiki.
+
+Verifikasi: 32/32 tes web lulus, diperiksa langsung di browser (bukan cuma
+baca kode) untuk tiap perubahan di atas.
+
+## Purpose vs requirement — celah menuju "tools model PLN"
+
+PLMS hari ini adalah alat *baca dan crosscheck*: mengimpor, menautkan, dan
+membandingkan data yang sudah ada. Diskusi arah produk (30 September 2026)
+membagi tujuan penuhnya jadi 4 pilar, masing-masing diperiksa terhadap kode
+yang benar-benar ada — bukan diasumsikan:
+
+| # | Pilar (tujuan) | Kebutuhan konkret | Status di repo |
+|---|---|---|---|
+| 1 | Repo data setting — tabel lengkap per data fisik aset | Setiap rele/fungsi/parameter tersimpan dgn provenance, terhubung ke bay & GI-nya | **Sebagian besar sudah ada.** `relay`/`relay_function`/`relay_setting` plus `official_event` (log persetujuan resmi, 292 baris, baru disambungkan ke UI bulan ini). Gap: ratusan baris identity `LOW confidence` (merk/type belum tercatat di sumber), bukan bug sistem. |
+| 2 | Tools hitung setting — pilih GI+arah, tervalidasi thd jaringan, keluar setting sesuai merk/tipe rele, PDF ber-approval | Traversal topologi, rumus per fungsi proteksi, template output per vendor, alur approval | **Paling jauh dari selesai.** `distance_engine.py` menghitung Z1/Z2/Z3 tapi nempel di rele yang sudah terdaftar (bukan "dari nol pilih GI+arah"). Sheet `GANDUL-DURKOS` (workbook crosscheck asli) memetakan kebutuhan penuhnya: reach Z1-3 (ada), jangkauan resistif/blinder/power-swing (belum ada sama sekali), output per-merk relay (belum ada). Tidak ada generator PDF atau approval workflow. |
+| 3 | Tools crosscheck — tap setting tersimpan vs database, atau vs hasil hitung baru | Bandingkan nilai tercatat dgn hasil engine, tandai selisih, simpan keputusan review | **Paling dekat selesai.** `calculation_loader.py` + `/corridor` + `/review` sudah membandingkan hasil hitung vs `SET_RELAY`, dengan status `complete_assumed_transformer`/`complete_assumed_inputs` yang eksplisit memisahkan data terukur dari asumsi. `setting_group='TAP_SET'` di skema kemungkinan representasi "tap setting resmi" yang dimaksud — perlu dikonfirmasi definisinya dgn pemilik data. |
+| 4 | Ekspor RIO/XRIO untuk pengujian | Serialisasi setting ke format tukar-menukar per vendor | **Belum mulai**, dan sengaja ditunda ("soon") oleh pemilik data. Format per-vendor, perlu riset terpisah sebelum implementasi. |
+
+Konsekuensi praktis: pekerjaan berikutnya yang paling bernilai bukan menambah
+halaman baru, tapi mengisi pilar #2 (mesin hitung) memakai `GANDUL-DURKOS`
+sebagai blueprint rumus, dan mengonfirmasi makna `TAP_SET` di pilar #3
+sebelum dibangun lebih jauh di atasnya.
+
+## Riset PSS®CAPE (Siemens) — konsep yang relevan untuk PLMS
+
+PSS®CAPE adalah software komersial protection engineering (dipakai di lebih
+dari 50 negara) yang paling dekat dengan visi 4 pilar di atas. Brosur produk
+menunjukkan pemisahan modul yang jelas, dan beberapa konsepnya langsung
+relevan utk arah PLMS:
+
+| Modul PSS®CAPE | Fungsinya | Relevansi utk PLMS |
+|---|---|---|
+| Database Editor | Satu database relasional (ODBC/SQL), semua modul baca-tulis data yang sama | Sudah sejalan dgn pendekatan `plms.db` + provenance kita |
+| One-Line Diagram | Diagram SLD interaktif: klik elemen -> lihat data/hasil simulasi langsung di diagram, buka breaker, terapkan gangguan | Jauh lebih maju dari `/gi` kita (PDF statis) — arah lanjutan yang masuk akal, TAPI butuh data koordinat bay yang belum kita punya |
+| **Relay Setting** | Prosedur setting **perusahaan sendiri** ditulis sbg macro (bukan 1 formula universal); macro menghitung raw setting lalu memilih tap aktual | **Paling relevan utk pilar #2.** Ini persis pola `GANDUL-DURKOS`: prosedur UPT Durikosambi sendiri, bukan rumus generik buku teks. Desain "macro per prosedur organisasi" > "1 formula hardcoded" |
+| Coordination Graphics | Plot bidang R-X interaktif, kurva OCR/GFR, reset tap grafis | Konsep yang sama sempat diusulkan sesi ini utk visualisasi Z1/Z2/Z3; PSS®CAPE membuktikan ini pola yang sudah terbukti dipakai industri |
+| Relay Checking / System Simulator | Simulasi stepped-event otomatis lintas jaringan, deteksi miscoordination dgn traffic-light | Arah lanjutan utk pilar #3 setelah crosscheck 1-rele sudah matang |
+| **Order Production** | Generate laporan **kertas/PDF** setting berdasar tap & test point per lokasi | Persis "PDF tap setting + approval berjenjang" di pilar #2 |
+| Compliance Module | Studi keandalan proteksi otomatis, review koordinasi wide-area, kepatuhan standar NERC PRC | Referensi bentuk laporan (lihat contoh "1. Protection Information / 2. Coordination Review / 3. Summary") utk format keluaran resmi kita nanti |
+| Bridge Module | Pertukaran data 2 arah dgn sistem asset management | Relevan kalau integrasi PST (disebut di beberapa komentar kode) jadi prioritas |
+
+Yang **tidak** relevan diambil sekarang: Power Flow, Short Circuit Reduction,
+Breaker Duty, PSS®CAPE-TS Link (studi stabilitas transien) — itu scope studi
+sistem tenaga penuh, di luar tahap PLMS saat ini (lihat "Arah UI/UX yang
+direkomendasikan" di atas, poin 6: jangan klaim setara software studi
+sistem tenaga penuh dari tahap pilot ini).
+
+Sources:
+- [PSS®CAPE Protection Simulation Software (brosur produk)](https://descargas.indielec.com/web/PSS-CAPE%20Brochure.pdf)
+- [Siemens — PSS®CAPE product page](https://www.siemens.com/global/en/products/energy/grid-software/maintain/grid-resiliency-software/psscape.html)
