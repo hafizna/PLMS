@@ -28,6 +28,22 @@ npm start
 Buka `http://localhost:3000`. Override lokasi DB/port lewat env var
 `PLMS_DB` / `PORT`.
 
+## Audit relasi SLD Jakban untuk Z2/Z3
+
+Jalankan dari root repo untuk membaca 11 workbook Jakban dan membuat audit
+per rele tanpa mengubah database:
+
+```powershell
+python sld_topology_audit.py --sld-root C:\Users\hafizna.fadhli\Downloads\mantaps-topology-engine
+```
+
+Buka `/sld-audit` atau tautan audit pada halaman penghantar. Halaman menampilkan
+urutan cabang dari GI lawan, kandidat relasi, kekurangan data, dan bukti PoV.
+Laporan yang hash databasenya sudah berubah ditolak agar ID lama tidak terpakai.
+Lokasi JSON dapat diubah lewat `PLMS_SLD_AUDIT`.
+
+Lihat [panduan audit dan review pemetaan](../docs/SLD_JAKBAN_ZONES.md).
+
 ## Test
 
 Dari root repo:

@@ -112,20 +112,23 @@ def incident_lines(conn: sqlite3.Connection, ss_id: int) -> list[sqlite3.Row]:
     plms_etl, bukan sebaliknya -- jaga arah dependency tetap satu arah)."""
     conn.row_factory = sqlite3.Row
     return conn.execute(
-        "SELECT * FROM line WHERE ss_from = ? OR ss_to = ?", (ss_id, ss_id),
+        """SELECT * FROM line WHERE (ss_from = ? OR ss_to = ?)
+           AND COALESCE(out_of_service, 0) = 0 ORDER BY line_id""", (ss_id, ss_id),
     ).fetchall()
 
 
 def build_remote_branches(conn: sqlite3.Connection, remote_ss_id: int, exclude_line_id: int) -> list[RemoteBranch]:
     """Semua line 1-hop dari remote bus, KECUALI protected line itu
-    sendiri. Line tanpa line_electrical (None) DILEWATI -- bukan
-    dimasukkan dgn impedansi tebakan; ini mengurangi kandidat yg
-    dipertimbangkan Zone-2/3, bukan menyembunyikan gap (candidates_
-    considered pada hasil tetap mencerminkan yg BERHASIL dipakai)."""
+    sendiri. Hanya kandidat numerik berimpedansi yang dikembalikan.
+    topology_branch_paths() mencatat SEMUA cabang dan caller menahan
+    perhitungan bila ada impedansi/ujung yang belum tersedia."""
     branches = []
+    local_ss_id = remote_endpoint(conn, exclude_line_id, remote_ss_id)
     for line in incident_lines(conn, remote_ss_id):
         if line["line_id"] == exclude_line_id:
             continue
+        if local_ss_id is not None and remote_endpoint(conn, line["line_id"], remote_ss_id) == local_ss_id:
+            continue  # a parallel return to the local bus is not a forward path
         impedance = resolve_line_impedance(conn, line["line_id"])
         if impedance is None:
             continue
@@ -143,6 +146,7 @@ def build_two_hop_branches(
     dipatuhi krn fungsi ini TIDAK menelusuri lebih jauh dari ujung
     2-hop (tidak ada rekursi ke hop ke-3)."""
     two_hop: list[TwoHopBranch] = []
+    local_ss_id = remote_endpoint(conn, exclude_line_id, remote_ss_id)
     for first in one_hop_branches:
         far_end_ss_id = remote_endpoint(conn, first.line_id, remote_ss_id)
         if far_end_ss_id is None:
@@ -154,6 +158,8 @@ def build_two_hop_branches(
             # (loop 2-line antara remote bus & ujung jauh first-hop).
             if second_line["ss_from"] == remote_ss_id or second_line["ss_to"] == remote_ss_id:
                 continue
+            if local_ss_id is not None and remote_endpoint(conn, second_line["line_id"], far_end_ss_id) == local_ss_id:
+                continue
             second_impedance = resolve_line_impedance(conn, second_line["line_id"])
             if second_impedance is None:
                 continue
@@ -162,6 +168,44 @@ def build_two_hop_branches(
                 second_hop_line_id=second_line["line_id"], second_hop_impedance=second_impedance,
             ))
     return two_hop
+
+
+def topology_branch_paths(conn, remote_ss_id, protected_line_id):
+    """Topological paths independent of impedance and transformer availability.
+
+    Record the two-hop path even when its first segment has no impedance.
+    Each path carries its ordered line IDs so branches sharing an endpoint
+    remain distinguishable in calculation_branch.note.
+    """
+    local = remote_endpoint(conn, protected_line_id, remote_ss_id)
+    paths = []
+
+    def visit(bus, visited, path, gaps):
+        for line in incident_lines(conn, bus):
+            lid = line["line_id"]
+            if lid == protected_line_id:
+                continue
+            other = remote_endpoint(conn, lid, bus)
+            if other is not None and other in visited:
+                continue
+            missing = list(gaps)
+            if resolve_line_impedance(conn, lid) is None:
+                missing.append(f"line {lid}: line_electrical tidak lengkap")
+            if other is None:
+                missing.append(f"line {lid}: ujung remote tidak diketahui")
+            ordered = path + [lid]
+            paths.append({"line_id": lid, "path": ordered, "gaps": missing})
+            if other is not None and len(ordered) < 2:
+                visit(other, visited | {other}, ordered, missing)
+
+    visit(remote_ss_id, {local, remote_ss_id}, [], [])
+    return paths
+
+
+def _path_trace(paths, extra_note="", selected_id=None, selected_two_hop=False):
+    return [(p["line_id"], p["line_id"] == selected_id and (len(p["path"]) == 2) == selected_two_hop,
+             "; ".join(filter(None, ["path=" + ">".join(map(str, p["path"])), *p["gaps"], extra_note])))
+            for p in paths]
 
 
 @dataclass(frozen=True)
@@ -231,15 +275,16 @@ def compute_relay_function_zones(
         return results
 
     transformer_x = resolve_transformer_reactance(conn, remote_ss_id)
+    paths = topology_branch_paths(conn, remote_ss_id, line_id)
+    paths_z2 = [p for p in paths if len(p["path"]) == 1]
     one_hop = build_remote_branches(conn, remote_ss_id, exclude_line_id=line_id)
 
-    if transformer_x is None:
+    if transformer_x is None or any(p["gaps"] for p in paths_z2):
         # Keputusan pemilik data: tanpa XT1, JANGAN hitung Z2/Z3 tanpa
         # cap -- bisa overreach salah. Tandai gap eksplisit.
-        note = "XT1 (reaktansi trafo remote) tidak tersedia di plms.db"
-        trace = [(b.line_id, False, note) for b in one_hop]
-        results.append(ZoneComputation(zone="Z2", status=STATUS_INCOMPLETE_TOPOLOGY, result=None, branch_trace=trace))
-        results.append(ZoneComputation(zone="Z3", status=STATUS_INCOMPLETE_TOPOLOGY, result=None, branch_trace=trace))
+        note = "XT1 (reaktansi trafo remote) tidak tersedia di plms.db" if transformer_x is None else "cabang remote belum lengkap"
+        results.append(ZoneComputation(zone="Z2", status=STATUS_INCOMPLETE_TOPOLOGY, result=None, branch_trace=_path_trace(paths_z2, note)))
+        results.append(ZoneComputation(zone="Z3", status=STATUS_INCOMPLETE_TOPOLOGY, result=None, branch_trace=_path_trace(paths, note)))
         return results
 
     z2 = calculate_zone2(line_impedance, one_hop, transformer_x, ratio)
@@ -253,8 +298,13 @@ def compute_relay_function_zones(
     )
     z2_delay = zone2_delay(z2.z_primary_ohm, line_impedance.z1, selected_x1sg)
     z2 = replace(z2, delay_s=z2_delay)
-    z2_trace = [(b.line_id, b.line_id == z2.selected_branch_line_id, "") for b in one_hop]
+    z2_trace = _path_trace(paths_z2, selected_id=z2.selected_branch_line_id)
     results.append(ZoneComputation(zone="Z2", status=STATUS_COMPLETE, result=z2, branch_trace=z2_trace))
+
+    if any(p["gaps"] for p in paths):
+        results.append(ZoneComputation(zone="Z3", status=STATUS_INCOMPLETE_TOPOLOGY, result=None,
+                                       branch_trace=_path_trace(paths, "cabang 2-hop belum lengkap")))
+        return results
 
     two_hop = build_two_hop_branches(conn, remote_ss_id, exclude_line_id=line_id, one_hop_branches=one_hop)
     # T3 TIDAK dihitung dari grading otomatis (dikonfirmasi Mathcad: 1.6s
@@ -272,11 +322,7 @@ def compute_relay_function_zones(
     z3_delay = z3_timer.z3_time_s if z3_timer is not None else None
     z3 = calculate_zone3(line_impedance, one_hop, two_hop, transformer_x, ratio, delay_s=z3_delay)
     z3_status = STATUS_COMPLETE if z3_delay is not None else STATUS_AMBIGUOUS_BRANCH
-    z3_trace = (
-        [(b.line_id, b.line_id == z3.selected_branch_line_id and not z3.selected_is_two_hop, "") for b in one_hop]
-        + [(b.second_hop_line_id, b.second_hop_line_id == z3.selected_branch_line_id and z3.selected_is_two_hop, "")
-           for b in two_hop]
-    )
+    z3_trace = _path_trace(paths, selected_id=z3.selected_branch_line_id, selected_two_hop=z3.selected_is_two_hop)
     results.append(ZoneComputation(zone="Z3", status=z3_status, result=z3, branch_trace=z3_trace))
 
     return results

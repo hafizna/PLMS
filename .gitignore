@@ -9,6 +9,8 @@ __pycache__/
 etl_out/
 v2b_out/profile/
 .pytest_cache/
+sld_audit/
+tmp/pdfs/
 
 # Evidence engineering lokal berukuran besar; scan read-only, tidak disimpan Git.
 SLD Durikosambi/ULTG DURIKOSAMBI/GISTET MUARAKARANG/

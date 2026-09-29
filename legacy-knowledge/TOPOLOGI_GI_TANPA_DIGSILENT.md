@@ -10,9 +10,11 @@ manual dari dokumen UPT, sudah dimuat ke `MANUAL_LINES` di `load.py`.
 
 Status per GI (dari 12): **selesai ditelusuri & dimuat** — LONTAR, DADAP,
 GROGOL BARU, ITS, JATAKE BARU, METLAND, MILENIUM, PASAR KEMIS BARU,
-SINDANG JAYA (BALARAJA satu-arah saja). **Belum ditelusuri** — GAJAH
-TUNGGAL, ULUJAMI, SEPATAN BARU (tidak py bay `PHT%` sama sekali, cuma
-disebut sbg GI lawan).
+SINDANG JAYA (BALARAJA satu-arah saja), GAJAH TUNGGAL (ke Pasar Kemis dan
+Pasar Kemis Baru), serta ULUJAMI (ke New Senayan). **Belum punya ruas terverifikasi** —
+SEPATAN BARU (tidak py bay `PHT%` sama sekali, cuma disebut sbg GI lawan).
+Status ini dicocokkan ulang dengan `load.py` dan database pada 28 September 2026.
+Audit pembanding SLD Jakban tersedia di [panduan Z2/Z3](../docs/SLD_JAKBAN_ZONES.md).
 
 Metode: cocokkan kode aset (`TRS-xxxx-nnn.nnn`) antar baris GI, lalu
 verifikasi kedua ujung saling menyebut nama bay satu sama lain.
@@ -65,8 +67,8 @@ match DIgSILENT); LONTAR dan DADAP menempel lewat keduanya meski
 | --- | --- |
 | Teluk Naga II | Dadap |
 
-Kemungkinan ada penamaan historis serupa untuk GAJAH TUNGGAL, ULUJAMI,
-SEPATAN BARU — belum ditelusuri.
+Penamaan SEPATAN BARU terhadap "Sepatan 2" pada sumber SLD lama masih memerlukan
+verifikasi. Hubungan GAJAH TUNGGAL dan ULUJAMI sudah dimuat seperti ringkasan di atas.
 
 ## Sisipan & ekstensi GI pasca-2021 (selain Lontar/Dadap)
 

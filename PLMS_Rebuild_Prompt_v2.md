@@ -710,6 +710,22 @@ Python ditulis untuk v3b (beda dari v3a yang infrastrukturnya sudah jalan
 walau hasilnya `incomplete_topology`) — menulis loader tanpa data untuk
 divalidasi berisiko salah arah lagi tanpa cara mengetahuinya.
 
+### Update v3a (28 September 2026) — audit relasi SLD Jakban
+
+`sld_topology_audit.py` membaca 11 workbook Jakban dari repo MANTAPS Topology
+Engine, menghasilkan crosswalk GI, pembanding koridor, dan path Z2/Z3 untuk
+seluruh 184 fungsi DIST. PoV disimpan sebagai bukti; arah rele berasal dari
+local bus dan protected line. Kandidat relasi belum dipromosikan ke graf hitung.
+Nama LAMA/BARU/GIS tetap dibedakan, dan keputusan review terikat hash sumber.
+
+Loader kini menyimpan jejak dua hop meskipun XT1 belum tersedia; cabang tanpa
+impedansi tidak lagi hilang dari jejak kalkulasi. Kekurangan data cabang menahan
+reach terkait. Validasi pada salinan DB menghasilkan 2.402 jejak cabang,
+dibanding 896 sebelumnya, dengan status Z1/Z2/Z3 tetap sama. Layar `/sld-audit`
+menampilkan hasil per rele beserta provenance dan blocker.
+
+Panduan dan batas data: [SLD Jakban untuk Z2/Z3](docs/SLD_JAKBAN_ZONES.md).
+
 ## Modul dari repo lama yang layak diselamatkan
 
 Hanya modul perhitungan murni, disalin sebagai fungsi lepas tanpa dependensinya:

@@ -8,6 +8,8 @@
 const express = require('express');
 const Database = require('better-sqlite3');
 const path = require('path');
+const fs = require('node:fs');
+const crypto = require('node:crypto');
 
 const DEFAULT_DB_PATH = process.env.PLMS_DB || path.join(__dirname, '..', 'plms.db');
 const PORT = process.env.PORT || 3000;
@@ -173,7 +175,7 @@ function groupLinesBySite(lines) {
     }));
 }
 
-function createApp(dbPath = DEFAULT_DB_PATH) {
+function createApp(dbPath = DEFAULT_DB_PATH, auditPath = process.env.PLMS_SLD_AUDIT || path.join(__dirname, '..', 'sld_audit', 'audit.json')) {
   const db = new Database(dbPath, { readonly: true, fileMustExist: true });
   const app = express();
   app.set('view engine', 'ejs');
@@ -297,6 +299,32 @@ function getOfficialHistory(lineId) {
 }
 
 // ------------------------------------------------------------------ routes
+
+app.get('/sld-audit', (req, res) => {
+  const view = { audit: null, contexts: [], selected: null, evidence: {}, message: null };
+  if (!fs.existsSync(auditPath)) {
+    view.message = 'Audit SLD Jakban belum tersedia. Jalankan sld_topology_audit.py untuk membuat laporan.';
+    return res.render('sld-audit', view);
+  }
+  try {
+    const audit = JSON.parse(fs.readFileSync(auditPath, 'utf8'));
+    const hash = crypto.createHash('sha256').update(fs.readFileSync(dbPath)).digest('hex');
+    const walPath = `${dbPath}-wal`;
+    const walHash = fs.existsSync(walPath) ? crypto.createHash('sha256').update(fs.readFileSync(walPath)).digest('hex') : null;
+    if (audit.format_version !== 1 || audit.plms_database_sha256 !== hash || (audit.plms_wal_sha256 || null) !== walHash) {
+      view.message = 'Database berubah sejak audit dibuat. Buat ulang audit agar ID rele dan ruas sesuai dengan data saat ini.';
+      return res.status(409).render('sld-audit', view);
+    }
+    view.audit = audit;
+    view.contexts = audit.relay_contexts.filter(r => !req.query.line_id || String(r.line_id) === req.query.line_id);
+    view.selected = view.contexts.find(r => String(r.relay_function_id) === req.query.relay) || null;
+    view.evidence = Object.fromEntries(audit.relations.map(r => [r.edge_id, r]));
+    return res.render('sld-audit', view);
+  } catch (error) {
+    view.message = 'Laporan audit tidak dapat dibaca. Buat ulang laporan SLD Jakban.';
+    return res.status(503).render('sld-audit', view);
+  }
+});
 
 app.get('/', (req, res) => {
   const lines = listInScopeLines();

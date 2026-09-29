@@ -348,6 +348,60 @@ def test_compute_zones_z3_without_scanning_timers_argument_defaults_to_ambiguous
 
 # ------------------------------------------------------ persist_calculation_context
 
+def test_z3_trace_keeps_two_hops_when_first_impedance_and_transformer_are_missing(conn):
+    a, b, c, d = [_insert_site_ss(conn, name) for name in "ABCD"]
+    protected = _insert_line(conn, "A-B", a, b)
+    first = _insert_line(conn, "B-C", b, c)
+    second = _insert_line(conn, "C-D", c, d)
+    conn.execute("DELETE FROM line_electrical WHERE line_id=?", (first,))
+    rf = _insert_dist_relay(conn, a, protected)
+    zones = {r.zone: r for r in compute_relay_function_zones(conn, rf)}
+    assert {t[0] for t in zones["Z2"].branch_trace} == {first}
+    assert {t[0] for t in zones["Z3"].branch_trace} == {first, second}
+    assert all("line_electrical" in t[2] for t in zones["Z3"].branch_trace)
+    assert f"path={first}>{second}" in zones["Z3"].branch_trace[-1][2]
+    assert zones["Z3"].result is None
+
+
+def test_missing_remote_impedance_blocks_reach_even_when_xt1_available(conn, monkeypatch):
+    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda *args: 5.85)
+    a, b, c = [_insert_site_ss(conn, name) for name in "ABC"]
+    protected = _insert_line(conn, "A-B", a, b)
+    missing = _insert_line(conn, "B-C", b, c)
+    conn.execute("DELETE FROM line_electrical WHERE line_id=?", (missing,))
+    rf = _insert_dist_relay(conn, a, protected)
+    zones = {r.zone: r for r in compute_relay_function_zones(conn, rf)}
+    assert zones["Z1"].status == STATUS_COMPLETE
+    assert all(zones[z].result is None for z in ("Z2", "Z3"))
+
+
+def test_two_hop_gap_blocks_only_z3(conn, monkeypatch):
+    monkeypatch.setattr(calculation_loader, "resolve_transformer_reactance", lambda *args: 5.85)
+    a, b, c, d = [_insert_site_ss(conn, name) for name in "ABCD"]
+    protected = _insert_line(conn, "A-B", a, b)
+    _insert_line(conn, "B-C", b, c)
+    missing = _insert_line(conn, "C-D", c, d)
+    conn.execute("DELETE FROM line_electrical WHERE line_id=?", (missing,))
+    rf = _insert_dist_relay(conn, a, protected)
+    zones = {r.zone: r for r in compute_relay_function_zones(conn, rf)}
+    assert zones["Z2"].status == STATUS_COMPLETE
+    assert zones["Z3"].status == STATUS_INCOMPLETE_TOPOLOGY
+    assert zones["Z3"].result is None
+
+
+def test_forward_paths_exclude_return_to_local_and_out_of_service(conn):
+    a, b, c, d = [_insert_site_ss(conn, name) for name in "ABCD"]
+    protected = _insert_line(conn, "A-B", a, b)
+    _insert_line(conn, "A-B 2", a, b)
+    forward = _insert_line(conn, "B-C", b, c)
+    _insert_line(conn, "C-A", c, a)
+    off = _insert_line(conn, "B-D", b, d)
+    conn.execute("UPDATE line SET out_of_service=1 WHERE line_id=?", (off,))
+    one = build_remote_branches(conn, b, protected)
+    assert [p.line_id for p in one] == [forward]
+    assert build_two_hop_branches(conn, b, protected, one) == []
+    assert [p["line_id"] for p in calculation_loader.topology_branch_paths(conn, b, protected)] == [forward]
+
 def test_persist_writes_one_row_per_zone_with_expected_fields(conn):
     ss_a = _insert_site_ss(conn, "A")
     ss_b = _insert_site_ss(conn, "B")

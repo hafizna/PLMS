@@ -20,7 +20,8 @@ di-rebuild ulang.
 from __future__ import annotations
 
 import sqlite3
-import sys
+import argparse
+from pathlib import Path
 
 from calculation_loader import (
     STATUS_AMBIGUOUS_BRANCH,
@@ -77,7 +78,17 @@ def run(db_path: str) -> None:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Pakai: python3 calculation_run.py <db_path>")
-        sys.exit(1)
-    run(sys.argv[1])
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("db_path")
+    parser.add_argument("--sld-root", type=Path, help="generate Jakban relation audit after calculation")
+    parser.add_argument("--audit-out", type=Path, default=Path(__file__).with_name("sld_audit"))
+    parser.add_argument("--review", type=Path, help="reviewed GI crosswalk CSV")
+    args = parser.parse_args()
+    if args.review and not args.sld_root:
+        parser.error("--review requires --sld-root")
+    run(args.db_path)
+    if args.sld_root:
+        from sld_topology_audit import run as run_audit
+        report = run_audit(args.sld_root, args.db_path, args.audit_out, args.review)
+        print(f"Audit relasi SLD: {args.audit_out / 'report.md'}")
+        print(f"Rele dengan bukti SLD: {report['summary']['relays_with_sld_evidence']}")

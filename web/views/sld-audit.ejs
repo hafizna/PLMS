@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PLMS — Relasi SLD untuk Z2/Z3</title>
+  <link rel="stylesheet" href="/public/style.css">
+</head>
+<body>
+  <header>
+    <p class="breadcrumb"><a href="/">&larr; Daftar penghantar</a></p>
+    <h1>Relasi SLD untuk Z2/Z3</h1>
+    <p class="sub">Cabang dari sudut pandang rele pada GI asal. Kandidat SLD memerlukan review sebelum menjadi input perhitungan reach.</p>
+  </header>
+  <main>
+  <% if (message) { %>
+    <p class="warn"><%= message %></p>
+  <% } else { %>
+    <p><%= audit.summary.workbooks %> workbook Jakban &middot; <%= audit.summary.relay_functions %> rele DIST &middot; <%= audit.summary.relays_with_sld_evidence %> rele memiliki bukti SLD pada cabang yang ditelusuri.</p>
+    <form method="get" action="/sld-audit" class="toolbar">
+      <label for="relay">Rele / arah penghantar</label>
+      <select id="relay" name="relay" class="filter-select">
+        <option value="">Pilih rele</option>
+        <% contexts.forEach(r => { %>
+        <option value="<%= r.relay_function_id %>" <%= selected?.relay_function_id === r.relay_function_id ? 'selected' : '' %>>#<%= r.relay_function_id %> · <%= r.local_name %> → <%= r.remote_name || 'ujung belum diketahui' %> · <%= r.bay || r.protected_line_name || 'ruas belum terpetakan' %></option>
+        <% }) %>
+      </select>
+      <button type="submit">Lihat cabang</button>
+      <a href="/sld-audit">Semua rele</a>
+    </form>
+    <% if (selected) { %>
+      <h2>#<%= selected.relay_function_id %> — <%= selected.local_name %> → <%= selected.remote_name || 'ujung belum diketahui' %></h2>
+      <p>Protected line: <% if (selected.line_id) { %><a href="/line/<%= selected.line_id %>"><%= selected.protected_line_name %></a><% } else { %>belum terpetakan<% } %></p>
+      <p class="warn">Input yang belum tersedia: <%= selected.blockers.join(', ') || 'lihat status setiap cabang' %>. Audit ini tidak menghasilkan angka reach atau setting.</p>
+      <% for (const zone of ['Z2', 'Z3']) { %>
+        <h3><%= zone %> — <%= zone === 'Z2' ? 'cabang langsung dari GI lawan' : 'cabang satu dan dua hop dari GI lawan' %></h3>
+        <% if (!selected.zones[zone].length) { %><p class="empty">Tidak ada path yang dapat ditelusuri pada data saat ini.</p><% } else { %>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Hop setelah GI lawan</th><th>Urutan ruas</th><th>Relasi / kelengkapan</th><th>Bukti SLD dan PoV</th></tr></thead>
+          <tbody><% selected.zones[zone].forEach(p => { %>
+            <tr>
+              <td><%= p.hop %></td>
+              <td><% p.path.forEach((s, i) => { %>
+                <div><%= i + 1 %>. <% if (s.line_id) { %><a href="/line/<%= s.line_id %>"><%= s.name %></a><% } else { %><%= s.name %><% } %></div>
+              <% }) %></td>
+              <td><%= p.path.map(s => s.relation_status).join(' → ') %><br>
+                <% if (p.excluded_reason) { %><strong>Dikecualikan: <%= p.excluded_reason %></strong><br><% } %>
+                <%= p.blockers.join(', ') || 'Data ruas tersedia; periksa kelengkapan konteks rele di atas.' %>
+              </td>
+              <td><% const refs = [...new Set(p.path.flatMap(s => s.sld_evidence))]; %>
+                <% if (!refs.length) { %>Tidak tercatat pada SLD yang dicocokkan<% } %>
+                <% refs.forEach(id => { const e = evidence[id]; if (e) { %>
+                  <div><%= e.file %> · <%= e.sheet %>:<%= e.row %><br><small>PoV: <%= e.views || 'tidak dibatasi pada baris sumber' %></small></div>
+                  <% if (e.source_pov_note) { %><small>Catatan PoV sumber: <%= e.source_pov_note %></small><% } %>
+                <% } }) %>
+              </td>
+            </tr>
+          <% }) %></tbody>
+        </table></div>
+        <% } %>
+      <% } %>
+    <% } else { %>
+      <p>Pilih rele untuk melihat GI lawan, urutan cabang, relasi kandidat, dan kekurangan data setiap path.</p>
+    <% } %>
+  <% } %>
+  </main>
+</body>
+</html>

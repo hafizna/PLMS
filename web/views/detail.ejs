@@ -9,6 +9,7 @@
   <header>
     <p class="breadcrumb"><a href="/">&larr; Daftar penghantar</a></p>
     <h1><%= line.line_name || '(tanpa nama)' %></h1>
+    <p><a href="/sld-audit?line_id=<%= line.line_id %>">Lihat cabang Z2/Z3 dari SLD Jakban untuk rele pada ruas ini</a></p>
     <p class="sub">
       <%= line.voltage_kv == null ? 'kV tdk diketahui' : line.voltage_kv + ' kV' %> &middot; sumber: <span class="source-<%= line.source.toLowerCase() %>"><%= line.source %></span>
       <% if (line.is_boundary) { %> &middot; <strong>boundary</strong> (satu ujung di luar scope)<% } %>
